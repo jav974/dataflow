@@ -1,5 +1,5 @@
 import React, { createContext, useCallback, useContext, useEffect, useState } from "react";
-import { AppConfig, ConnectionConfig, ConnectorConfig, Coordinates, InputConfig, NodeConfig, OutputConfig } from "@/components/config/Schema";
+import { AppConfig, ConnectionConfig, ConnectorConfig, Coordinates, InputConfig, NodeConfig, NodeType, OutputConfig } from "@/components/config/Schema";
 import { RefState, useRefState } from "@/hooks/useRefState";
 
 interface GraphContextType {
@@ -9,7 +9,7 @@ interface GraphContextType {
     zoom: RefState<number>;
     scale: RefState<number>;
     canvasPosition: RefState<Coordinates>;
-    variables: string[];
+    variables: RefState<Map<string, string>>;
     addNode: (node: NodeConfig) => void;
     updateNode: (node: NodeConfig) => void;
     removeNode: (id: string) => void;
@@ -25,7 +25,9 @@ interface GraphContextType {
     loadGraph: (graph: AppConfig) => void;
     zoomIn: () => void;
     zoomOut: () => void;
-    addVariable: (name: string) => void;
+    setVariable: (nodeId: string, name: string) => void;
+    removeVariable: (nodeId: string) => void;
+    setNodeContext: (nodeId: string, context: Map<string, any>) => void;
 }
 
 const GraphContext = createContext<GraphContextType | null>(null);
@@ -41,7 +43,7 @@ export function GraphProvider({children}: GraphProviderProps) {
     const canvasPosition = useRefState<Coordinates>({x: 0, y: 0});
     const zoom = useRefState<number>(100);
     const scale = useRefState<number>(zoom.ref.current != 0 ? 1 / (zoom.ref.current / 100) : 0);
-    const [variables, setVariables] = useState<string[]>([]);
+    const variables = useRefState<Map<string, string>>(new Map());
 
     useEffect(() => {
         scale.update(zoom.ref.current != 0 ? 1 / (zoom.ref.current / 100) : 0);
@@ -79,6 +81,10 @@ export function GraphProvider({children}: GraphProviderProps) {
         const index = nodes.ref.current.findIndex((n: NodeConfig) => n.id === id);
 
         if (index !== -1) {
+            if (nodes.ref.current.at(index)?.type === NodeType.SET) {
+                removeVariable(id);
+            }
+
             nodes.ref.current.splice(index, 1);
             removeConnectionsByPredicate(conn => (conn.from.id === id || conn.to.id === id));
             nodes.setLastUpdated(Date.now());
@@ -178,7 +184,14 @@ export function GraphProvider({children}: GraphProviderProps) {
         nodes.update(graph.nodes);
         connections.update(graph.connections ?? []);
         zoom.update(graph.zoom ?? 100);
-        setVariables(graph.variables ?? []);
+
+        const _variables = JSON.parse(graph.variables ?? "{}");
+        const _map: Map<string, string> = new Map();
+        for (const [key, value] of Object.entries<string>(_variables)) {
+            _map.set(key, value);
+        }
+
+        variables.update(_map);
     }, []);
 
     const zoomIn = useCallback(() => {
@@ -189,11 +202,23 @@ export function GraphProvider({children}: GraphProviderProps) {
         zoom.update(zoom.ref.current - 2);
     }, []);
 
-    const addVariable = useCallback((name: string) => {
-        if (!variables.includes(name)) {
-            setVariables([...variables, name]);
+    const setVariable = useCallback((nodeId: string, name: string) => {
+        variables.ref.current.set(nodeId, name);
+        variables.setLastUpdated(Date.now());
+    }, []);
+
+    const removeVariable = useCallback((nodeId: string) => {
+        variables.ref.current.delete(nodeId);
+        variables.setLastUpdated(Date.now());
+    }, []);
+
+    const setNodeContext = useCallback((nodeId: string, context: Map<string, any>) => {
+        const node = nodes.ref.current.find((n: NodeConfig) => n.id === nodeId);
+
+        if (node) {
+            updateNode({...node, context: JSON.stringify(Object.fromEntries(context))});
         }
-    }, [variables]);
+    }, [updateNode]);
 
     return <GraphContext.Provider value={{
         name,
@@ -218,7 +243,9 @@ export function GraphProvider({children}: GraphProviderProps) {
         loadGraph,
         zoomIn,
         zoomOut,
-        addVariable
+        setVariable,
+        removeVariable,
+        setNodeContext
     }}>
         {children}
     </GraphContext.Provider>

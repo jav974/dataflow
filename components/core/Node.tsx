@@ -10,7 +10,7 @@ import NodeInputs from "./NodeInputs";
 import NodeOutputs from "./NodeOutputs";
 import useHoverable from "@/hooks/useHoverable";
 
-export interface NodeProps extends NodeConfig {
+export interface NodeProps extends Omit<NodeConfig, "context"> {
     children?: React.ReactNode;
     size?: { width: number; height: number };
     hasExecute?: boolean;
@@ -18,9 +18,10 @@ export interface NodeProps extends NodeConfig {
     multiple?: boolean;
     minInputParams?: number;
     inputMultipleType?: ParameterType;
+    context?: Map<string, any>;
 }
 
-export default function Node({ id, type, children, size, name, description, inputs, outputs, position,
+export default function Node({ id, children, size, name, description, inputs, outputs, position,
     hasExecute = true, hasContinue = true, multiple = false, minInputParams = 0, inputMultipleType
  }: NodeProps) {
     const inputPinsRef = useRef<Map<string, HTMLDivElement | null>>(new Map());
@@ -153,14 +154,16 @@ export default function Node({ id, type, children, size, name, description, inpu
                 {children}
 
                 <div className="grid grid-cols-2 gap-1">
-                    <NodeInputs
-                        nodeId={id}
-                        inputs={inputs}
-                        onRef={onPinInputRef}
-                        multiple={multiple}
-                        minInputParams={minInputParams}
-                        inputMultipleType={inputMultipleType}
-                    />
+                    <div>
+                        <NodeInputs
+                            nodeId={id}
+                            inputs={inputs}
+                            onRef={onPinInputRef}
+                            multiple={multiple}
+                            minInputParams={minInputParams}
+                            inputMultipleType={inputMultipleType}
+                        />
+                    </div>
 
                     <NodeOutputs nodeId={id} outputs={outputs} onRef={onPinOutputRef} />
                 </div>

@@ -8,23 +8,23 @@ import { yupResolver } from "@hookform/resolvers/yup"
 import * as yup from "yup"
 
 interface SetVarNodeProps extends Omit<NodeProps, "type"> {
-
 }
 
 export default function SetVarNode({id, position, inputs, outputs}: SetVarNodeProps) {
-    const {addNodeInput, addNodeOutput, addVariable} = useGraphContext();
+    const {addNodeInput, addNodeOutput, setVariable, variables, setNodeContext} = useGraphContext();
     const formRef = useRef<HTMLFormElement | null>(null);
     const schema = useMemo(() => yup.object({name: yup.string().required()}), []);
     const {register, handleSubmit, formState: { errors }} = useForm({
         resolver: yupResolver(schema),
         defaultValues: {
-            name: ""
+            name: variables.ref.current.get(id) ?? ""
         }
     });
     const onSubmit = useCallback((data: any, event?: React.BaseSyntheticEvent) => {
         event?.preventDefault();
-        addVariable(data.name);
-    }, [id, addVariable]);
+        setVariable(id, data.name);
+        setNodeContext(id, (new Map()).set('var', data.name));
+    }, [id, setVariable, setNodeContext]);
 
     const onBlur = useCallback(() => {
         formRef.current?.requestSubmit();

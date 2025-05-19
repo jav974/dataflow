@@ -5,6 +5,7 @@ import MathNode from "./math/MathNode";
 import SetVarNode from "./variables/SetVarNode";
 import IfNode from "./conditional/IfNode";
 import GetVarNode from "./variables/GetVarNode";
+import { jsonToMap } from "@/engine/utils";
 
 registry.set(NodeType.FETCH, (node: NodeConfig) =>
     <FetchNode
@@ -13,7 +14,6 @@ registry.set(NodeType.FETCH, (node: NodeConfig) =>
         inputs={node.inputs}
         outputs={node.outputs}
         position={node.position}
-        executable={true}
     />
 );
 
@@ -99,5 +99,6 @@ registry.set(NodeType.GET, (node: NodeConfig) =>
         name={node.name}
         outputs={node.outputs}
         position={node.position}
+        context={jsonToMap<any>(node.context)}
     />
 );

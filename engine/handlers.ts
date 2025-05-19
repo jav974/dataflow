@@ -1,6 +1,7 @@
 import { NodeType, ParameterValueType } from "@/components/config/Schema";
 import registry, { NodeExecContext, NodeExecParams, NodeExecutor } from "./registry";
 import { isNumeric, math_add, math_div, math_mod, math_mul, math_sub } from "./lib";
+import executionContext from "./context";
 
 type SimpleMathContext = Map<string, (...numbers: number[]) => number>;
 
@@ -12,11 +13,11 @@ function toFloats(params: NodeExecParams): number[] {
     return Array.from(params.values()).map(toFloat);
 }
 
-const handleSimpleMath: NodeExecutor = (inputs: NodeExecParams, context?: NodeExecContext): NodeExecParams => {
+const handleSimpleMath: NodeExecutor = (inputs: NodeExecParams, context: NodeExecContext): NodeExecParams => {
     const result: NodeExecParams = new Map();
     const _inputs = toFloats(inputs);
     
-    result.set('result', context?.get('callback')(..._inputs));
+    result.set('result', context.get('callback')(..._inputs));
 
     return result;
 }
@@ -73,14 +74,24 @@ const handleConditionalIf: NodeExecutor = (inputs: NodeExecParams): NodeExecPara
     return result;
 };
 
-const handleSetVar: NodeExecutor = (inputs: NodeExecParams, context?: NodeExecContext): NodeExecParams => {
+const handleSetVar: NodeExecutor = (inputs: NodeExecParams, context: NodeExecContext): NodeExecParams => {
     const result: NodeExecParams = new Map();
-    const value = inputs.get('value');
+    const value = inputs.get(context.get('_node_id'));
 
     result.set('result', value);
+    executionContext.variables.set(context.get('var'), value);
 
     return result;
 }
+
+const handleGetVar: NodeExecutor = (inputs: NodeExecParams, context: NodeExecContext): NodeExecParams => {
+    const result: NodeExecParams = new Map();
+    const value = executionContext.variables.get(context.get('var'));
+
+    result.set('value', value);
+
+    return result;
+};
 
 registry.set(NodeType.MATH_ADD, handleMathAdd);
 registry.set(NodeType.MATH_SUB, handleMathSub);
@@ -89,4 +100,6 @@ registry.set(NodeType.MATH_DIV, handleMathDiv);
 registry.set(NodeType.MATH_MOD, handleMathMod);
 
 registry.set(NodeType.CONDITIONAL_IF, handleConditionalIf);
+
 registry.set(NodeType.SET, handleSetVar);
+registry.set(NodeType.GET, handleGetVar);

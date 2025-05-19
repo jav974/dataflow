@@ -33,13 +33,18 @@ export default function Toolbar() {
             const newConfig = { ...graph };
             newConfig.connections = connections.ref.current;
             newConfig.nodes = nodes.ref.current.map((node: NodeConfig) => {
-                return {...node, position: nodesPositions.ref.current.get(node.id)?.position ?? node.position};
+                const _node = nodesPositions.ref.current.get(node.id);
+
+                return {
+                    ...node,
+                    position: _node?.position ?? node.position,
+                };
             });
             newConfig.zoom = zoom.ref.current;
-            newConfig.variables = variables;
+            newConfig.variables = JSON.stringify(Object.fromEntries(variables.ref.current));
             saveGraph(graph.name, newConfig);
         }
-    }, [graph, variables, saveGraph]);
+    }, [graph, saveGraph]);
 
     const onDeleteGraphClick = useCallback(() => {
         setIsDeleteModalOpen(true);

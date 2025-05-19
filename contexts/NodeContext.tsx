@@ -15,11 +15,12 @@ export interface InputPin extends InputConfig, Pin {
 export interface OutputPin extends OutputConfig, Pin {
 }
 
-export interface Node extends Omit<NodeConfig, "executable" | "name" | "type"> {
+export interface Node extends Omit<NodeConfig, "executable" | "name" | "type" | "context"> {
     inputs: InputPin[];
     outputs: OutputPin[];
     executePin?: Pin;
     continuePin?: Pin;
+    context?: Map<string, any>;
 }
 
 interface Connector {

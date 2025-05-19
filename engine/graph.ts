@@ -1,6 +1,7 @@
 import { AppConfig, ConnectionConfig, ConnectorConfig, InputConfig, NodeConfig, NodeType, OutputConfig, ParameterType, ParameterValueType } from "@/components/config/Schema";
 import registry from "./registry";
 import "./handlers";
+import { jsonToMap } from "./utils";
 
 export interface ExecutionInputResolver {
     graph: ExecutionGraph;
@@ -29,6 +30,7 @@ export interface ExecutionGraph {
     outputs: ExecutionOutput[];
     next: ExecutionGraph | null;
     visited: boolean;
+    context: Map<string, any>;
 }
 
 /**
@@ -86,6 +88,9 @@ export function inputConfigToExecutionInput(nodeId: string, input: InputConfig, 
 
 function nodeConfigToExecutionGraph(node: NodeConfig, graph: AppConfig): ExecutionGraph {
     const nextNode = findNextNode(node, graph);
+    const context = jsonToMap(node.context);
+
+    context.set('_node_id', node.id);
 
     return {
         nodeId: node.id,
@@ -98,7 +103,8 @@ function nodeConfigToExecutionGraph(node: NodeConfig, graph: AppConfig): Executi
             value: undefined
         })) ?? [],
         visited: false,
-        next: nextNode ? nodeConfigToExecutionGraph(nextNode, graph) : null
+        context,
+        next: nextNode ? nodeConfigToExecutionGraph(nextNode, graph) : null,
     };
 }
 
@@ -129,7 +135,7 @@ export function handleExecution(graph: ExecutionGraph): ExecutionGraph {
     const executor = registry.get(graph.nodeType);
 
     if (executor) {
-        const result = executor(rawInputs, undefined);
+        const result = executor(rawInputs, graph.context);
 
         graph.outputs = graph.outputs.map((output: ExecutionOutput) => {
             if (result.has(output.outputId)) {

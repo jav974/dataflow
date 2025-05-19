@@ -59,11 +59,11 @@ export default function ContextMenu() {
                     name: "Variables",
                     children: [
                         {
-                            name: "Get variable",
+                            name: "Get",
                             spawn: () => spawnNode(NodeType.GET, false)
                         },
                         {
-                            name: "Set variable",
+                            name: "Set",
                             spawn: () => spawnNode(NodeType.SET, true)
                         }
                     ]

@@ -34,7 +34,8 @@ interface AppConfig {
     nodes: NodeConfig[];
     connections?: ConnectionConfig[];
     zoom?: number;
-    variables?: string[];
+    // JSON.stringify() of a Map<string, string>
+    variables?: string;
 }
 
 interface Coordinates {
@@ -51,6 +52,8 @@ interface NodeConfig {
     inputs?: InputConfig[];
     outputs?: OutputConfig[];
     position: Coordinates;
+    // JSON.stringify() of a Map<string, any>
+    context?: string;
 }
 
 interface ConnectorConfig {
