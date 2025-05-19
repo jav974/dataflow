@@ -1,0 +1,79 @@
+import { useCallback, useEffect, useRef, useState } from "react";
+import { Graphics } from "pixi.js";
+import { ConnectorConfig, Coordinates } from "../config/Schema";
+import { Node, Pin, useNodes } from "@/contexts/NodeContext";
+import { drawBezierCurve } from "./functions";
+import FastGraphics from "./FastGraphics";
+import { LINE_STYLE } from "../config/Style";
+
+interface ConnectionProps {
+    from: ConnectorConfig;
+    to: ConnectorConfig;
+}
+
+export default function Connection({from, to}: ConnectionProps) {
+    const { nodes } = useNodes();
+    const fromNode = useRef<Node | undefined>(undefined);
+    const toNode = useRef<Node | undefined>(undefined);
+    const fromPin = useRef<Pin | undefined>(undefined);
+    const toPin = useRef<Pin | undefined>(undefined);
+    const fromPos = useRef<Coordinates | undefined>(undefined);
+    const toPos = useRef<Coordinates | undefined>(undefined);
+    const [updatedAt, setUpdatedAt] = useState<number>(0);
+
+    useEffect(() => {
+        // Initialize nodes
+        if (from.id !== fromNode.current?.id || to.id !== toNode.current?.id) {
+            fromNode.current = nodes.ref.current.get(from.id);
+            toNode.current = nodes.ref.current.get(to.id);
+
+            // Initialize pins
+            if (fromNode.current && toNode.current) {
+                if (from.pin === 'continue' && to.pin === 'execute') {
+                    fromPin.current = fromNode.current.continuePin;
+                    toPin.current = toNode.current.executePin;
+                } else {
+                    fromPin.current = fromNode.current.outputs.find(output => output.id === from.pin);
+                    toPin.current = toNode.current.inputs.find(input => input.id === to.pin);
+                }
+            }
+        }
+
+        // Compute position
+        if (fromNode.current && fromPin.current && toNode.current && toPin.current) {
+            const tmpFrom: Coordinates = { x: fromNode.current.position.x + fromPin.current.position.x, y: fromNode.current.position.y + fromPin.current.position.y };
+            const tmpTo: Coordinates = { x: toNode.current.position.x + toPin.current.position.x, y: toNode.current.position.y + toPin.current.position.y };
+            
+            // Trigger redraw if position has changed
+            if (fromPos.current?.x !== tmpFrom.x || fromPos.current?.y !== tmpFrom.y
+                || toPos.current?.x !== tmpTo.x || toPos.current?.y !== tmpTo.y
+            ) {
+                fromPos.current = tmpFrom;
+                toPos.current = tmpTo;
+                setUpdatedAt(Date.now());
+            }
+        } else {
+            fromPos.current = undefined;
+            toPos.current = undefined;
+        }
+
+        return () => {
+            fromNode.current = undefined;
+            toNode.current = undefined;
+            fromPos.current = undefined;
+            toPos.current = undefined;
+        };
+    }, [from, to, nodes.lastUpdated]);
+
+    const draw = useCallback((g: Graphics) => {
+        g.clear();
+
+        if (fromPos.current && toPos.current) {
+            g.beginPath();
+            drawBezierCurve(g, fromPos.current, toPos.current);
+            g.stroke(LINE_STYLE);
+        }
+    }, []);
+
+    return <FastGraphics draw={draw} drawDependencies={[updatedAt]}/>
+}
