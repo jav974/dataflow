@@ -1,7 +1,9 @@
 import { AppConfig, ConnectionConfig, ConnectorConfig, InputConfig, NodeConfig, NodeType, OutputConfig, ParameterType, ParameterValueType } from "@/components/config/Schema";
 import registry from "./registry";
-import "./handlers";
 import { jsonToMap } from "./utils";
+import "./handlers";
+
+const graphs: Map<string, ExecutionGraph> = new Map();
 
 export interface ExecutionInputResolver {
     graph: ExecutionGraph;
@@ -33,28 +35,23 @@ export interface ExecutionGraph {
     context: Map<string, any>;
 }
 
-/**
- * Find the starting point(s) for the given graph
- * Starting points are determined by:
- * - Trigger nodes (each trigger node is a beginning of a graph path)
- * - Nodes that possess an execute and a continue pin, with unconnected execute pin (and thus are executable)
- * 
- * @param graph
- */
-export function findStartNodes(graph: AppConfig): NodeConfig[] {
-    // Filter nodes that have their execute pin connected
-    const excludedNodes = graph.connections
-        ?.filter((conn: ConnectionConfig) => conn.to.pin === 'execute')
-        .map((conn: ConnectionConfig) => conn.to.id) ?? [];
-
-    const nodes = graph.nodes.filter((node: NodeConfig) =>
-        node.executable && !excludedNodes.includes(node.id)
+export function findStartNode(graph: AppConfig): NodeConfig | undefined {
+    let node = graph.nodes.find((n: NodeConfig) =>
+        n.type === NodeType.START
     );
 
-    return nodes;
+    if (node) {
+        return node;
+    }
+
+    node = graph.nodes.find((n: NodeConfig) =>
+        n.type === NodeType.TRIGGER
+    );
+
+    return node;
 }
 
-function findNextNode(node: NodeConfig, graph: AppConfig): NodeConfig | undefined {
+export function findNextNode(node: NodeConfig, graph: AppConfig): NodeConfig | undefined {
     const connection = graph.connections?.find((c: ConnectionConfig) => c.from.id === node.id && c.from.pin === "continue");
 
     if (!connection) {
@@ -88,13 +85,19 @@ export function inputConfigToExecutionInput(nodeId: string, input: InputConfig, 
     };
 }
 
-function nodeConfigToExecutionGraph(node: NodeConfig, graph: AppConfig): ExecutionGraph {
+export function nodeConfigToExecutionGraph(node: NodeConfig, graph: AppConfig): ExecutionGraph {
+    let executionGraph: ExecutionGraph | undefined = graphs.get(node.id);
+
+    if (executionGraph) {
+        return executionGraph;
+    }
+
     const nextNode = findNextNode(node, graph);
     const context = jsonToMap(node.context);
 
     context.set('_node_id', node.id);
 
-    return {
+    executionGraph = {
         nodeId: node.id,
         nodeType: node.type,
         inputs: node.inputs?.map((input: InputConfig): ExecutionInput =>
@@ -108,8 +111,14 @@ function nodeConfigToExecutionGraph(node: NodeConfig, graph: AppConfig): Executi
         })) ?? [],
         visited: false,
         context,
-        next: nextNode ? nodeConfigToExecutionGraph(nextNode, graph) : null,
+        next: null,
     };
+
+    graphs.set(node.id, executionGraph);
+
+    executionGraph.next = nextNode ? nodeConfigToExecutionGraph(nextNode, graph) : null;
+
+    return executionGraph;
 }
 
 export function resolveInputs(graph: ExecutionGraph): Map<string, ParameterValueType> {
@@ -172,12 +181,14 @@ export function resolveExecutionGraph(graph: ExecutionGraph): ExecutionGraph {
 }
 
 export function buildExecutionGraph(graph: AppConfig): ExecutionGraph | undefined {
-    // Find start node in graph
-    const startingNodes = findStartNodes(graph);
+    const startingNode = findStartNode(graph);
 
-    if (startingNodes.length === 0) {
+    if (!startingNode) {
+        console.log("No starting node found: missing either Start or Trigger node");
         return undefined;
     }
 
-    return nodeConfigToExecutionGraph(startingNodes[0], graph);
+    graphs.clear();
+
+    return nodeConfigToExecutionGraph(startingNode, graph);
 }

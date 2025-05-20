@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { InputPin, OutputPin, Pin as PinType, useNodes } from "@/contexts/NodeContext";
-import PinExecute from "./PinExecute";
-import PinContinue from "./PinContinue";
+import PinExecute from "./pin/PinExecute";
+import PinContinue from "./pin/PinContinue";
 import { Delete02Icon } from "@hugeicons/core-free-icons";
 import BaseIcon from "../icons/BaseIcon";
 import { useGraphContext } from "@/contexts/GraphContext";
@@ -15,14 +15,16 @@ export interface NodeProps extends Omit<NodeConfig, "context"> {
     size?: { width: number; height: number };
     hasExecute?: boolean;
     hasContinue?: boolean;
-    multiple?: boolean;
+    inputMultiple?: boolean;
     minInputParams?: number;
     inputMultipleType?: ParameterType;
     context?: Map<string, any>;
+    outputMultiple?: boolean;
 }
 
-export default function Node({ id, children, size, name, description, inputs, outputs, position,
-    hasExecute = true, hasContinue = true, multiple = false, minInputParams = 0, inputMultipleType
+export default function Node({ id, type, children, size, name, description, inputs, outputs, position,
+    hasExecute = true, hasContinue = true, inputMultiple = false, minInputParams = 0, inputMultipleType,
+    outputMultiple = false
  }: NodeProps) {
     const inputPinsRef = useRef<Map<string, HTMLDivElement | null>>(new Map());
     const outputPinsRef = useRef<Map<string, HTMLDivElement | null>>(new Map());
@@ -153,19 +155,24 @@ export default function Node({ id, children, size, name, description, inputs, ou
 
                 {children}
 
-                <div className="grid grid-cols-2 gap-1">
-                    <div>
-                        <NodeInputs
-                            nodeId={id}
-                            inputs={inputs}
-                            onRef={onPinInputRef}
-                            multiple={multiple}
-                            minInputParams={minInputParams}
-                            inputMultipleType={inputMultipleType}
-                        />
-                    </div>
+                <div className={`${inputs && outputs ? 'grid-cols-2' : 'grid-cols-1'} grid gap-1`}>
+                    <NodeInputs
+                        nodeId={id}
+                        nodeType={type}
+                        inputs={inputs}
+                        onRef={onPinInputRef}
+                        multiple={inputMultiple}
+                        minInputParams={minInputParams}
+                        inputMultipleType={inputMultipleType}
+                    />
 
-                    <NodeOutputs nodeId={id} outputs={outputs} onRef={onPinOutputRef} />
+                    <NodeOutputs
+                        nodeId={id}
+                        nodeType={type}
+                        outputs={outputs}
+                        onRef={onPinOutputRef}
+                        multiple={outputMultiple}
+                    />
                 </div>
 
                 <div className={`${isHovered ? 'flex' : 'invisible'} justify-center mt-2`}>

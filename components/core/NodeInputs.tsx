@@ -1,6 +1,6 @@
 import { useCallback, useMemo } from "react";
-import { InputConfig, ParameterType } from "../config/Schema";
-import Pin from "./Pin";
+import { InputConfig, NodeType, ParameterType } from "../config/Schema";
+import Pin from "./pin/Pin";
 import useHoverable from "@/hooks/useHoverable";
 import BaseIcon from "../icons/BaseIcon";
 import { AddCircleIcon } from "@hugeicons/core-free-icons";
@@ -11,6 +11,7 @@ import { OutputPin, useNodes } from "@/contexts/NodeContext";
 
 interface NodeInputsProps {
     nodeId: string;
+    nodeType: NodeType;
     inputs?: InputConfig[];
     multiple?: boolean;
     minInputParams?: number;
@@ -18,7 +19,7 @@ interface NodeInputsProps {
     onRef: (inputId: string, el: HTMLDivElement | null) => void;
 }
 
-export default function NodeInputs({nodeId, inputs, onRef, multiple = false, minInputParams = 0, inputMultipleType}: NodeInputsProps) {
+export default function NodeInputs({nodeId, nodeType, inputs, onRef, multiple = false, minInputParams = 0, inputMultipleType}: NodeInputsProps) {
     const {isHovered, handleMouseEnter, handleMouseLeave} = useHoverable();
     const {addNodeInput, addConnection} = useGraphContext();
     const {nodes, connectionDrag, stopConnectionDrag} = useNodes();
@@ -27,14 +28,24 @@ export default function NodeInputs({nodeId, inputs, onRef, multiple = false, min
     const handleAddPin = useCallback(() => {
         if (!multiple) return ;
 
-        addNodeInput(nodeId, {
-            id: uuidv4(),
-            name: "",
-            type: inputMultipleType ?? ParameterType.STRING,
-            required: true,
-            editable: true
-        });
-    }, [addNodeInput, nodeId, inputs, inputMultipleType, multiple]);
+        if (nodeType !== NodeType.RETURN) {
+            addNodeInput(nodeId, {
+                id: uuidv4(),
+                name: "",
+                type: inputMultipleType ?? ParameterType.STRING,
+                required: true,
+                editable: true
+            });
+        } else {
+            addNodeInput(nodeId, {
+                id: uuidv4(),
+                name: "name",
+                type: ParameterType.ANY,
+                required: false,
+                editable: true
+            });
+        }
+    }, [addNodeInput, nodeId, inputs, inputMultipleType, multiple, nodeType]);
 
     const handlePointerUp = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
         if (!isHovered || !multiple || !connectionDrag) return ;
@@ -70,13 +81,13 @@ export default function NodeInputs({nodeId, inputs, onRef, multiple = false, min
         stopConnectionDrag();
     }, [nodeId, connectionDrag, inputMultipleType, isHovered, multiple, addNodeInput, addConnection, stopConnectionDrag]);
 
-    if (!inputs?.length) {
+    if (!inputs?.length && !multiple) {
         return null;
     }
 
     return (
         <div
-            className="space-y-2 border-transparent hover:border-black hover:border-dashed border-2 pb-2 pt-2"
+            className={`space-y-2 pb-2 pt-2 border-2 border-transparent ${multiple ? 'hover:border-black hover:border-dashed' : ''}`}
             onPointerEnter={handleMouseEnter}
             onPointerLeave={handleMouseLeave}
             onPointerUp={handlePointerUp}
@@ -86,6 +97,7 @@ export default function NodeInputs({nodeId, inputs, onRef, multiple = false, min
                     <Pin
                         id={input.id}
                         nodeId={nodeId}
+                        nodeType={nodeType}
                         name={input.name}
                         type={input.type}
                         required={input.required}

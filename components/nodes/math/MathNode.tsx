@@ -39,7 +39,7 @@ export default function MathNode({ id, name, type, description, inputs, position
             size={{width: 215, height: 100}}
             hasExecute={false}
             hasContinue={false}
-            multiple={true}
+            inputMultiple={true}
             minInputParams={2}
             inputMultipleType={ParameterType.NUMBER}
             executable={false}

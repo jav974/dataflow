@@ -1,6 +1,6 @@
 import { useNodes } from "@/contexts/NodeContext";
 import { useCallback, useMemo } from "react";
-import { NodeType } from "../config/Schema";
+import { NodeConfig, NodeType } from "../config/Schema";
 import { v4 as uuidv4 } from 'uuid';
 import { useGraphContext } from "@/contexts/GraphContext";
 
@@ -31,7 +31,7 @@ function HorizontalMenu({menu}: {menu: MenuTree}) {
 
 export default function ContextMenu() {
     const { rightClickPosition } = useNodes();
-    const { addNode, scale, canvasPosition } = useGraphContext();
+    const { addNode, scale, canvasPosition, nodes } = useGraphContext();
 
     const spawnNode = useCallback((type: NodeType, executable: boolean) => {
         if (!rightClickPosition) return ;
@@ -49,8 +49,32 @@ export default function ContextMenu() {
     }, [addNode, rightClickPosition]);
 
     const menu = useMemo((): MenuTree => {
+        const hasStartNode = nodes.ref.current.findIndex((n: NodeConfig) => n.type === NodeType.START) !== -1;
+        const hasReturnNode = nodes.ref.current.findIndex((n: NodeConfig) => n.type === NodeType.RETURN) !== -1;
+        const hasTriggerNode = nodes.ref.current.findIndex((n: NodeConfig) => n.type === NodeType.TRIGGER) !== -1;
+        const specialEntries: MenuTree[] = [];
+
+        if (!hasStartNode && !hasTriggerNode) {
+            specialEntries.push({
+                name: "Start",
+                spawn: () => spawnNode(NodeType.START, true)
+            });
+            specialEntries.push({
+                name: "Trigger",
+                spawn: () => spawnNode(NodeType.TRIGGER, true)
+            });
+        }
+
+        if (!hasReturnNode) {
+            specialEntries.push({
+                name: "Return",
+                spawn: () => spawnNode(NodeType.RETURN, true)
+            });
+        }
+
         return {
             children: [
+                ...specialEntries,
                 {
                     name: "Fetch",
                     spawn: () => spawnNode(NodeType.FETCH, true)
@@ -104,7 +128,7 @@ export default function ContextMenu() {
                 }
             ]
         }
-    }, [spawnNode]);
+    }, [spawnNode, nodes.lastUpdated]);
 
     if (!rightClickPosition) {
         return null;

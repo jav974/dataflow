@@ -6,6 +6,24 @@ import SetVarNode from "./variables/SetVarNode";
 import IfNode from "./conditional/IfNode";
 import GetVarNode from "./variables/GetVarNode";
 import { jsonToMap } from "@/engine/utils";
+import StartNode from "./special/StartNode";
+import ReturnNode from "./special/ReturnNode";
+
+registry.set(NodeType.START, (node: NodeConfig) =>
+    <StartNode
+        id={node.id}
+        outputs={node.outputs}
+        position={node.position}
+    />
+);
+
+registry.set(NodeType.RETURN, (node: NodeConfig) =>
+    <ReturnNode
+        id={node.id}
+        inputs={node.inputs}
+        position={node.position}
+    />
+);
 
 registry.set(NodeType.FETCH, (node: NodeConfig) =>
     <FetchNode

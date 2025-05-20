@@ -1,6 +1,6 @@
 import { KeyframeRightIcon } from "@hugeicons/core-free-icons";
-import { COLOR_BLUE } from "../config/Style";
-import BaseIcon from "../icons/BaseIcon";
+import { COLOR_BLUE } from "../../config/Style";
+import BaseIcon from "../../icons/BaseIcon";
 import useLinkable from "@/hooks/useLinkable";
 
 interface PinExecuteProps {

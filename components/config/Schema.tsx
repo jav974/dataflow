@@ -1,7 +1,10 @@
 enum NodeType {
+    START = "start",
+    RETURN = "return",
+    TRIGGER = "trigger",
+
     FETCH = "fetch",
 
-    MATH = "math",
     MATH_ADD = "add",
     MATH_SUB = "sub",
     MATH_MUL = "mul",
@@ -10,7 +13,6 @@ enum NodeType {
     MATH_SQRT = "sqrt",
     MATH_POW = "pow",
 
-    STRING = "string",
     STRING_CONCAT = "concat",
     STRING_TRIM = "trim",
     STRING_LTRIM = "ltrim",
@@ -19,7 +21,6 @@ enum NodeType {
     CONDITIONAL_IF = "conditional_if",
     SET = "set_variable",
     GET = "get_variable",
-    TRIGGER = "trigger",
 }
 
 enum ParameterType {

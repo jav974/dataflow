@@ -1,26 +1,65 @@
-import { OutputConfig } from "../config/Schema";
-import Pin from "./Pin";
+import { AddCircleIcon } from "@hugeicons/core-free-icons";
+import { NodeType, OutputConfig, ParameterType } from "../config/Schema";
+import BaseIcon from "../icons/BaseIcon";
+import Pin from "./pin/Pin";
+import { COLOR_BLUE } from "../config/Style";
+import useHoverable from "@/hooks/useHoverable";
+import { useGraphContext } from "@/contexts/GraphContext";
+import { useCallback } from "react";
+import { v4 as uuidv4 } from "uuid";
 
 interface NodeOutputsProps {
     nodeId: string;
+    nodeType: NodeType;
     outputs?: OutputConfig[];
+    multiple: boolean;
     onRef: (outputId: string, el: HTMLDivElement | null) => void;
 }
 
-export default function NodeOutputs({nodeId, outputs, onRef}: NodeOutputsProps) {
+export default function NodeOutputs({nodeId, nodeType, outputs, onRef, multiple}: NodeOutputsProps) {
+    const {isHovered, handleMouseEnter, handleMouseLeave} = useHoverable();
+    const {addNodeOutput} = useGraphContext();
+
+    const handleAddPin = useCallback(() => {
+        addNodeOutput(nodeId, {
+            id: uuidv4(),
+            name: "name",
+            type: ParameterType.ANY
+        });
+    }, [nodeId, addNodeOutput]);
+
     return (
-        <div className="space-y-2 pt-2">
+        <div
+            className={`space-y-2 pb-2 pt-2 border-2 border-transparent ${multiple ? 'hover:border-black hover:border-dashed' : ''}`}
+            onPointerEnter={handleMouseEnter}
+            onPointerLeave={handleMouseLeave}
+        >
             {outputs?.map((output) => (
                 <Pin
                     key={output.id}
                     id={output.id}
                     nodeId={nodeId}
+                    nodeType={nodeType}
                     name={output.name}
                     type={output.type}
                     isInput={false}
                     onRef={onRef}
+                    editable={multiple}
+                    removable={multiple}
                 />
             ))}
+
+            {multiple && isHovered &&
+            <div className="flex justify-center">
+                <BaseIcon
+                    icon={AddCircleIcon}
+                    size={16}
+                    color={COLOR_BLUE}
+                    strokeWidth={1.5}
+                    onClick={handleAddPin}
+                />
+            </div>
+            }
         </div>
     );
 }

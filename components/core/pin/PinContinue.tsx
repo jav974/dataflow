@@ -1,5 +1,5 @@
-import { COLOR_BLUE } from "../config/Style";
-import BaseIcon from "../icons/BaseIcon";
+import { COLOR_BLUE } from "../../config/Style";
+import BaseIcon from "../../icons/BaseIcon";
 import { KeyframeLeftIcon } from "@hugeicons/core-free-icons";
 import useLinkable from "@/hooks/useLinkable";
 

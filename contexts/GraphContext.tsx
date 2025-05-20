@@ -28,6 +28,8 @@ interface GraphContextType {
     setVariable: (nodeId: string, name: string) => void;
     removeVariable: (nodeId: string) => void;
     setNodeContext: (nodeId: string, context: Map<string, any>) => void;
+    setOutputName: (nodeId: string, outputId: string, name: string) => void;
+    setInputName: (nodeId: string, inputId: string, name: string) => void;
 }
 
 const GraphContext = createContext<GraphContextType | null>(null);
@@ -151,6 +153,32 @@ export function GraphProvider({children}: GraphProviderProps) {
         }
     }, [updateNode]);
 
+    const setOutputName = useCallback((nodeId: string, outputId: string, name: string) => {
+        const node = nodes.ref.current.find((n: NodeConfig) => n.id === nodeId);
+
+        if (node) {
+            const output = node.outputs?.find((o: OutputConfig) => o.id === outputId);
+
+            if (output) {
+                output.name = name;
+                updateNode({...node, outputs: node.outputs?.map((o: OutputConfig) => o.id === outputId ? output : o)});
+            }
+        }
+    }, [updateNode]);
+
+    const setInputName = useCallback((nodeId: string, inputId: string, name: string) => {
+        const node = nodes.ref.current.find((n: NodeConfig) => n.id === nodeId);
+
+        if (node) {
+            const input = node.inputs?.find((i: InputConfig) => i.id === inputId);
+
+            if (input) {
+                input.name = name;
+                updateNode({...node, inputs: node.inputs?.map((i: InputConfig) => i.id === inputId ? input : i)});
+            }
+        }
+    }, [updateNode]);
+
     const addConnection = useCallback((connection: ConnectionConfig) => {
         const index = connections.ref.current.findIndex((c: ConnectionConfig) => {
             return c.from.id === connection.from.id && c.from.pin === connection.from.pin && 
@@ -245,7 +273,9 @@ export function GraphProvider({children}: GraphProviderProps) {
         zoomOut,
         setVariable,
         removeVariable,
-        setNodeContext
+        setNodeContext,
+        setOutputName,
+        setInputName,
     }}>
         {children}
     </GraphContext.Provider>

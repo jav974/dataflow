@@ -93,6 +93,19 @@ const handleGetVar: NodeExecutor = (inputs: NodeExecParams, context: NodeExecCon
     return result;
 };
 
+const handleStart: NodeExecutor = (inputs: NodeExecParams, context: NodeExecContext): NodeExecParams => {
+    // TODO
+    return new Map();
+};
+
+const handleReturn: NodeExecutor = (inputs: NodeExecParams, context: NodeExecContext): NodeExecParams => {
+    // TODO
+    return new Map();
+};
+
+registry.set(NodeType.START, handleStart);
+registry.set(NodeType.RETURN, handleReturn);
+
 registry.set(NodeType.MATH_ADD, handleMathAdd);
 registry.set(NodeType.MATH_SUB, handleMathSub);
 registry.set(NodeType.MATH_MUL, handleMathMul);
