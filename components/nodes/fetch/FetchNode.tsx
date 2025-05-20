@@ -9,7 +9,7 @@ interface FetchNodeProps extends Omit<NodeProps, "type" | "executable"> {
 
 export default function FetchNode({ id, name, description, inputs, outputs, position }: FetchNodeProps) {
     const {addNodeInput} = useGraphContext();
-    const [configureModalOpen, setConfigureModalOpen] = useState(false);
+    const [configureModalOpen, setConfigureModalOpen] = useState<boolean>(false);
 
     useEffect(() => {
         if (!inputs) {

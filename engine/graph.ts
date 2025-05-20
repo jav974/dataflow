@@ -66,7 +66,9 @@ function findNextNode(node: NodeConfig, graph: AppConfig): NodeConfig | undefine
 
 export function inputConfigToExecutionInput(nodeId: string, input: InputConfig, graph: AppConfig): ExecutionInput {
     // Check if input is connected to an existing output
-    const connection = graph.connections?.find((c: ConnectionConfig) => c.to.id === nodeId && c.to.pin === input.id);
+    const connection = graph.connections?.find((c: ConnectionConfig) =>
+        c.to.id === nodeId && c.to.pin === input.id
+    );
     let executionGraph: ExecutionGraph | undefined;
     
     if (connection) {
@@ -95,7 +97,9 @@ function nodeConfigToExecutionGraph(node: NodeConfig, graph: AppConfig): Executi
     return {
         nodeId: node.id,
         nodeType: node.type,
-        inputs: node.inputs?.map((input: InputConfig): ExecutionInput => inputConfigToExecutionInput(node.id, input, graph)),
+        inputs: node.inputs?.map((input: InputConfig): ExecutionInput =>
+            inputConfigToExecutionInput(node.id, input, graph)
+        ),
         outputs: node.outputs?.map((output: OutputConfig): ExecutionOutput => ({
             nodeId: node.id,
             outputId: output.id,
