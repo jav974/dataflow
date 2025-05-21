@@ -76,7 +76,7 @@ const handleConditionalIf: NodeExecutor = (inputs: NodeExecParams): NodeExecPara
 
 const handleSetVar: NodeExecutor = (inputs: NodeExecParams, context: NodeExecContext): NodeExecParams => {
     const result: NodeExecParams = new Map();
-    const value = inputs.get(context.get('_node_id'));
+    const value = inputs.get('value');
 
     result.set('result', value);
     executionContext.variables[context.get('var')] = value;

@@ -213,13 +213,18 @@ export function GraphProvider({children}: GraphProviderProps) {
         connections.update(graph.connections ?? []);
         zoom.update(graph.zoom ?? 100);
 
-        const _variables = JSON.parse(graph.variables ?? "{}");
-        const _map: Map<string, string> = new Map();
-        for (const [key, value] of Object.entries<string>(_variables)) {
-            _map.set(key, value);
-        }
+        try {
+            const _variables = JSON.parse(graph.variables ?? "{}");
+            const _map: Map<string, string> = new Map();
+            for (const [key, value] of Object.entries<string>(_variables)) {
+                _map.set(key, value);
+            }
 
-        variables.update(_map);
+            variables.update(_map);
+        } catch (e: any) {
+            variables.update(new Map());
+            console.log("Error deserializing schema variables", e);
+        }
     }, []);
 
     const zoomIn = useCallback(() => {
