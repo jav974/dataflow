@@ -1,21 +1,16 @@
-'use client'
-
 import { useCallback, useState } from "react";
 import PlayButton from "../buttons/PlayButton";
 import { useUserGraph } from "@/contexts/UserGraphContext";
 import NewGraphButton from "../buttons/NewGraphButton";
 import NewGraphModal from "./NewGraphModal";
 import SaveButton from "../buttons/SaveButton";
-import { useNodes } from "@/contexts/NodeContext";
 import DeleteGraphButton from "../buttons/DeleteGraphButton";
 import DeleteGraphModal from "./DeleteGraphModal";
 import { useGraphContext } from "@/contexts/GraphContext";
-import { NodeConfig } from "../config/Schema";
 import { getExecutionGraph, resolveGraph } from "@/actions/graph";
 
 export default function Toolbar() {
     const { graphs, loadGraph, graph, saveGraph, deleteGraph } = useUserGraph();
-    const { nodes: nodesPositions } = useNodes();
     const { connections, nodes, zoom, variables } = useGraphContext();
     const [isNewModalOpen, setIsNewModalOpen] = useState(false);
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -32,14 +27,7 @@ export default function Toolbar() {
         if (graph) {
             const newConfig = { ...graph };
             newConfig.connections = connections.ref.current;
-            newConfig.nodes = nodes.ref.current.map((node: NodeConfig) => {
-                const _node = nodesPositions.ref.current.get(node.id);
-
-                return {
-                    ...node,
-                    position: _node?.position ?? node.position,
-                };
-            });
+            newConfig.nodes = nodes.ref.current;
             newConfig.zoom = zoom.ref.current;
             newConfig.variables = JSON.stringify(Object.fromEntries(variables.ref.current));
             saveGraph(graph.name, newConfig);

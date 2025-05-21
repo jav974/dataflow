@@ -1,55 +1,54 @@
 import { useGraphContext } from "@/contexts/GraphContext";
 import Node, { NodeProps } from "../../core/Node";
-import { v4 as uuidv4 } from "uuid";
 import { useCallback, useEffect, useMemo, useRef } from "react";
-import { NodeType, ParameterType } from "../../config/Schema";
+import { ParameterType } from "../../config/Schema";
 import { useForm } from "react-hook-form"
 import { yupResolver } from "@hookform/resolvers/yup"
 import * as yup from "yup"
 
-interface SetVarNodeProps extends Omit<NodeProps, "type"> {
+interface SetVarNodeProps extends NodeProps {
 }
 
-export default function SetVarNode({id, position, inputs, outputs}: SetVarNodeProps) {
+export default function SetVarNode({node}: SetVarNodeProps) {
     const {addNodeInput, addNodeOutput, setVariable, variables, setNodeContext} = useGraphContext();
     const formRef = useRef<HTMLFormElement | null>(null);
     const schema = useMemo(() => yup.object({name: yup.string().required()}), []);
     const {register, handleSubmit, formState: { errors }} = useForm({
         resolver: yupResolver(schema),
         defaultValues: {
-            name: variables.ref.current.get(id) ?? ""
+            name: variables.ref.current.get(node.id) ?? ""
         }
     });
     const onSubmit = useCallback((data: any, event?: React.BaseSyntheticEvent) => {
         event?.preventDefault();
-        setVariable(id, data.name);
-        setNodeContext(id, (new Map()).set('var', data.name));
-    }, [id, setVariable, setNodeContext]);
+        setVariable(node.id, data.name);
+        setNodeContext(node.id, (new Map()).set('var', data.name));
+    }, [node.id, setVariable, setNodeContext]);
 
     const onBlur = useCallback(() => {
         formRef.current?.requestSubmit();
     }, []);
 
     useEffect(() => {
-        if (!inputs) {
-            addNodeInput(id, {
-                id: id,
+        if (!node.inputs) {
+            addNodeInput(node.id, {
+                id: "value",
                 name: "value",
                 required: true,
                 type: ParameterType.ANY
             });
         }
-    }, [id, inputs, addNodeInput]);
+    }, [node.id, node.inputs, addNodeInput]);
 
     useEffect(() => {
-        if (!outputs) {
-            addNodeOutput(id, {
+        if (!node.outputs) {
+            addNodeOutput(node.id, {
                 id: "result",
                 name: "result",
                 type: ParameterType.ANY
             });
         }
-    }, [id, outputs, addNodeOutput]);
+    }, [node.id, node.outputs, addNodeOutput]);
 
     const inputClassName = errors["name"]
         ? "p-1 outline outline-red-500/50 focus:outline-red-500 max-h-[30px]"
@@ -57,15 +56,9 @@ export default function SetVarNode({id, position, inputs, outputs}: SetVarNodePr
 
     return (
         <Node
-            id={id}
-            name="set"
+            node={node}
             hasExecute={true}
             hasContinue={true}
-            position={position}
-            executable={true}
-            inputs={inputs}
-            outputs={outputs}
-            type={NodeType.SET}
             size={{width: 100, height: 100}}
         >
             <form ref={formRef} className="p-2" onSubmit={handleSubmit(onSubmit)}>

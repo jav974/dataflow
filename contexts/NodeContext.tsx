@@ -3,6 +3,7 @@ import { createContext, useContext, useState, useCallback } from 'react';
 import { useGraphContext } from './GraphContext';
 import ConnectionDrag from '@/components/pixi/ConnectionDrag';
 import { RefState, useRefState } from '@/hooks/useRefState';
+import { Size } from 'pixi.js';
 
 export interface Pin {
     id: string;
@@ -15,12 +16,12 @@ export interface InputPin extends InputConfig, Pin {
 export interface OutputPin extends OutputConfig, Pin {
 }
 
-export interface Node extends Omit<NodeConfig, "executable" | "name" | "type" | "context"> {
+export interface Node {
+    mutableNodeConfig: NodeConfig;
     inputs: InputPin[];
     outputs: OutputPin[];
     executePin?: Pin;
     continuePin?: Pin;
-    context?: Map<string, any>;
 }
 
 interface Connector {
@@ -39,7 +40,9 @@ interface NodeContextType {
     connectionDrag?: ConnectionDrag;
     rightClickPosition?: Coordinates;
     renderTargets: RefState<Map<string, HTMLElement>>;
-    registerNode: (id: string, position: Coordinates, inputs: InputPin[], outputs: OutputPin[], executePin?: Pin, continuePin?: Pin) => void;
+    selectionArea: RefState<(Coordinates & Size) | undefined>;
+    selectedNodes: RefState<string[]>;
+    registerNode: (node: NodeConfig, inputs: InputPin[], outputs: OutputPin[], executePin?: Pin, continuePin?: Pin) => void;
     updateNodePosition: (id: string, x: number, y: number) => void;
     startConnectionDrag: (connector: Connector) => void;
     stopConnectionDrag: () => void;
@@ -47,6 +50,8 @@ interface NodeContextType {
     openContextMenu: (position: Coordinates) => void;
     closeContextMenu: () => void;
     setRenderTarget: (id: string, target: HTMLElement) => void;
+    setSelected: (id: string, selected: boolean) => void;
+    isSelected: (id: string) => boolean;
 }
 
 export enum PointerEventType {
@@ -71,18 +76,38 @@ export function NodeProvider({ children }: { children: React.ReactNode }) {
     const {addConnection, removeConnections} = useGraphContext();
     const nodes = useRefState<Map<string, Node>>(new Map());
     const renderTargets = useRefState<Map<string, HTMLElement>>(new Map());
+    const selectionArea = useRefState<(Coordinates & Size) | undefined>(undefined);
+    const selectedNodes = useRefState<string[]>([]);
 
-    const registerNode = useCallback((id: string, position: Coordinates, inputs: InputPin[], outputs: OutputPin[], executePin?: Pin, continuePin?: Pin) => {
-        nodes.ref.current.set(id, { id, position, inputs, outputs, executePin, continuePin });
+    const registerNode = useCallback((node: NodeConfig, inputs: InputPin[], outputs: OutputPin[], executePin?: Pin, continuePin?: Pin) => {
+        nodes.ref.current.set(node.id, { mutableNodeConfig: node, inputs, outputs, executePin, continuePin });
         nodes.setLastUpdated(Date.now());
+    }, []);
+
+    const isSelected = useCallback((id: string): boolean => {
+        return selectedNodes.ref.current.includes(id);
     }, []);
 
     const updateNodePosition = useCallback((id: string, x: number, y: number) => {
         const node = nodes.ref.current.get(id);
 
         if (node) {
-            node.position.x = x;
-            node.position.y = y;
+            // Node is part of a selection, move the selection along
+            if (isSelected(id)) {
+                const deltaX = x - node.mutableNodeConfig.position.x;
+                const deltaY = y - node.mutableNodeConfig.position.y;
+
+                for (const [_, n] of nodes.ref.current) {
+                    if (isSelected(n.mutableNodeConfig.id)) {
+                        n.mutableNodeConfig.position.x += deltaX;
+                        n.mutableNodeConfig.position.y += deltaY;
+                    }
+                }
+            } else { // Otherwise simply update its position
+                node.mutableNodeConfig.position.x = x;
+                node.mutableNodeConfig.position.y = y;
+            }
+            
             nodes.setLastUpdated(Date.now());
         }
     }, []);
@@ -149,12 +174,28 @@ export function NodeProvider({ children }: { children: React.ReactNode }) {
         renderTargets.setLastUpdated(Date.now());
     }, []);
 
+    const setSelected = useCallback((id: string, selected: boolean) => {
+        if (selected && !selectedNodes.ref.current.includes(id)) {
+            selectedNodes.ref.current.push(id);
+            selectedNodes.setLastUpdated(Date.now());
+        } else if (!selected) {
+            const index = selectedNodes.ref.current.findIndex((nodeId: string) => nodeId === id);
+
+            if (index !== -1) {
+                selectedNodes.ref.current.splice(index, 1);
+                selectedNodes.setLastUpdated(Date.now());
+            }
+        }
+    },  []);
+
     return (
         <NodeContext.Provider value={{
             nodes,
             connectionDrag,
             rightClickPosition,
             renderTargets,
+            selectionArea,
+            selectedNodes,
             registerNode,
             updateNodePosition,
             startConnectionDrag,
@@ -162,7 +203,9 @@ export function NodeProvider({ children }: { children: React.ReactNode }) {
             onPointerUp,
             openContextMenu,
             closeContextMenu,
-            setRenderTarget
+            setRenderTarget,
+            setSelected,
+            isSelected
         }}>
             {children}
         </NodeContext.Provider>

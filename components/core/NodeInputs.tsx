@@ -74,7 +74,7 @@ export default function NodeInputs({nodeId, nodeType, inputs, onRef, multiple = 
         });
 
         addConnection({
-            from: {id: node.id, pin: output.id},
+            from: {id: node.mutableNodeConfig.id, pin: output.id},
             to: {id: nodeId, pin: inputId}
         });
 

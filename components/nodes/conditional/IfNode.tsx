@@ -1,13 +1,12 @@
-import { InputConfig, NodeType, OutputConfig, ParameterType } from "@/components/config/Schema";
+import { InputConfig, OutputConfig, ParameterType } from "@/components/config/Schema";
 import Node, { NodeProps } from "@/components/core/Node";
 import { useGraphContext } from "@/contexts/GraphContext";
 import { useEffect, useMemo } from "react";
 
-interface IfNodeProps extends Omit<NodeProps, "type" | "executable"> {
-
+interface IfNodeProps extends NodeProps {
 }
 
-export default function IfNode({id, position, inputs, outputs}: IfNodeProps) {
+export default function IfNode({node}: IfNodeProps) {
     const {setNodeInputs, setNodeOutputs} = useGraphContext();
 
     const defaultInputs = useMemo((): InputConfig[] => {
@@ -57,7 +56,7 @@ export default function IfNode({id, position, inputs, outputs}: IfNodeProps) {
                 editable: false
             }
         ];
-    }, [id]);
+    }, [node.id]);
 
     const defaultOutputs = useMemo((): OutputConfig[] => {
         return [{
@@ -65,40 +64,33 @@ export default function IfNode({id, position, inputs, outputs}: IfNodeProps) {
             name: "result",
             type: ParameterType.ANY
         }];
-    }, [id]);
+    }, [node.id]);
 
     const size = useMemo(() => {
         return {
             width: 200,
             height: 400
         }
-    }, [id]);
+    }, [node.id]);
 
     useEffect(() => {
-        if (!inputs) {
-            setNodeInputs(id, defaultInputs);
+        if (!node.inputs) {
+            setNodeInputs(node.id, defaultInputs);
         }
-    }, [id, inputs, defaultInputs, setNodeInputs]);
+    }, [node.id, node.inputs, defaultInputs, setNodeInputs]);
 
     useEffect(() => {
-        if (!outputs) {
-            setNodeOutputs(id, defaultOutputs);
+        if (!node.outputs) {
+            setNodeOutputs(node.id, defaultOutputs);
         }
-    }, [id, outputs, defaultOutputs, setNodeOutputs]);
+    }, [node.id, node.outputs, defaultOutputs, setNodeOutputs]);
 
     return (
         <Node
-            id={id}
-            name="If"
-            executable={false}
+            node={node}
             hasContinue={false}
             hasExecute={false}
-            type={NodeType.CONDITIONAL_IF}
-            position={position}
-            inputs={inputs}
-            outputs={outputs}
             size={size}
-        >
-        </Node>
+        />
     );
 }

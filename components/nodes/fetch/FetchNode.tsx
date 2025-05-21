@@ -1,19 +1,19 @@
 import { useCallback, useEffect, useState } from "react";
 import Node, { type NodeProps } from "../../core/Node";
-import { NodeType, ParameterType } from "../../config/Schema";
+import { ParameterType } from "../../config/Schema";
 import { useGraphContext } from "@/contexts/GraphContext";
 import FetchConfigModal from "./FetchConfigModal";
 
-interface FetchNodeProps extends Omit<NodeProps, "type" | "executable"> {
+interface FetchNodeProps extends NodeProps {
 }
 
-export default function FetchNode({ id, name, description, inputs, outputs, position }: FetchNodeProps) {
+export default function FetchNode({ node }: FetchNodeProps) {
     const {addNodeInput} = useGraphContext();
     const [configureModalOpen, setConfigureModalOpen] = useState<boolean>(false);
 
     useEffect(() => {
-        if (!inputs) {
-            addNodeInput(id, {
+        if (!node.inputs) {
+            addNodeInput(node.id, {
                 id: "url",
                 name: "URL",
                 type: ParameterType.STRING,
@@ -21,7 +21,7 @@ export default function FetchNode({ id, name, description, inputs, outputs, posi
                 editable: true
             });
         }
-    }, [id, inputs, addNodeInput]);
+    }, [node.id, node.inputs, addNodeInput]);
 
     const toggleConfigureModal = useCallback(() => {
         setConfigureModalOpen(!configureModalOpen);
@@ -29,15 +29,8 @@ export default function FetchNode({ id, name, description, inputs, outputs, posi
 
     return (
         <Node
-            id={id}
-            name={name}
-            type={NodeType.FETCH}
-            description={description}
-            inputs={inputs}
-            outputs={outputs}
+            node={node}
             size={{ width: 300, height: 100 }}
-            position={position}
-            executable={true}
         >
             <div className="flex flex-col gap-2">
                 <div className="flex justify-center p-2">

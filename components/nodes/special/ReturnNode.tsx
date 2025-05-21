@@ -1,18 +1,13 @@
-import { NodeType, ParameterType } from "@/components/config/Schema";
+import { ParameterType } from "@/components/config/Schema";
 import Node, { NodeProps } from "@/components/core/Node";
 
-interface ReturnNodeProps extends Omit<NodeProps, "name" | "type" | "executable"> {
+interface ReturnNodeProps extends NodeProps {
 }
 
-export default function ReturnNode({id, position, inputs}: ReturnNodeProps) {
+export default function ReturnNode({node}: ReturnNodeProps) {
     return (
         <Node
-            id={id}
-            name="Return"
-            type={NodeType.RETURN}
-            position={position}
-            inputs={inputs}
-            executable={true}
+            node={node}
             hasExecute={true}
             hasContinue={false}
             size={{width: 200, height: 100}}

@@ -1,4 +1,5 @@
-import { Graphics } from "pixi.js";
+import { Graphics, Size } from "pixi.js";
+import { Coordinates } from "../config/Schema";
 
 const DISTANCE_THRESHOLD = 60;
 
@@ -25,4 +26,11 @@ export function drawBezierCurve(g: Graphics, from: { x: number, y: number }, to:
         to.x,
         to.y
     );
+}
+
+export function isOverlapping(rect1: Coordinates & Size, rect2: Coordinates & Size): boolean {
+    return !(rect1.x + rect1.width < rect2.x || 
+             rect2.x + rect2.width < rect1.x || 
+             rect1.y + rect1.height < rect2.y || 
+             rect2.y + rect2.height < rect1.y);
 }

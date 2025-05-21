@@ -49,7 +49,7 @@ export default function ConnectionDrag() {
         }
 
         g.beginPath();
-        const from = { x: fromNode.position.x + fromPin.position.x, y: fromNode.position.y + fromPin.position.y };
+        const from = { x: fromNode.mutableNodeConfig.position.x + fromPin.position.x, y: fromNode.mutableNodeConfig.position.y + fromPin.position.y };
         drawBezierCurve(g, from, position.ref.current);
         g.stroke(LINE_STYLE);
     }, [fromNode]);

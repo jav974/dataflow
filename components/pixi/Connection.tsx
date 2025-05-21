@@ -23,7 +23,7 @@ export default function Connection({from, to}: ConnectionProps) {
 
     useEffect(() => {
         // Initialize nodes
-        if (from.id !== fromNode.current?.id || to.id !== toNode.current?.id) {
+        if (from.id !== fromNode.current?.mutableNodeConfig.id || to.id !== toNode.current?.mutableNodeConfig.id) {
             fromNode.current = nodes.ref.current.get(from.id);
             toNode.current = nodes.ref.current.get(to.id);
 
@@ -41,8 +41,8 @@ export default function Connection({from, to}: ConnectionProps) {
 
         // Compute position
         if (fromNode.current && fromPin.current && toNode.current && toPin.current) {
-            const tmpFrom: Coordinates = { x: fromNode.current.position.x + fromPin.current.position.x, y: fromNode.current.position.y + fromPin.current.position.y };
-            const tmpTo: Coordinates = { x: toNode.current.position.x + toPin.current.position.x, y: toNode.current.position.y + toPin.current.position.y };
+            const tmpFrom: Coordinates = { x: fromNode.current.mutableNodeConfig.position.x + fromPin.current.position.x, y: fromNode.current.mutableNodeConfig.position.y + fromPin.current.position.y };
+            const tmpTo: Coordinates = { x: toNode.current.mutableNodeConfig.position.x + toPin.current.position.x, y: toNode.current.mutableNodeConfig.position.y + toPin.current.position.y };
             
             // Trigger redraw if position has changed
             if (fromPos.current?.x !== tmpFrom.x || fromPos.current?.y !== tmpFrom.y

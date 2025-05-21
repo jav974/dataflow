@@ -1,12 +1,13 @@
-'use client';
-
 import {extend} from '@pixi/react';
-import { Container, Graphics } from 'pixi.js';
-import { useCallback, useEffect, useState } from 'react';
+import { Container, FederatedPointerEvent, Graphics } from 'pixi.js';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import FastGraphics from './FastGraphics';
 import useDraggable from '@/hooks/pixi/useDraggable';
 import { PointerEventType, useNodes } from '@/contexts/NodeContext';
 import { useGraphContext } from '@/contexts/GraphContext';
+import { Coordinates } from '../config/Schema';
+import usePointerPosition from '@/hooks/usePointerPosition';
+import { COLOR_BLUE } from '../config/Style';
 
 extend({
     Container,
@@ -20,23 +21,41 @@ interface BackgroundNodeProps {
 export default function BackgroundNode({ width, height }: BackgroundNodeProps) {
     const { zoom, scale, canvasPosition } = useGraphContext();
     const { position, lastUpdated: positionLastUpdated, handlers } = useDraggable();
-    const { onPointerUp, openContextMenu } = useNodes();
-    const [backgroundSettings, setBackgroundSettings] = useState({
+    const { position: pointerPosition, lastUpdated: pointerPositionLastUpdated } = usePointerPosition();
+    const { onPointerUp, openContextMenu, selectionArea } = useNodes();
+    const [ selectionStart, setSelectionStart ] = useState<Coordinates | undefined>();
+
+    const backgroundSettings = useMemo(() => ({
         spacing: 40,
         dotRadius: 1,
-    });
-    const [dotFillSettings, setDotFillSettings] = useState({
+    }), []);
+    const dotFillSettings = useMemo(() => ({
         color: 0x2E4057,
         alpha: 1,
-    });
-    const [backgroundFillSettings, setBackgroundFillSettings] = useState({
+    }), []);
+    const backgroundFillSettings = useMemo(() => ({
         color: 0xFCEFEF,
         alpha: 1,
-    });
+    }), []);
+    const selectionFillSettings = useMemo(() => ({
+        color: COLOR_BLUE,
+        alpha: 0.5,
+    }), []);
 
     useEffect(() => {
         canvasPosition.update({ x: position.x / scale.ref.current, y: position.y / scale.ref.current });
     }, [positionLastUpdated, zoom.lastUpdated]);
+
+    useEffect(() => {
+        if (selectionStart) {
+            selectionArea.update({
+                x: Math.min(selectionStart.x, pointerPosition.x),
+                y: Math.min(selectionStart.y, pointerPosition.y),
+                width: Math.abs(pointerPosition.x - selectionStart.x),
+                height: Math.abs(pointerPosition.y - selectionStart.y)
+            });
+        }
+    }, [selectionStart, pointerPositionLastUpdated]);
 
     const drawDot = useCallback((g: Graphics, x: number, y: number, radius: number) => {
         g.circle(x, y, radius);
@@ -57,29 +76,62 @@ export default function BackgroundNode({ width, height }: BackgroundNodeProps) {
                 drawDot(g, x, y, backgroundSettings.dotRadius);
             }
         }
-    }, [backgroundFillSettings, backgroundSettings, drawDot]);
+    }, [backgroundFillSettings, backgroundSettings, drawDot, width, height]);
 
-    const handleRightClick = useCallback((e: any) => {
+    const handleRightClick = useCallback((e: FederatedPointerEvent) => {
         e.preventDefault();
         e.stopPropagation();
         openContextMenu({ x: e.clientX, y: e.clientY });
     }, [openContextMenu]);
 
-    const handlePointerUp = useCallback((e: any) => {
+    const handlePointerUp = useCallback((e: FederatedPointerEvent) => {
         onPointerUp({
             type: PointerEventType.POINTER_UP,
             x: e.clientX * scale.ref.current,
             y: e.clientY * scale.ref.current,
             element: "background"
         });
-    }, [onPointerUp]);
+
+        if (selectionStart) {
+            setSelectionStart(undefined);
+            selectionArea.update(undefined);
+        } else {
+            handlers.onPointerUp();
+        }
+    }, [onPointerUp, selectionStart, handlers.onPointerUp]);
+
+    const handlePointerDown = useCallback((e: FederatedPointerEvent) => {
+        if (e.ctrlKey) {    // Move canvas
+            handlers.onPointerDown(e);
+        } else {            // Create selection rectangle
+            setSelectionStart({x: e.clientX, y: e.clientY});
+        }
+    }, [handlers.onPointerDown]);
+
+    const drawSelection = useCallback((g: Graphics) => {
+        g.clear();
+
+        if (!selectionArea.ref.current) {
+            return ;
+        }
+
+        g.rect(
+            selectionArea.ref.current.x,
+            selectionArea.ref.current.y,
+            selectionArea.ref.current.width,
+            selectionArea.ref.current.height,
+        );
+        g.fill(selectionFillSettings);
+    }, [selectionStart, selectionFillSettings]);
 
     return <pixiContainer
         eventMode="static"
         {...handlers}
+        onPointerDown={handlePointerDown}
         onRightClick={handleRightClick}
         onPointerUp={handlePointerUp}
     >
-        <FastGraphics draw={draw} drawDependencies={[width, height, positionLastUpdated]} />
+        <FastGraphics draw={draw} drawDependencies={[positionLastUpdated]} />
+        <FastGraphics draw={drawSelection} drawDependencies={[selectionArea.lastUpdated]} />
     </pixiContainer>
 }

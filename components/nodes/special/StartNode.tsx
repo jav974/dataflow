@@ -1,18 +1,12 @@
-import { NodeType } from "@/components/config/Schema";
 import Node, { NodeProps } from "@/components/core/Node";
 
-interface StartNodeProps extends Omit<NodeProps, "name" | "type" | "executable" | "outputMultiple"> {
+interface StartNodeProps extends NodeProps {
 }
 
-export default function StartNode({id, position, outputs}: StartNodeProps) {
+export default function StartNode({node}: StartNodeProps) {
     return (
         <Node
-            id={id}
-            name="Start"
-            type={NodeType.START}
-            position={position}
-            outputs={outputs}
-            executable={true}
+            node={node}
             hasExecute={false}
             hasContinue={true}
             size={{width: 200, height: 100}}

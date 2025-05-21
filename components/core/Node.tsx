@@ -9,8 +9,10 @@ import { Coordinates, NodeConfig, ParameterType } from "../config/Schema";
 import NodeInputs from "./NodeInputs";
 import NodeOutputs from "./NodeOutputs";
 import useHoverable from "@/hooks/useHoverable";
+import { isOverlapping } from "../pixi/functions";
 
-export interface NodeProps extends Omit<NodeConfig, "context"> {
+export interface NodeProps {
+    node: NodeConfig;
     children?: React.ReactNode;
     size?: { width: number; height: number };
     hasExecute?: boolean;
@@ -22,8 +24,9 @@ export interface NodeProps extends Omit<NodeConfig, "context"> {
     outputMultiple?: boolean;
 }
 
-export default function Node({ id, type, children, size, name, description, inputs, outputs, position,
-    hasExecute = true, hasContinue = true, inputMultiple = false, minInputParams = 0, inputMultipleType,
+export default function Node({
+    node, children, size, hasExecute = true, hasContinue = true,
+    inputMultiple = false, minInputParams = 0, inputMultipleType,
     outputMultiple = false
  }: NodeProps) {
     const inputPinsRef = useRef<Map<string, HTMLDivElement | null>>(new Map());
@@ -31,9 +34,10 @@ export default function Node({ id, type, children, size, name, description, inpu
     const containerRef = useRef<HTMLDivElement | null>(null);
     const executeRef = useRef<HTMLDivElement | null>(null);
     const continueRef = useRef<HTMLDivElement | null>(null);
-    const { registerNode, stopConnectionDrag } = useNodes();
+    const { registerNode, stopConnectionDrag, selectionArea, setSelected, isSelected } = useNodes();
     const { removeNode, scale } = useGraphContext();
     const { isHovered, handleMouseEnter, handleMouseLeave } = useHoverable();
+    const selected = isSelected(node.id);
 
     const getScaledRelativePosition = useCallback((outerRect: DOMRect, innerRect: DOMRect, adjustments?: Coordinates): Coordinates => {
         return {
@@ -71,7 +75,7 @@ export default function Node({ id, type, children, size, name, description, inpu
 
         // Get input pin positions
         for (const [key, pin] of inputPinsRef.current.entries()) {
-            const pinData = inputs?.find(input => input.id === key);
+            const pinData = node.inputs?.find(input => input.id === key);
             
             if (pin && pinData) {
                 let data: InputPin = { ...getPin(key, pin, containerRect, {x: 4, y: 6}), ...pinData };
@@ -81,7 +85,7 @@ export default function Node({ id, type, children, size, name, description, inpu
         
         // Get output pin positions
         for (const [key, pin] of outputPinsRef.current.entries()) {
-            const pinData = outputs?.find(output => output.id === key);
+            const pinData = node.outputs?.find(output => output.id === key);
 
             if (pin && pinData) {
                 let data: OutputPin = { ...getPin(key, pin, containerRect, {x: 4, y: 6}), ...pinData };
@@ -89,8 +93,8 @@ export default function Node({ id, type, children, size, name, description, inpu
             }
         }
 
-        registerNode(id, position, inputPins, outputPins, executePin, continuePin);
-    }, [inputs, outputs, id, registerNode, getPin]);
+        registerNode(node, inputPins, outputPins, executePin, continuePin);
+    }, [node, registerNode, getPin]);
 
     useEffect(() => {
         if (!containerRef.current) return;
@@ -116,9 +120,22 @@ export default function Node({ id, type, children, size, name, description, inpu
         };
     }, [measurePositions]);
 
+    useEffect(() => {
+        if (!containerRef.current || !selectionArea.ref.current) return;
+
+        const overlapping = isOverlapping(
+            selectionArea.ref.current,
+            containerRef.current.getBoundingClientRect()
+        );
+
+        if (overlapping !== selected) {
+            setSelected(node.id, overlapping);
+        }
+    }, [node.id, selectionArea.lastUpdated, isSelected, selected]);
+
     const handleDeleteNode = useCallback(() => {
-        removeNode(id);
-    }, [id, removeNode]);
+        removeNode(node.id);
+    }, [node.id, removeNode]);
 
     const onPinExecuteRef = useCallback((el: HTMLDivElement | null) => {
         executeRef.current = el;
@@ -141,25 +158,33 @@ export default function Node({ id, type, children, size, name, description, inpu
     }, [stopConnectionDrag]);
 
     return (
-        <div ref={containerRef} onPointerEnter={handleMouseEnter} onPointerLeave={handleMouseLeave} onPointerUp={onPointerUp}>
-            <div className="bg-gray-800 rounded-lg p-1" style={{opacity: 0.9, minWidth: `${size?.width}px`}}>
+        <div
+            ref={containerRef}
+            onPointerEnter={handleMouseEnter}
+            onPointerLeave={handleMouseLeave}
+            onPointerUp={onPointerUp}
+        >
+            <div
+                className={`bg-gray-800 rounded-lg p-1 ${selected ? 'outline-6 rounded outline-blue-500' : ''}`}
+                style={{opacity: 0.9, minWidth: `${size?.width}px`}}
+            >
                 <div className="flex w-full">
-                    {hasExecute && <PinExecute id={id} onRef={onPinExecuteRef} /> || <div></div>}
-                    <div className="w-full text-center text-white font-semibold mb-2">{name || 'Unnamed Node'}</div>
-                    {hasContinue && <PinContinue id={id} onRef={onPinContinueRef} /> || <div></div>}
+                    {hasExecute && <PinExecute id={node.id} onRef={onPinExecuteRef} /> || <div></div>}
+                    <div className="w-full text-center text-white font-semibold mb-2">{node.name || 'Unnamed Node'}</div>
+                    {hasContinue && <PinContinue id={node.id} onRef={onPinContinueRef} /> || <div></div>}
                 </div>
 
-                {description && (
-                    <div className="text-gray-400 text-sm mb-4">{description}</div>
+                {node.description && (
+                    <div className="text-gray-400 text-sm mb-4">{node.description}</div>
                 )}
 
                 {children}
 
-                <div className={`${inputs && outputs ? 'grid-cols-2' : 'grid-cols-1'} grid gap-1`}>
+                <div className={`${node.inputs && node.outputs ? 'grid-cols-2' : 'grid-cols-1'} grid gap-1`}>
                     <NodeInputs
-                        nodeId={id}
-                        nodeType={type}
-                        inputs={inputs}
+                        nodeId={node.id}
+                        nodeType={node.type}
+                        inputs={node.inputs}
                         onRef={onPinInputRef}
                         multiple={inputMultiple}
                         minInputParams={minInputParams}
@@ -167,9 +192,9 @@ export default function Node({ id, type, children, size, name, description, inpu
                     />
 
                     <NodeOutputs
-                        nodeId={id}
-                        nodeType={type}
-                        outputs={outputs}
+                        nodeId={node.id}
+                        nodeType={node.type}
+                        outputs={node.outputs}
                         onRef={onPinOutputRef}
                         multiple={outputMultiple}
                     />

@@ -12,7 +12,7 @@ export default function ApplicationGraph() {
 
     return (
         <pixiContainer position={canvasPosition.ref.current} scale={zoom.ref.current / 100}>
-            {nodes.ref.current.map((node) => <HtmlNode key={node.id} id={node.id} initialPosition={node.position} />)}
+            {nodes.ref.current.map((node) => <HtmlNode key={node.id} node={node} />)}
             <Connections />
             <ConnectionDrag />
         </pixiContainer>
