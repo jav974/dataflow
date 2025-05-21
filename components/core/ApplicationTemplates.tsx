@@ -12,7 +12,7 @@ export default function ApplicationTemplates() {
 
     useEffect(() => {
         const _templates = nodes.ref.current.map((node: NodeConfig): React.ReactElement => {
-            const reactElementBuilder = registry.get(node.type);
+            const reactElementBuilder = registry.get(node.type)?.builder;
 
             if (!reactElementBuilder) {
                 console.log(`Unknown type ${node.type}`);

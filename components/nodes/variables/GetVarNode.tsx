@@ -1,4 +1,3 @@
-import { ParameterType } from "@/components/config/Schema";
 import Node, { NodeProps } from "@/components/core/Node";
 import { useGraphContext } from "@/contexts/GraphContext";
 import React, { useCallback, useEffect, useState } from "react";
@@ -7,18 +6,8 @@ interface GetVarNodeProps extends NodeProps {
 }
 
 export default function GetVarNode({node, context}: GetVarNodeProps) {
-    const {addNodeOutput, variables, setNodeContext} = useGraphContext();
+    const {variables, setNodeContext} = useGraphContext();
     const [variableName, setVariableName] = useState<string | undefined>(undefined);
-
-    useEffect(() => {
-        if (!node.outputs) {
-            addNodeOutput(node.id, {
-                id: "value",
-                name: "value",
-                type: ParameterType.ANY
-            });
-        }
-    }, [node.id, node.outputs, addNodeOutput]);
 
     useEffect(() => {
         setVariableName(context?.get('var'));

@@ -3,6 +3,7 @@ import { useCallback, useMemo } from "react";
 import { NodeConfig, NodeType } from "../config/Schema";
 import { v4 as uuidv4 } from 'uuid';
 import { useGraphContext } from "@/contexts/GraphContext";
+import registry from "../nodes/registry";
 
 interface MenuTree {
     name?: string;
@@ -33,20 +34,29 @@ export default function ContextMenu() {
     const { rightClickPosition } = useNodes();
     const { addNode, scale, canvasPosition, nodes } = useGraphContext();
 
-    const spawnNode = useCallback((type: NodeType, executable: boolean) => {
+    const spawnNode = useCallback((type: NodeType) => {
         if (!rightClickPosition) return ;
 
-        addNode({
-            id: uuidv4(),
-            type,
-            position: {
-                x: (rightClickPosition.x - canvasPosition.ref.current.x) * scale.ref.current,
-                y: (rightClickPosition.y - canvasPosition.ref.current.y) * scale.ref.current
-            },
-            name: type,
-            executable
-        });
+        const config = registry.get(type)?.config;
+
+        if (config) {
+            addNode({
+                ...config,
+                id: uuidv4(),
+                position: {
+                    x: (rightClickPosition.x - canvasPosition.ref.current.x) * scale.ref.current,
+                    y: (rightClickPosition.y - canvasPosition.ref.current.y) * scale.ref.current
+                },
+            });
+        }
     }, [addNode, rightClickPosition]);
+
+    const createNodeMenuEntry = useCallback((name: string, type: NodeType): MenuTree => {
+        return {
+            name,
+            spawn: () => spawnNode(type)
+        }
+    }, [spawnNode]);
 
     const menu = useMemo((): MenuTree => {
         const hasStartNode = nodes.ref.current.findIndex((n: NodeConfig) => n.type === NodeType.START) !== -1;
@@ -55,80 +65,44 @@ export default function ContextMenu() {
         const specialEntries: MenuTree[] = [];
 
         if (!hasStartNode && !hasTriggerNode) {
-            specialEntries.push({
-                name: "Start",
-                spawn: () => spawnNode(NodeType.START, true)
-            });
-            specialEntries.push({
-                name: "Trigger",
-                spawn: () => spawnNode(NodeType.TRIGGER, true)
-            });
+            specialEntries.push(createNodeMenuEntry("Start", NodeType.START));
+            specialEntries.push(createNodeMenuEntry("Trigger", NodeType.TRIGGER));
         }
 
         if (!hasReturnNode) {
-            specialEntries.push({
-                name: "Return",
-                spawn: () => spawnNode(NodeType.RETURN, true)
-            });
+            specialEntries.push(createNodeMenuEntry("Return", NodeType.RETURN));
         }
 
         return {
             children: [
                 ...specialEntries,
-                {
-                    name: "Fetch",
-                    spawn: () => spawnNode(NodeType.FETCH, true)
-                },
+                createNodeMenuEntry("Fetch", NodeType.FETCH),
                 {
                     name: "Variables",
                     children: [
-                        {
-                            name: "Get",
-                            spawn: () => spawnNode(NodeType.GET, false)
-                        },
-                        {
-                            name: "Set",
-                            spawn: () => spawnNode(NodeType.SET, true)
-                        }
+                        createNodeMenuEntry("Get", NodeType.GET),
+                        createNodeMenuEntry("Set", NodeType.SET),
                     ]
                 },
                 {
                     name: "Conditional",
                     children: [
-                        {
-                            name: "If",
-                            spawn: () => spawnNode(NodeType.CONDITIONAL_IF, false)
-                        }
+                        createNodeMenuEntry("If", NodeType.CONDITIONAL_IF)
                     ]
                 },
                 {
                     name: "Math",
                     children: [
-                        {
-                            name: "Add",
-                            spawn: () => spawnNode(NodeType.MATH_ADD, false)
-                        },
-                        {
-                            name: "Sub",
-                            spawn: () => spawnNode(NodeType.MATH_SUB, false)
-                        },
-                        {
-                            name: "Mul",
-                            spawn: () => spawnNode(NodeType.MATH_MUL, false)
-                        },
-                        {
-                            name: "Div",
-                            spawn: () => spawnNode(NodeType.MATH_DIV, false)
-                        },
-                        {
-                            name: "Mod",
-                            spawn: () => spawnNode(NodeType.MATH_MOD, false)
-                        }
+                        createNodeMenuEntry("Add", NodeType.MATH_ADD),
+                        createNodeMenuEntry("Subtract", NodeType.MATH_SUB),
+                        createNodeMenuEntry("Multiply", NodeType.MATH_MUL),
+                        createNodeMenuEntry("Divide", NodeType.MATH_DIV),
+                        createNodeMenuEntry("Modulo", NodeType.MATH_MOD),
                     ]
                 }
             ]
         }
-    }, [spawnNode, nodes.lastUpdated]);
+    }, [createNodeMenuEntry, nodes.lastUpdated]);
 
     if (!rightClickPosition) {
         return null;

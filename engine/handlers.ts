@@ -84,7 +84,7 @@ const handleSetVar: NodeExecutor = (inputs: NodeExecParams, context: NodeExecCon
     return result;
 }
 
-const handleGetVar: NodeExecutor = (inputs: NodeExecParams, context: NodeExecContext): NodeExecParams => {
+const handleGetVar: NodeExecutor = (_: NodeExecParams, context: NodeExecContext): NodeExecParams => {
     const result: NodeExecParams = new Map();
     const value = executionContext.variables.get(context.get('var'));
 
@@ -93,7 +93,7 @@ const handleGetVar: NodeExecutor = (inputs: NodeExecParams, context: NodeExecCon
     return result;
 };
 
-const handleStart: NodeExecutor = (inputs: NodeExecParams, context: NodeExecContext): NodeExecParams => {
+const handleStart: NodeExecutor = (_: NodeExecParams, context: NodeExecContext): NodeExecParams => {
     // TODO
     return new Map();
 };

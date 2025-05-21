@@ -1,27 +1,12 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import Node, { type NodeProps } from "../../core/Node";
-import { ParameterType } from "../../config/Schema";
-import { useGraphContext } from "@/contexts/GraphContext";
 import FetchConfigModal from "./FetchConfigModal";
 
 interface FetchNodeProps extends NodeProps {
 }
 
 export default function FetchNode({ node }: FetchNodeProps) {
-    const {addNodeInput} = useGraphContext();
     const [configureModalOpen, setConfigureModalOpen] = useState<boolean>(false);
-
-    useEffect(() => {
-        if (!node.inputs) {
-            addNodeInput(node.id, {
-                id: "url",
-                name: "URL",
-                type: ParameterType.STRING,
-                required: false,
-                editable: true
-            });
-        }
-    }, [node.id, node.inputs, addNodeInput]);
 
     const toggleConfigureModal = useCallback(() => {
         setConfigureModalOpen(!configureModalOpen);

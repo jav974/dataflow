@@ -1,8 +1,17 @@
 import React from "react";
-import { NodeConfig, NodeType } from "../config/Schema";
+import { Coordinates, NodeConfig, NodeType } from "../config/Schema";
 
 export type NodeTemplateBuilder = (node: NodeConfig) => React.ReactElement;
 
-const registry: Map<NodeType, NodeTemplateBuilder> = new Map();
+export interface DefaultNodeConfig extends Omit<NodeConfig, "id" | "position"> {
+    position?: Coordinates;
+}
+
+interface NodeTemplate {
+    builder: NodeTemplateBuilder;
+    config: DefaultNodeConfig;
+}
+
+const registry: Map<NodeType, NodeTemplate> = new Map();
 
 export default registry;
