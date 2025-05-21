@@ -88,8 +88,6 @@ const handleGetVar: NodeExecutor = (_: NodeExecParams, context: NodeExecContext)
     const result: NodeExecParams = new Map();
     const value = executionContext.variables[context.get('var')];
 
-    console.log(executionContext.variables, context);
-
     result.set('value', value);
 
     return result;
