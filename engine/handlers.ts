@@ -79,14 +79,14 @@ const handleSetVar: NodeExecutor = (inputs: NodeExecParams, context: NodeExecCon
     const value = inputs.get(context.get('_node_id'));
 
     result.set('result', value);
-    executionContext.variables.set(context.get('var'), value);
+    executionContext.variables[context.get('var')] = value;
 
     return result;
 }
 
 const handleGetVar: NodeExecutor = (_: NodeExecParams, context: NodeExecContext): NodeExecParams => {
     const result: NodeExecParams = new Map();
-    const value = executionContext.variables.get(context.get('var'));
+    const value = executionContext.variables[context.get('var')];
 
     result.set('value', value);
 
@@ -94,12 +94,27 @@ const handleGetVar: NodeExecutor = (_: NodeExecParams, context: NodeExecContext)
 };
 
 const handleStart: NodeExecutor = (_: NodeExecParams, context: NodeExecContext): NodeExecParams => {
-    // TODO
-    return new Map();
+    const result: Map<string, any> = new Map();
+    executionContext.variables = {};
+    executionContext.result = {};
+
+    for (const [key, value] of context) {
+        if (key !== '_node_id') {
+            result.set(key, value);
+            executionContext.variables[key] = value;
+        }
+    }
+
+    return result;
 };
 
 const handleReturn: NodeExecutor = (inputs: NodeExecParams, context: NodeExecContext): NodeExecParams => {
-    // TODO
+    executionContext.result = {};
+
+    for (const [key, value] of inputs) {
+        executionContext.result[key] = value;
+    }
+
     return new Map();
 };
 

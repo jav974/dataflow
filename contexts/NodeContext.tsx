@@ -42,6 +42,7 @@ interface NodeContextType {
     renderTargets: RefState<Map<string, HTMLElement>>;
     selectionArea: RefState<(Coordinates & Size) | undefined>;
     selectedNodes: RefState<string[]>;
+    selectionStart: Coordinates | undefined;
     registerNode: (node: NodeConfig, inputs: InputPin[], outputs: OutputPin[], executePin?: Pin, continuePin?: Pin) => void;
     updateNodePosition: (id: string, x: number, y: number) => void;
     startConnectionDrag: (connector: Connector) => void;
@@ -52,6 +53,8 @@ interface NodeContextType {
     setRenderTarget: (id: string, target: HTMLElement) => void;
     setSelected: (id: string, selected: boolean) => void;
     isSelected: (id: string) => boolean;
+    startSelection: (coord: Coordinates) => void;
+    stopSelection: () => void;
 }
 
 export enum PointerEventType {
@@ -73,6 +76,7 @@ const NodeContext = createContext<NodeContextType | null>(null);
 export function NodeProvider({ children }: { children: React.ReactNode }) {
     const [connectionDrag, setConnectionDrag] = useState<ConnectionDrag | undefined>(undefined);
     const [rightClickPosition, setRightClickPosition] = useState<Coordinates | undefined>(undefined);
+    const [selectionStart, setSelectionStart] = useState<Coordinates | undefined>();
     const {addConnection, removeConnections} = useGraphContext();
     const nodes = useRefState<Map<string, Node>>(new Map());
     const renderTargets = useRefState<Map<string, HTMLElement>>(new Map());
@@ -188,6 +192,15 @@ export function NodeProvider({ children }: { children: React.ReactNode }) {
         }
     },  []);
 
+    const startSelection = useCallback((coord: Coordinates) => {
+        setSelectionStart(coord);
+    }, []);
+
+    const stopSelection = useCallback(() => {
+        setSelectionStart(undefined);
+        selectionArea.update(undefined);
+    }, []);
+
     return (
         <NodeContext.Provider value={{
             nodes,
@@ -196,6 +209,7 @@ export function NodeProvider({ children }: { children: React.ReactNode }) {
             renderTargets,
             selectionArea,
             selectedNodes,
+            selectionStart,
             registerNode,
             updateNodePosition,
             startConnectionDrag,
@@ -205,7 +219,9 @@ export function NodeProvider({ children }: { children: React.ReactNode }) {
             closeContextMenu,
             setRenderTarget,
             setSelected,
-            isSelected
+            isSelected,
+            startSelection,
+            stopSelection
         }}>
             {children}
         </NodeContext.Provider>

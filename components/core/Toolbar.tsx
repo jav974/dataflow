@@ -7,13 +7,15 @@ import SaveButton from "../buttons/SaveButton";
 import DeleteGraphButton from "../buttons/DeleteGraphButton";
 import DeleteGraphModal from "./DeleteGraphModal";
 import { useGraphContext } from "@/contexts/GraphContext";
-import { getExecutionGraph, resolveGraph } from "@/actions/graph";
+import { executeGraph } from "@/actions/graph";
+import { runGraph } from "@/engine/graph";
 
 export default function Toolbar() {
     const { graphs, loadGraph, graph, saveGraph, deleteGraph } = useUserGraph();
     const { connections, nodes, zoom, variables } = useGraphContext();
     const [isNewModalOpen, setIsNewModalOpen] = useState(false);
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+    const [isPlaying, setIsPlaying] = useState<boolean>(false);
 
     const onGraphChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
         loadGraph(e.target.value);
@@ -44,13 +46,19 @@ export default function Toolbar() {
         }
     }, [graph, deleteGraph]);
 
-    const onPlay = useCallback((isPlaying: boolean) => {
-        if (isPlaying && graph) {
-            resolveGraph(graph)
-                .then((executionGraph) => console.log("Execution graph: ", executionGraph))
-                .catch((reason: any) => console.log(reason));
+    const onPlay = useCallback(() => {
+        if (!isPlaying && graph) {
+            setIsPlaying(true);
+            // executeGraph(graph)
+            //     .then((result) => console.log("Execution graph: ", result))
+            //     .catch((reason: any) => console.log(reason));
+
+            const executionGraph = runGraph(graph, {Ad: 36});
+            console.log(executionGraph);   
+            
+            setTimeout(() => setIsPlaying(false), 0);
         }
-    }, [graph]);
+    }, [graph, isPlaying]);
 
     return (
         <>
@@ -69,7 +77,7 @@ export default function Toolbar() {
                     }
                 </div>
                 <div className="flex justify-center items-center">
-                    <PlayButton onClick={onPlay}/>
+                    <PlayButton isPlaying={isPlaying} onClick={onPlay}/>
                 </div>
                 <div className="flex justify-end items-center pr-2 gap-4">
                     {graph && <SaveButton onClick={onSaveGraphClick} />}

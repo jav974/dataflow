@@ -1,6 +1,7 @@
 import { AppConfig, ConnectionConfig, ConnectorConfig, InputConfig, NodeConfig, NodeType, OutputConfig, ParameterType, ParameterValueType } from "@/components/config/Schema";
 import registry from "./registry";
 import { jsonToMap } from "./utils";
+import executionContext, { KeyValue } from "./context";
 import "./handlers";
 
 const graphs: Map<string, ExecutionGraph> = new Map();
@@ -14,6 +15,7 @@ export interface ExecutionInput {
     nodeId: string;
     inputId: string;
     inputType: ParameterType;
+    inputName: string;
     defaultValue?: ParameterValueType;
     resolve?: ExecutionInputResolver;
 }
@@ -21,6 +23,7 @@ export interface ExecutionInput {
 export interface ExecutionOutput {
     nodeId: string;
     outputId: string;
+    outputName: string;
     outputType: ParameterType;
     value: ParameterValueType;
 }
@@ -33,6 +36,11 @@ export interface ExecutionGraph {
     next: ExecutionGraph | null;
     visited: boolean;
     context: Map<string, any>;
+}
+
+export interface GraphResult {
+    graph: ExecutionGraph;
+    result: KeyValue;
 }
 
 export function findStartNode(graph: AppConfig): NodeConfig | undefined {
@@ -52,7 +60,9 @@ export function findStartNode(graph: AppConfig): NodeConfig | undefined {
 }
 
 export function findNextNode(node: NodeConfig, graph: AppConfig): NodeConfig | undefined {
-    const connection = graph.connections?.find((c: ConnectionConfig) => c.from.id === node.id && c.from.pin === "continue");
+    const connection = graph.connections?.find((c: ConnectionConfig) =>
+        c.from.id === node.id && c.from.pin === "continue"
+    );
 
     if (!connection) {
         return undefined;
@@ -80,6 +90,7 @@ export function inputConfigToExecutionInput(nodeId: string, input: InputConfig, 
         nodeId,
         inputId: input.id,
         inputType: input.type,
+        inputName: input.name,
         defaultValue: input.defaultValue,
         resolve: executionGraph && connection ? {graph: executionGraph, src: connection.from} : undefined
     };
@@ -107,6 +118,7 @@ export function nodeConfigToExecutionGraph(node: NodeConfig, graph: AppConfig): 
             nodeId: node.id,
             outputId: output.id,
             outputType: output.type,
+            outputName: output.name,
             value: undefined
         })) ?? [],
         visited: false,
@@ -191,4 +203,30 @@ export function buildExecutionGraph(graph: AppConfig): ExecutionGraph | undefine
     graphs.clear();
 
     return nodeConfigToExecutionGraph(startingNode, graph);
+}
+
+export function runGraph(graph: AppConfig, params: KeyValue): GraphResult | undefined {
+    let executionGraph = buildExecutionGraph(graph);
+    if (!executionGraph) return undefined;
+
+    executionGraph.outputs?.forEach((output: ExecutionOutput) => {
+        executionGraph?.context.set(output.outputId, params[output.outputId] ?? params[output.outputName]);
+    });
+
+    executionGraph = resolveExecutionGraph(executionGraph);
+    let iterator = executionGraph;
+
+    while (iterator.next) {
+        iterator = iterator.next;
+    }
+
+    if (iterator.nodeType !== NodeType.RETURN) {
+        console.log("Graph not terminated with RETURN node.");
+        return undefined;
+    }
+
+    return {
+        graph: executionGraph,
+        result: executionContext.result
+    };
 }

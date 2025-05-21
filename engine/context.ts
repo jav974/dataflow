@@ -1,9 +1,15 @@
+export type KeyValue<T = any> = {
+    [key: string]: T;
+}
+
 interface ExecContext {
-    variables: Map<string, any>;
+    variables: KeyValue;
+    result: KeyValue;
 }
 
 const executionContext: ExecContext = {
-    variables: new Map()
+    variables: {},
+    result: {}
 }
 
 export default executionContext;

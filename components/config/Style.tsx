@@ -21,4 +21,14 @@ const LINE_STYLE: StrokeStyle = {
     })*/
 };
 
-export { LINE_STYLE, COLOR_BLUE };
+const BACKGROUND_LINE_STYLE: StrokeStyle = {
+    color: 0, 
+    width: 0.25,
+    alpha: 0.5,
+    alignment: 0.5,
+    cap: 'round',
+    join: 'round',
+    miterLimit: 10,
+};
+
+export { LINE_STYLE, COLOR_BLUE, BACKGROUND_LINE_STYLE };

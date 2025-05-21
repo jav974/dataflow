@@ -1,13 +1,12 @@
 import {extend} from '@pixi/react';
 import { Container, FederatedPointerEvent, Graphics } from 'pixi.js';
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo } from 'react';
 import FastGraphics from './FastGraphics';
 import useDraggable from '@/hooks/pixi/useDraggable';
 import { PointerEventType, useNodes } from '@/contexts/NodeContext';
 import { useGraphContext } from '@/contexts/GraphContext';
-import { Coordinates } from '../config/Schema';
 import usePointerPosition from '@/hooks/usePointerPosition';
-import { COLOR_BLUE } from '../config/Style';
+import { BACKGROUND_LINE_STYLE, COLOR_BLUE, LINE_STYLE } from '../config/Style';
 
 extend({
     Container,
@@ -22,11 +21,11 @@ export default function BackgroundNode({ width, height }: BackgroundNodeProps) {
     const { zoom, scale, canvasPosition } = useGraphContext();
     const { position, lastUpdated: positionLastUpdated, handlers } = useDraggable();
     const { position: pointerPosition, lastUpdated: pointerPositionLastUpdated } = usePointerPosition();
-    const { onPointerUp, openContextMenu, selectionArea } = useNodes();
-    const [ selectionStart, setSelectionStart ] = useState<Coordinates | undefined>();
+    const { onPointerUp, openContextMenu, selectionArea, selectionStart, startSelection, stopSelection } = useNodes();
 
     const backgroundSettings = useMemo(() => ({
         spacing: 40,
+        lineSpacing: 10,
         dotRadius: 1,
     }), []);
     const dotFillSettings = useMemo(() => ({
@@ -71,11 +70,17 @@ export default function BackgroundNode({ width, height }: BackgroundNodeProps) {
         const startX = startOffset + ((position.x / scale.ref.current) % backgroundSettings.spacing);
         const startY = startOffset + ((position.y / scale.ref.current) % backgroundSettings.spacing);
 
-        for (let x = startX; x < width; x += backgroundSettings.spacing) {
-            for (let y = startY; y < height; y += backgroundSettings.spacing) {
-                drawDot(g, x, y, backgroundSettings.dotRadius);
-            }
+        for (let x = startX; x < width; x += backgroundSettings.lineSpacing) {
+            g.moveTo(x, 0);
+            g.lineTo(x, height);
         }
+
+        for (let y = startY; y < height; y += backgroundSettings.lineSpacing) {
+            g.moveTo(0, y);
+            g.lineTo(width, y);
+        }
+
+        g.stroke(BACKGROUND_LINE_STYLE);
     }, [backgroundFillSettings, backgroundSettings, drawDot, width, height]);
 
     const handleRightClick = useCallback((e: FederatedPointerEvent) => {
@@ -93,8 +98,7 @@ export default function BackgroundNode({ width, height }: BackgroundNodeProps) {
         });
 
         if (selectionStart) {
-            setSelectionStart(undefined);
-            selectionArea.update(undefined);
+            stopSelection();
         } else {
             handlers.onPointerUp();
         }
@@ -104,7 +108,7 @@ export default function BackgroundNode({ width, height }: BackgroundNodeProps) {
         if (e.ctrlKey) {    // Move canvas
             handlers.onPointerDown(e);
         } else {            // Create selection rectangle
-            setSelectionStart({x: e.clientX, y: e.clientY});
+            startSelection({x: e.clientX, y: e.clientY});
         }
     }, [handlers.onPointerDown]);
 

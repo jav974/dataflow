@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef } from "react";
 import { InputPin, OutputPin, Pin as PinType, useNodes } from "@/contexts/NodeContext";
 import PinExecute from "./pin/PinExecute";
 import PinContinue from "./pin/PinContinue";
@@ -34,7 +34,7 @@ export default function Node({
     const containerRef = useRef<HTMLDivElement | null>(null);
     const executeRef = useRef<HTMLDivElement | null>(null);
     const continueRef = useRef<HTMLDivElement | null>(null);
-    const { registerNode, stopConnectionDrag, selectionArea, setSelected, isSelected } = useNodes();
+    const { registerNode, stopConnectionDrag, selectionArea, setSelected, isSelected, stopSelection } = useNodes();
     const { removeNode, scale } = useGraphContext();
     const { isHovered, handleMouseEnter, handleMouseLeave } = useHoverable();
     const selected = isSelected(node.id);
@@ -155,7 +155,8 @@ export default function Node({
 
     const onPointerUp = useCallback(() => {
         stopConnectionDrag();
-    }, [stopConnectionDrag]);
+        stopSelection();
+    }, [stopConnectionDrag, stopSelection]);
 
     return (
         <div
