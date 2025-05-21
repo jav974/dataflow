@@ -58,10 +58,15 @@ export function UserGraphProvider({ children }: { children: React.ReactNode }) {
         if (graphs === null) return;
 
         localStorage.removeItem(getLocalStorageGraphKey(name));
-        setGraphs(graphs.filter((graph) => graph !== name));
+        const filteredGraphs = graphs.filter((graph) => graph !== name);
+        setGraphs(filteredGraphs);
         
         if (graph?.name === name) {
-            setGraph(null);
+            if (filteredGraphs.length) {
+                loadGraph(filteredGraphs[0]);
+            } else {
+                setGraph(null);
+            }
         }
     }, [getLocalStorageGraphKey, graphs, graph]);
     

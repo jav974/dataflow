@@ -1,6 +1,6 @@
 import Node, { NodeProps } from "@/components/core/Node";
 import { useGraphContext } from "@/contexts/GraphContext";
-import React, { useCallback, useMemo } from "react";
+import React, { useCallback, useEffect, useMemo } from "react";
 
 interface GetVarNodeProps extends NodeProps {
 }
@@ -16,6 +16,12 @@ export default function GetVarNode({node, context}: GetVarNodeProps) {
 
         return result;
     }, [variables.lastUpdated]);
+
+    useEffect(() => {
+        if (!context?.get('var')) {
+            setNodeContext(node.id, (new Map(context)).set('var', variables.ref.current.keys().next().value));
+        }
+    }, [node.id, context, setNodeContext]);
 
     const onChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
         setNodeContext(node.id, (new Map(context)).set('var', e.target.value));

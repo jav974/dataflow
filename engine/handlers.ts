@@ -79,7 +79,7 @@ const handleSetVar: NodeExecutor = (inputs: NodeExecParams, context: NodeExecCon
     const value = inputs.get('value');
 
     result.set('result', value);
-    executionContext.variables[context.get('var')] = value;
+    executionContext.variables[context.get('_node_id')] = value;
 
     return result;
 }
@@ -87,6 +87,8 @@ const handleSetVar: NodeExecutor = (inputs: NodeExecParams, context: NodeExecCon
 const handleGetVar: NodeExecutor = (_: NodeExecParams, context: NodeExecContext): NodeExecParams => {
     const result: NodeExecParams = new Map();
     const value = executionContext.variables[context.get('var')];
+
+    console.log(executionContext.variables, context);
 
     result.set('value', value);
 

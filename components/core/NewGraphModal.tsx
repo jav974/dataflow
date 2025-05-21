@@ -1,7 +1,8 @@
 import { useCallback, useState } from "react";
 import { useUserGraph } from "@/contexts/UserGraphContext";
-import { AppConfig } from "@/components/config/Schema";
+import { AppConfig, NodeConfig, NodeType } from "@/components/config/Schema";
 import Modal from "./Modal";
+import registry from "../nodes/registry";
 
 interface NewGraphModalProps {
     isOpen: boolean;
@@ -10,20 +11,31 @@ interface NewGraphModalProps {
 
 export default function NewGraphModal({ isOpen, onClose }: NewGraphModalProps) {
     const [graphName, setGraphName] = useState("");
-    const { saveGraph } = useUserGraph();
+    const { saveGraph, loadGraph } = useUserGraph();
 
     const handleSubmit = useCallback((e: React.FormEvent) => {
         e.preventDefault();
         if (!graphName.trim()) return;
 
+        const startNodeConfig = registry.get(NodeType.START)?.config;
+        const returnNodeConfig = registry.get(NodeType.RETURN)?.config;
+        let nodes: NodeConfig[] = [];
+
+        if (startNodeConfig && returnNodeConfig) {
+            const startNode = {id: 'start', ...startNodeConfig, position: startNodeConfig.position ?? {x: 500, y: 500}};
+            const returnNode = {id: 'return', ...returnNodeConfig, position: returnNodeConfig.position ?? {x: 500, y: 500}};
+            nodes = [startNode, returnNode];
+        }
+
         const newGraph: AppConfig = {
             name: graphName,
-            nodes: [],
+            nodes,
             connections: []
         };
 
         saveGraph(graphName, newGraph);
         setGraphName("");
+        loadGraph(graphName);
         onClose();
     }, [graphName, saveGraph, onClose]);
 
