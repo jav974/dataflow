@@ -14,7 +14,7 @@ export default function BaseIcon({ color, size = 24, strokeWidth = 2, className 
             size={size}
             color={color}
             strokeWidth={strokeWidth}
-            fill={isHovered ? color : "none"}
+            //fill={isHovered ? color : "none"}
             className={className}
             {...props}
         />

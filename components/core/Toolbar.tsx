@@ -9,6 +9,7 @@ import DeleteGraphModal from "./DeleteGraphModal";
 import { useGraphContext } from "@/contexts/GraphContext";
 import { executeGraph } from "@/actions/graph";
 import { runGraph } from "@/engine/graph";
+import { useNodes } from "@/contexts/NodeContext";
 
 export default function Toolbar() {
     const { graphs, loadGraph, graph, saveGraph, deleteGraph } = useUserGraph();
@@ -16,6 +17,7 @@ export default function Toolbar() {
     const [isNewModalOpen, setIsNewModalOpen] = useState(false);
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [isPlaying, setIsPlaying] = useState<boolean>(false);
+    const {setGraphResult} = useNodes();
 
     const onGraphChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
         loadGraph(e.target.value);
@@ -53,8 +55,8 @@ export default function Toolbar() {
             //     .then((result) => console.log("Execution graph: ", result))
             //     .catch((reason: any) => console.log(reason));
 
-            const executionGraph = runGraph(graph, {Ad: 36});
-            console.log(executionGraph);   
+            const result = runGraph(graph, {Ad: 36});
+            setGraphResult(result);
             
             setTimeout(() => setIsPlaying(false), 0);
         }
@@ -77,7 +79,7 @@ export default function Toolbar() {
                     }
                 </div>
                 <div className="flex justify-center items-center">
-                    <PlayButton isPlaying={isPlaying} onClick={onPlay}/>
+                    {graph && <PlayButton isPlaying={isPlaying} onClick={onPlay}/>}
                 </div>
                 <div className="flex justify-end items-center pr-2 gap-4">
                     {graph && <SaveButton onClick={onSaveGraphClick} />}

@@ -3,15 +3,17 @@ import ApplicationTemplates from "./ApplicationTemplates";
 import BackgroundNode from "../pixi/BackgroundNode";
 import ApplicationGraph from "./ApplicationGraph";
 import ContextMenu from "./ContextMenu";
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef } from "react";
 import { useNodes } from "@/contexts/NodeContext";
 import Toolbar from "./Toolbar";
 import { useUserGraph } from "@/contexts/UserGraphContext";
 import { useGraphContext } from "@/contexts/GraphContext";
+import { Size } from "pixi.js";
+import { usePersistedState } from "@/hooks/usePersistedState";
 
 export default function AppContainer() {
     const parentRef = useRef<HTMLDivElement>(null);
-    const [size, setSize] = useState({width: 0, height: 0});
+    const [size, setSize] = usePersistedState<Size>("dataflow-canvas-size", {width: 0, height: 0});
     const { closeContextMenu } = useNodes();
     const { loadGraph, zoomIn, zoomOut } = useGraphContext();
     const { graph } = useUserGraph();
@@ -68,7 +70,7 @@ export default function AppContainer() {
             loadGraph(graph);
         }
     }, [graph, loadGraph]);
-
+    
     return (
         <div
             id="pixi-container"
@@ -79,7 +81,16 @@ export default function AppContainer() {
             onClick={handleClick}
         >
             <Toolbar />
-            <Application bezierSmoothness={1} antialias={true} resizeTo={parentRef} clearBeforeRender={true} width={size.width} height={size.height}>
+            <Application
+                bezierSmoothness={1}
+                antialias={true}
+                resizeTo={parentRef}
+                clearBeforeRender={true}
+                width={size.width}
+                height={size.height}
+                preference="webgpu"
+                powerPreference="high-performance"
+            >
                 <BackgroundNode width={size.width} height={size.height} />
                 <ApplicationGraph />
             </Application>

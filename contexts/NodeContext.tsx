@@ -4,6 +4,7 @@ import { useGraphContext } from './GraphContext';
 import ConnectionDrag from '@/components/pixi/ConnectionDrag';
 import { RefState, useRefState } from '@/hooks/useRefState';
 import { Size } from 'pixi.js';
+import { GraphResult } from '@/engine/graph';
 
 export interface Pin {
     id: string;
@@ -43,6 +44,7 @@ interface NodeContextType {
     selectionArea: RefState<(Coordinates & Size) | undefined>;
     selectedNodes: RefState<string[]>;
     selectionStart: Coordinates | undefined;
+    graphResult: GraphResult | undefined;
     registerNode: (node: NodeConfig, inputs: InputPin[], outputs: OutputPin[], executePin?: Pin, continuePin?: Pin) => void;
     updateNodePosition: (id: string, x: number, y: number) => void;
     startConnectionDrag: (connector: Connector) => void;
@@ -55,6 +57,7 @@ interface NodeContextType {
     isSelected: (id: string) => boolean;
     startSelection: (coord: Coordinates) => void;
     stopSelection: () => void;
+    setGraphResult: (result: GraphResult | undefined) => void;
 }
 
 export enum PointerEventType {
@@ -77,6 +80,7 @@ export function NodeProvider({ children }: { children: React.ReactNode }) {
     const [connectionDrag, setConnectionDrag] = useState<ConnectionDrag | undefined>(undefined);
     const [rightClickPosition, setRightClickPosition] = useState<Coordinates | undefined>(undefined);
     const [selectionStart, setSelectionStart] = useState<Coordinates | undefined>();
+    const [graphResult, setGraphResult] = useState<GraphResult | undefined>(undefined);
     const {addConnection, removeConnections} = useGraphContext();
     const nodes = useRefState<Map<string, Node>>(new Map());
     const renderTargets = useRefState<Map<string, HTMLElement>>(new Map());
@@ -210,6 +214,7 @@ export function NodeProvider({ children }: { children: React.ReactNode }) {
             selectionArea,
             selectedNodes,
             selectionStart,
+            graphResult,
             registerNode,
             updateNodePosition,
             startConnectionDrag,
@@ -221,7 +226,8 @@ export function NodeProvider({ children }: { children: React.ReactNode }) {
             setSelected,
             isSelected,
             startSelection,
-            stopSelection
+            stopSelection,
+            setGraphResult
         }}>
             {children}
         </NodeContext.Provider>

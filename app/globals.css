@@ -24,3 +24,11 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+svg {
+  transition: filter 0.3s ease-in-out; /* Smooth transition */
+}
+
+svg:hover {
+  filter: brightness(1.2) contrast(1.5) saturate(2);
+}
