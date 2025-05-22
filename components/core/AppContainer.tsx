@@ -3,7 +3,7 @@ import ApplicationTemplates from "./ApplicationTemplates";
 import BackgroundNode from "../pixi/BackgroundNode";
 import ApplicationGraph from "./ApplicationGraph";
 import ContextMenu from "./ContextMenu";
-import React, { useCallback, useEffect, useRef } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useNodes } from "@/contexts/NodeContext";
 import Toolbar from "./Toolbar";
 import { useUserGraph } from "@/contexts/UserGraphContext";
@@ -70,7 +70,7 @@ export default function AppContainer() {
             loadGraph(graph);
         }
     }, [graph, loadGraph]);
-    
+
     return (
         <div
             id="pixi-container"

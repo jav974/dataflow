@@ -6,8 +6,8 @@ function retrieveValue<T>(key: string, defaultValue: T | null | undefined): T | 
     if (typeof localStorage === "undefined") {
         return defaultValue;
     }
-    const storedValue = localStorage?.getItem(key);
-    return storedValue ? JSON.parse(storedValue) : storedValue;
+    const storedValue = localStorage.getItem(key);
+    return storedValue ? JSON.parse(storedValue) : defaultValue;
 }
 
 export function usePersistedState<T>(key: string, value: T): PersistedState<T>;
