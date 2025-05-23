@@ -41,6 +41,10 @@ export default function ConnectionDrag() {
             
             if (!fromPin) {
                 fromPin = fromNode?.outputs.find((pin) => pin.id === connectionDrag?.connector.pin);
+
+                if (!fromPin) {
+                    fromPin = fromNode?.branches.find((pin) => pin.id === connectionDrag?.connector.pin);
+                }
             }
         }
  

@@ -29,12 +29,20 @@ export default function Connection({from, to}: ConnectionProps) {
 
             // Initialize pins
             if (fromNode.current && toNode.current) {
-                if (from.pin === 'continue' && to.pin === 'execute') {
-                    fromPin.current = fromNode.current.continuePin;
-                    toPin.current = toNode.current.executePin;
-                } else {
+                // Output (value) to Input
+                if (from.pin !== 'continue' && to.pin !== 'execute') {
                     fromPin.current = fromNode.current.outputs.find(output => output.id === from.pin);
                     toPin.current = toNode.current.inputs.find(input => input.id === to.pin);
+                }
+                // Output (branch) to Execute
+                else if (from.pin !== 'continue' && to.pin === 'execute') {
+                    fromPin.current = fromNode.current.branches.find(branch => branch.id === from.pin);
+                    toPin.current = toNode.current.executePin;
+                }
+                // Continue to Execute
+                else if (from.pin === 'continue' && to.pin === 'execute') {
+                    fromPin.current = fromNode.current.continuePin;
+                    toPin.current = toNode.current.executePin;
                 }
             }
         }

@@ -76,6 +76,7 @@ export default function ContextMenu() {
         return {
             children: [
                 ...specialEntries,
+                createNodeMenuEntry("Sequence", NodeType.SEQUENCE),
                 createNodeMenuEntry("Fetch", NodeType.FETCH),
                 {
                     name: "Variables",

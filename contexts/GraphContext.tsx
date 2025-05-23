@@ -1,5 +1,5 @@
 import React, { createContext, useCallback, useContext, useEffect, useState } from "react";
-import { AppConfig, ConnectionConfig, ConnectorConfig, Coordinates, InputConfig, NodeConfig, NodeType, OutputConfig } from "@/components/config/Schema";
+import { AppConfig, ConnectionConfig, ConnectorConfig, Coordinates, InputConfig, NodeConfig, NodeType, OutputBranchConfig, OutputConfig } from "@/components/config/Schema";
 import { RefState, useRefState } from "@/hooks/useRefState";
 
 interface GraphContextType {
@@ -20,6 +20,9 @@ interface GraphContextType {
     addNodeOutput: (id: string, output: OutputConfig) => void;
     removeNodeOutput: (nodeId: string, outputId: string) => void;
     setNodeOutputs: (id: string, outputs: OutputConfig[]) => void;
+    addNodeBranch: (id: string, branch: OutputBranchConfig) => void;
+    removeNodeBranch: (id: string, branchId: string) => void;
+    setNodeBranches: (id: string, branches: OutputBranchConfig[]) => void;
     addConnection: (connection: ConnectionConfig) => void;
     removeConnections: (from?: ConnectorConfig, to?: ConnectorConfig) => void;
     loadGraph: (graph: AppConfig) => void;
@@ -153,6 +156,32 @@ export function GraphProvider({children}: GraphProviderProps) {
         }
     }, [updateNode]);
 
+    const addNodeBranch = useCallback((id: string, branch: OutputBranchConfig) => {
+        const node = nodes.ref.current.find((n: NodeConfig) => n.id === id);
+
+        if (node) {
+            if ((node.outputBranches?.findIndex((b: OutputBranchConfig): boolean => b.id === branch.id) ?? -1) === -1) {
+                updateNode({...node, outputBranches: [...(node.outputBranches || []), branch]});
+            }
+        }
+    }, []);
+
+    const removeNodeBranch = useCallback((nodeId: string, branchId: string) => {
+        const node = nodes.ref.current.find((n: NodeConfig) => n.id === nodeId);
+
+        if (node) {
+            updateNode({...node, outputBranches: node.outputBranches?.filter((b: OutputBranchConfig) => b.id !== branchId)});
+        }
+    }, []);
+
+    const setNodeBranches = useCallback((id: string, branches: OutputBranchConfig[]) => {
+        const node = nodes.ref.current.find((n: NodeConfig) => n.id === id);
+
+        if (node) {
+            updateNode({...node, outputBranches: branches});
+        }
+    }, [updateNode]);
+
     const setOutputName = useCallback((nodeId: string, outputId: string, name: string) => {
         const node = nodes.ref.current.find((n: NodeConfig) => n.id === nodeId);
 
@@ -271,6 +300,9 @@ export function GraphProvider({children}: GraphProviderProps) {
         addNodeOutput,
         removeNodeOutput,
         setNodeOutputs,
+        addNodeBranch,
+        removeNodeBranch,
+        setNodeBranches,
         addConnection,
         removeConnections,
         loadGraph,

@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef } from "react";
-import { InputPin, OutputPin, Pin as PinType, useNodes } from "@/contexts/NodeContext";
+import { InputPin, OutputBranchPin, OutputPin, Pin as PinType, useNodes } from "@/contexts/NodeContext";
 import PinExecute from "./pin/PinExecute";
 import PinContinue from "./pin/PinContinue";
 import { Delete02Icon } from "@hugeicons/core-free-icons";
@@ -22,15 +22,18 @@ export interface NodeProps {
     inputMultipleType?: ParameterType;
     context?: Map<string, any>;
     outputMultiple?: boolean;
+    branchMultiple?: boolean;
+    minBranches?: number;
 }
 
 export default function Node({
     node, children, size, hasExecute = true, hasContinue = true,
     inputMultiple = false, minInputParams = 0, inputMultipleType,
-    outputMultiple = false
+    outputMultiple = false, branchMultiple = false, minBranches = 0
  }: NodeProps) {
     const inputPinsRef = useRef<Map<string, HTMLDivElement | null>>(new Map());
     const outputPinsRef = useRef<Map<string, HTMLDivElement | null>>(new Map());
+    const outputBranchPinsRef = useRef<Map<string, HTMLDivElement | null>>(new Map());
     const containerRef = useRef<HTMLDivElement | null>(null);
     const executeRef = useRef<HTMLDivElement | null>(null);
     const continueRef = useRef<HTMLDivElement | null>(null);
@@ -62,6 +65,7 @@ export default function Node({
         
         const inputPins: InputPin[] = [];
         const outputPins: OutputPin[] = [];
+        const outputBranchPins: OutputBranchPin[] = [];
         let executePin: PinType | undefined = undefined;
         let continuePin: PinType | undefined = undefined;
 
@@ -93,7 +97,17 @@ export default function Node({
             }
         }
 
-        registerNode(node, inputPins, outputPins, executePin, continuePin);
+        // Get output branch pin positions
+        for (const [key, pin] of outputBranchPinsRef.current.entries()) {
+            const pinData = node.outputBranches?.find(branch => branch.id === key);
+
+            if (pin && pinData) {
+                let data: OutputBranchPin = { ...getPin(key, pin, containerRect, {x: 14, y: 10}), ...pinData };
+                outputBranchPins.push(data);
+            }
+        }
+
+        registerNode(node, inputPins, outputPins, outputBranchPins, executePin, continuePin);
     }, [node, registerNode, getPin]);
 
     useEffect(() => {
@@ -153,6 +167,10 @@ export default function Node({
         outputPinsRef.current.set(outputId, el);
     }, []);
 
+    const onPinOutputBranchRef = useCallback((branchId: string, el: HTMLDivElement | null) => {
+        outputBranchPinsRef.current.set(branchId, el);
+    }, []);
+
     const onPointerUp = useCallback(() => {
         stopConnectionDrag();
         stopSelection();
@@ -196,8 +214,12 @@ export default function Node({
                         nodeId={node.id}
                         nodeType={node.type}
                         outputs={node.outputs}
-                        onRef={onPinOutputRef}
+                        onOutputRef={onPinOutputRef}
+                        onBranchRef={onPinOutputBranchRef}
                         multiple={outputMultiple}
+                        branchMultiple={branchMultiple}
+                        branches={node.outputBranches}
+                        minBranches={minBranches}
                     />
                 </div>
 

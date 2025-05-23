@@ -87,7 +87,7 @@ export default function NodeInputs({nodeId, nodeType, inputs, onRef, multiple = 
 
     return (
         <div
-            className={`space-y-2 pb-2 pt-2 border-2 border-transparent ${multiple ? 'hover:border-black hover:border-dashed' : ''}`}
+            className={`space-y-2 pb-2 pt-2 border-2 border-transparent ${multiple ? 'hover:border-gray-500 hover:border-dashed' : ''}`}
             onPointerEnter={handleMouseEnter}
             onPointerLeave={handleMouseLeave}
             onPointerUp={handlePointerUp}

@@ -1,4 +1,4 @@
-import { AppConfig, ConnectionConfig, ConnectorConfig, InputConfig, NodeConfig, NodeType, OutputConfig, ParameterType, ParameterValueType } from "@/components/config/Schema";
+import { AppConfig, ConnectionConfig, ConnectorConfig, InputConfig, NodeConfig, NodeType, OutputBranchConfig, OutputConfig, ParameterType, ParameterValueType } from "@/components/config/Schema";
 import registry from "./registry";
 import { jsonToMap } from "./utils";
 import executionContext, { KeyValue } from "./context";
@@ -28,11 +28,18 @@ export interface ExecutionOutput {
     value: ParameterValueType;
 }
 
+export interface ExecutionBranch {
+    nodeId: string;
+    branchId: string;
+    graph?: ExecutionGraph;
+}
+
 export interface ExecutionGraph {
     nodeType: NodeType;
     nodeId: string;
     inputs?: ExecutionInput[];
     outputs: ExecutionOutput[];
+    branches: ExecutionBranch[];
     next: ExecutionGraph | null;
     visited: boolean;
     context: Map<string, any>;
@@ -59,9 +66,9 @@ export function findStartNode(graph: AppConfig): NodeConfig | undefined {
     return node;
 }
 
-export function findNextNode(node: NodeConfig, graph: AppConfig): NodeConfig | undefined {
+export function findNextNode(node: NodeConfig, graph: AppConfig, fromPin: string = "continue"): NodeConfig | undefined {
     const connection = graph.connections?.find((c: ConnectionConfig) =>
-        c.from.id === node.id && c.from.pin === "continue"
+        c.from.id === node.id && c.from.pin === fromPin
     );
 
     if (!connection) {
@@ -121,12 +128,24 @@ export function nodeConfigToExecutionGraph(node: NodeConfig, graph: AppConfig): 
             outputName: output.name,
             value: undefined
         })) ?? [],
+        branches: node.outputBranches?.map((branch: OutputBranchConfig): ExecutionBranch => ({
+            nodeId: node.id,
+            branchId: branch.id
+        })) ?? [],
         visited: false,
         context,
         next: null,
     };
 
     graphs.set(node.id, executionGraph);
+
+    executionGraph.branches.forEach((branch: ExecutionBranch) => {
+        const branchNextNode = findNextNode(node, graph, branch.branchId);
+
+        if (branchNextNode) {
+            branch.graph = nodeConfigToExecutionGraph(branchNextNode, graph);
+        }
+    });
 
     executionGraph.next = nextNode ? nodeConfigToExecutionGraph(nextNode, graph) : null;
 
@@ -162,6 +181,7 @@ export function handleExecution(graph: ExecutionGraph): ExecutionGraph {
     if (executor) {
         const result = executor(rawInputs, graph.context);
 
+        // Map executor result to graph outputs
         graph.outputs = graph.outputs.map((output: ExecutionOutput) => {
             if (result.has(output.outputId)) {
                 output.value = result.get(output.outputId);
@@ -170,6 +190,18 @@ export function handleExecution(graph: ExecutionGraph): ExecutionGraph {
             }
             return output;
         });
+
+        if (graph.branches.length > 0) {
+            switch (graph.nodeType) {
+                case NodeType.SEQUENCE:
+                    graph.branches.forEach((branch: ExecutionBranch) => {
+                        if (branch.graph) {
+                            branch.graph = resolveExecutionGraph(branch.graph);
+                        }
+                    });
+                    break ;
+            }
+        }
     } else {
         console.log("No executor found for node type", graph.nodeType);
     }

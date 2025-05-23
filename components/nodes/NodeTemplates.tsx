@@ -8,6 +8,7 @@ import GetVarNode from "./variables/GetVarNode";
 import { jsonToMap } from "@/engine/utils";
 import StartNode from "./special/StartNode";
 import ReturnNode from "./special/ReturnNode";
+import SequenceNode from "./sequence/SequenceNode";
 
 registry.set(NodeType.START, {
     builder: (node: NodeConfig) => <StartNode node={node} />,
@@ -139,6 +140,18 @@ registry.set(NodeType.SET, {
     }
 });
 
+registry.set(NodeType.GET, {
+    builder: (node: NodeConfig) => <GetVarNode node={node} context={jsonToMap<any>(node.context)} />,
+    config: {
+        type: NodeType.GET,
+        name: "Get variable",
+        executable: false,
+        outputs: [
+            {id: "value", name: "value", type: ParameterType.ANY}
+        ]
+    }
+});
+
 registry.set(NodeType.CONDITIONAL_IF, {
     builder: (node: NodeConfig) => <IfNode node={node} />,
     config: {
@@ -197,14 +210,15 @@ registry.set(NodeType.CONDITIONAL_IF, {
     }
 });
 
-registry.set(NodeType.GET, {
-    builder: (node: NodeConfig) => <GetVarNode node={node} context={jsonToMap<any>(node.context)} />,
+registry.set(NodeType.SEQUENCE, {
+    builder: (node: NodeConfig) => <SequenceNode node={node} />,
     config: {
-        type: NodeType.GET,
-        name: "Get variable",
-        executable: false,
-        outputs: [
-            {id: "value", name: "value", type: ParameterType.ANY}
+        executable: true,
+        name: "Sequence",
+        type: NodeType.SEQUENCE,
+        outputBranches: [
+            {id: "then_1", name: "Then"},
+            {id: "then_2", name: "Then"}
         ]
     }
 });

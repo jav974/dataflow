@@ -1,7 +1,6 @@
-import { Coordinates, InputConfig, NodeConfig, NodeType, OutputConfig } from '@/components/config/Schema';
+import { Coordinates, InputConfig, NodeConfig, NodeType, OutputBranchConfig, OutputConfig } from '@/components/config/Schema';
 import { createContext, useContext, useState, useCallback } from 'react';
 import { useGraphContext } from './GraphContext';
-import ConnectionDrag from '@/components/pixi/ConnectionDrag';
 import { RefState, useRefState } from '@/hooks/useRefState';
 import { Size } from 'pixi.js';
 import { GraphResult } from '@/engine/graph';
@@ -17,10 +16,14 @@ export interface InputPin extends InputConfig, Pin {
 export interface OutputPin extends OutputConfig, Pin {
 }
 
+export interface OutputBranchPin extends OutputBranchConfig, Pin {
+}
+
 export interface Node {
     mutableNodeConfig: NodeConfig;
     inputs: InputPin[];
     outputs: OutputPin[];
+    branches: OutputBranchPin[];
     executePin?: Pin;
     continuePin?: Pin;
 }
@@ -30,10 +33,19 @@ interface Connector {
     pin: string;
 }
 
+interface ConnectionInfo {
+    isSrc: boolean;
+    isInput: boolean;
+    isOutput: boolean;
+    isBranch: boolean;
+    isExecute: boolean;
+    isContinue: boolean;
+}
+
 interface ConnectionDrag {
     node: Node;
     connector: Connector;
-    dst?: Connector;
+    info: ConnectionInfo;
 }
 
 interface NodeContextType {
@@ -45,7 +57,7 @@ interface NodeContextType {
     selectedNodes: RefState<string[]>;
     selectionStart: Coordinates | undefined;
     graphResult: GraphResult | undefined;
-    registerNode: (node: NodeConfig, inputs: InputPin[], outputs: OutputPin[], executePin?: Pin, continuePin?: Pin) => void;
+    registerNode: (node: NodeConfig, inputs: InputPin[], outputs: OutputPin[], branches: OutputBranchPin[], executePin?: Pin, continuePin?: Pin) => void;
     updateNodePosition: (id: string, x: number, y: number) => void;
     startConnectionDrag: (connector: Connector) => void;
     stopConnectionDrag: () => void;
@@ -87,8 +99,8 @@ export function NodeProvider({ children }: { children: React.ReactNode }) {
     const selectionArea = useRefState<(Coordinates & Size) | undefined>(undefined);
     const selectedNodes = useRefState<string[]>([]);
 
-    const registerNode = useCallback((node: NodeConfig, inputs: InputPin[], outputs: OutputPin[], executePin?: Pin, continuePin?: Pin) => {
-        nodes.ref.current.set(node.id, { mutableNodeConfig: node, inputs, outputs, executePin, continuePin });
+    const registerNode = useCallback((node: NodeConfig, inputs: InputPin[], outputs: OutputPin[], branches: OutputBranchPin[], executePin?: Pin, continuePin?: Pin) => {
+        nodes.ref.current.set(node.id, { mutableNodeConfig: node, inputs, outputs, branches, executePin, continuePin });
         nodes.setLastUpdated(Date.now());
     }, []);
 
@@ -120,17 +132,83 @@ export function NodeProvider({ children }: { children: React.ReactNode }) {
         }
     }, []);
 
-    const startConnectionDrag = useCallback((connector: Connector) => {
-        const node = nodes.ref.current.get(connector.id);
-        if (!node) return ;
+    const getConnectionInfo = useCallback((node: Node, connector: Connector): ConnectionInfo => {
+        const predicate = (pin: Pin) => pin.id === connector.pin;
+        const isExecute = connector.pin === "execute";
+        const isContinue = connector.pin === "continue";
+        const isInput = node.inputs.find(predicate) !== undefined;
+        const isOutput = !isInput && node.outputs.find(predicate) !== undefined;
+        const isBranch = !isInput && !isOutput && node.branches.find(predicate) !== undefined;
 
-        if (connector.pin === 'continue') {
-            removeConnections(connector);
-        } else if (connector.pin === "execute") {
-            removeConnections(undefined, connector);
+        return {
+            isSrc: isContinue || isOutput || isBranch,
+            isExecute,
+            isContinue,
+            isInput,
+            isOutput,
+            isBranch
+        };
+    }, []);
+
+    const validateConnection = useCallback((a: ConnectionDrag, b: ConnectionDrag, verbose: boolean = false): boolean => {
+        if (a.info.isSrc === b.info.isSrc) {
+            if (verbose) {
+                console.log("Source connectors can not be connected together");
+            }
+            return false;
         }
 
-        setConnectionDrag({ node, connector });
+        const from: ConnectionDrag = a.info.isSrc ? a : b;
+        const to: ConnectionDrag = !a.info.isSrc ? a : b;
+
+        if (from.info.isContinue && !to.info.isExecute) {
+            if (verbose) {
+                console.log("Continue connectors can only be connected to Execute connectors");
+            }
+            return false;
+        }
+
+        if (from.info.isBranch && !to.info.isExecute) {
+            if (verbose) {
+                console.log("Branch connectors can only be connected to Execute connectors");
+            }
+            return false;
+        }
+
+        if (from.info.isOutput && !to.info.isInput) {
+            if (verbose) {
+                console.log("Output connectors can only be connected to Input connectors");
+            }
+            return false;
+        }
+
+        return true;
+    }, []);
+
+    const buildConnectionDrag = useCallback((connector: Connector): ConnectionDrag | undefined => {
+        const node = nodes.ref.current.get(connector.id);
+        if (!node) return undefined;
+
+        return {
+            node,
+            connector,
+            info: getConnectionInfo(node, connector)
+        };
+    }, []);
+
+    const startConnectionDrag = useCallback((connector: Connector) => {
+        const drag = buildConnectionDrag(connector);
+        if (!drag) return ;
+
+        // Only Output connectors can be connected to multiple other connectors
+        if (!drag.info.isOutput) {
+            removeConnections(
+                drag.info.isSrc ? connector : undefined,
+                !drag.info.isSrc ? connector : undefined
+            );
+        }
+
+        setConnectionDrag(drag);
     }, [removeConnections]);
 
     const stopConnectionDrag = useCallback(() => {
@@ -139,30 +217,15 @@ export function NodeProvider({ children }: { children: React.ReactNode }) {
 
     const onPointerUp = useCallback((e: PointerEvent) => {
         if (connectionDrag && e.id && connectionDrag.connector.id !== e.id) {
-            let fromPin = connectionDrag.connector.pin;
-            let toPin = e.element;
+            const dst = buildConnectionDrag({id: e.id, pin: e.element});
 
-            if (toPin === "execute" && fromPin === "continue") {
-                removeConnections(undefined, {id: e.id, pin: toPin});
-                addConnection({from: connectionDrag.connector, to: { id: e.id, pin: e.element }});
-            } else if (toPin === "continue" && fromPin === "execute") {
-                removeConnections({id: e.id, pin: toPin});
-                addConnection({from: { id: e.id, pin: toPin }, to: connectionDrag.connector});
-            } else if (toPin !== "execute" && toPin !== "continue" && fromPin !== "execute" && fromPin !== "continue") {
-                const srcIsInput: boolean = nodes.ref.current.get(connectionDrag.connector.id)?.inputs.find((pin) => {
-                    return pin.id === fromPin;
-                }) !== undefined;
-                const dstIsInput: boolean = nodes.ref.current.get(e.id)?.inputs.find((pin) => {
-                    return pin.id === toPin;
-                }) !== undefined;
+            if (dst && validateConnection(connectionDrag, dst, true)) {
+                const from = connectionDrag.info.isSrc ? connectionDrag : dst;
+                const to = !connectionDrag.info.isSrc ? connectionDrag : dst;
 
-                if (!srcIsInput && dstIsInput) {
-                    removeConnections(undefined, {id: e.id, pin: toPin});
-                    addConnection({from: connectionDrag.connector, to: {id: e.id, pin: e.element}});
-                } else if (srcIsInput && !dstIsInput) {
-                    removeConnections(undefined, connectionDrag.connector);
-                    addConnection({from: {id: e.id, pin: e.element}, to: connectionDrag.connector});
-                }
+                // Dst connectors can only be Input or Execute, so remove any existing connection they have
+                removeConnections(undefined, to.connector);
+                addConnection({from: from.connector, to: to.connector});
             }
         }
 

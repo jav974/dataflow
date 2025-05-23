@@ -21,6 +21,8 @@ enum NodeType {
     CONDITIONAL_IF = "conditional_if",
     SET = "set_variable",
     GET = "get_variable",
+
+    SEQUENCE = "sequence",
 }
 
 enum ParameterType {
@@ -53,6 +55,7 @@ interface NodeConfig {
     inputs?: InputConfig[];
     outputs?: OutputConfig[];
     position: Coordinates;
+    outputBranches?: OutputBranchConfig[];
     // JSON.stringify() of a Map<string, any>
     context?: string;
 }
@@ -82,6 +85,11 @@ interface OutputConfig {
     type: ParameterType;
 }
 
+interface OutputBranchConfig {
+    id: string;
+    name: string;
+}
+
 function parseAppConfig(config: string): AppConfig {
     const parsedConfig = JSON.parse(config);
     return parsedConfig;
@@ -90,5 +98,5 @@ function parseAppConfig(config: string): AppConfig {
 type ParameterValueType = string | number | undefined | null;
 
 export { NodeType, ParameterType };
-export type { AppConfig, NodeConfig, InputConfig, OutputConfig, ConnectorConfig, ConnectionConfig, Coordinates, ParameterValueType };
+export type { AppConfig, NodeConfig, InputConfig, OutputConfig, ConnectorConfig, ConnectionConfig, Coordinates, ParameterValueType, OutputBranchConfig };
 export { parseAppConfig };

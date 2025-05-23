@@ -118,6 +118,10 @@ const handleReturn: NodeExecutor = (inputs: NodeExecParams, context: NodeExecCon
     return new Map();
 };
 
+const dummyExecutor: NodeExecutor = (inputs: NodeExecParams, context: NodeExecContext): NodeExecParams => {
+    return new Map();
+}
+
 registry.set(NodeType.START, handleStart);
 registry.set(NodeType.RETURN, handleReturn);
 
@@ -131,3 +135,5 @@ registry.set(NodeType.CONDITIONAL_IF, handleConditionalIf);
 
 registry.set(NodeType.SET, handleSetVar);
 registry.set(NodeType.GET, handleGetVar);
+
+registry.set(NodeType.SEQUENCE, dummyExecutor);

@@ -58,6 +58,8 @@ export default function Toolbar() {
             const result = runGraph(graph, {Ad: 36});
             setGraphResult(result);
             
+            console.log(result);
+
             setTimeout(() => setIsPlaying(false), 0);
         }
     }, [graph, isPlaying]);
