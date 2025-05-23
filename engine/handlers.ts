@@ -13,6 +13,10 @@ function toFloats(params: NodeExecParams): number[] {
     return Array.from(params.values()).map(toFloat);
 }
 
+const dummyExecutor: NodeExecutor = (inputs: NodeExecParams, context: NodeExecContext): NodeExecParams => {
+    return new Map();
+}
+
 const handleSimpleMath: NodeExecutor = (inputs: NodeExecParams, context: NodeExecContext): NodeExecParams => {
     const result: NodeExecParams = new Map();
     const _inputs = toFloats(inputs);
@@ -122,11 +126,11 @@ const handleIf: NodeExecutor = (inputs: NodeExecParams, context: NodeExecContext
     const value = inputs.get('value');
 
     return (new Map()).set('branch', value ? 'on_true' : 'on_false');
-}
+};
 
-const dummyExecutor: NodeExecutor = (inputs: NodeExecParams, context: NodeExecContext): NodeExecParams => {
-    return new Map();
-}
+const handleFor: NodeExecutor = (inputs: NodeExecParams, context: NodeExecContext): NodeExecParams => {
+    return (new Map()).set('index', 0);
+};
 
 registry.set(NodeType.START, handleStart);
 registry.set(NodeType.RETURN, handleReturn);
@@ -139,6 +143,7 @@ registry.set(NodeType.MATH_MOD, handleMathMod);
 
 registry.set(NodeType.COMPARE, handleCompare);
 registry.set(NodeType.IF, handleIf);
+registry.set(NodeType.FOR, handleFor);
 
 registry.set(NodeType.SET, handleSetVar);
 registry.set(NodeType.GET, handleGetVar);

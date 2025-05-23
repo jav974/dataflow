@@ -10,6 +10,7 @@ import StartNode from "./special/StartNode";
 import ReturnNode from "./special/ReturnNode";
 import SequenceNode from "./sequence/SequenceNode";
 import CompareNode from "./conditional/CompareNode";
+import ForNode from "./loop/ForNode";
 
 registry.set(NodeType.START, {
     builder: (node: NodeConfig) => <StartNode node={node} />,
@@ -236,6 +237,26 @@ registry.set(NodeType.SEQUENCE, {
         outputBranches: [
             {id: "then_1", name: "Then"},
             {id: "then_2", name: "Then"}
+        ]
+    }
+});
+
+registry.set(NodeType.FOR, {
+    builder: (node: NodeConfig) => <ForNode node={node} />,
+    config: {
+        executable: true,
+        name: "For",
+        type: NodeType.FOR,
+        inputs: [
+            {id: "first", name: "First", type: ParameterType.NUMBER, required: true, defaultValue: 0, editable: true},
+            {id: "last", name: "Last", type: ParameterType.NUMBER, required: true, defaultValue: 0, editable: true},
+            {id: "inclusive", name: "Inclusive", type: ParameterType.BOOLEAN, required: false, defaultValue: false, editable: true},
+        ],
+        outputBranches: [
+            {id: "callback", name: "callback"}
+        ],
+        outputs: [
+            {id: "index", name: "index", type: ParameterType.NUMBER}
         ]
     }
 });

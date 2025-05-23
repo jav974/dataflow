@@ -152,15 +152,15 @@ export function nodeConfigToExecutionGraph(node: NodeConfig, graph: AppConfig): 
     return executionGraph;
 }
 
-export function resolveInputs(graph: ExecutionGraph): Map<string, ParameterValueType> {
+export function resolveInputs(graph: ExecutionGraph, revisit: boolean = false): Map<string, ParameterValueType> {
     const inputs: Map<string, ParameterValueType> = new Map();
 
     graph.inputs?.forEach((input: ExecutionInput) => {
         inputs.set(input.inputId, input.defaultValue);
 
         if (input.resolve) {
-            if (!input.resolve.graph.visited) {
-                input.resolve.graph = resolveExecutionGraph(input.resolve.graph);
+            if (!input.resolve.graph.visited || revisit) {
+                input.resolve.graph = resolveExecutionGraph(input.resolve.graph, revisit);
             }
 
             const executionOutput = input.resolve.graph.outputs.find(
@@ -174,8 +174,28 @@ export function resolveInputs(graph: ExecutionGraph): Map<string, ParameterValue
     return inputs;
 }
 
-export function handleExecution(graph: ExecutionGraph): ExecutionGraph {
-    const rawInputs = resolveInputs(graph);
+function handleFor(graph: ExecutionGraph, inputs: Map<string, ParameterValueType>): ExecutionGraph {
+    const first = Number(inputs.get('first'));
+    const last = Number(inputs.get('last'));
+    const inclusive = inputs.get('inclusive');
+
+    if (first <= last) {
+        for (let i = first; inclusive ? i <= last : i < last; i++) {
+            graph.outputs[0].value = i;
+            graph = resolveExecutionGraph(graph, true);
+        }
+    } else {
+        for (let i = first; inclusive ? i >= last : i > last; i--) {
+            graph.outputs[0].value = i;
+            graph = resolveExecutionGraph(graph, true);
+        }
+    }
+
+    return graph;
+}
+
+export function handleExecution(graph: ExecutionGraph, revisit: boolean = false): ExecutionGraph {
+    const rawInputs = resolveInputs(graph, revisit);
     const executor = registry.get(graph.nodeType);
 
     if (executor) {
@@ -196,16 +216,21 @@ export function handleExecution(graph: ExecutionGraph): ExecutionGraph {
                 case NodeType.SEQUENCE:
                     graph.branches.forEach((branch: ExecutionBranch) => {
                         if (branch.graph) {
-                            branch.graph = resolveExecutionGraph(branch.graph);
+                            branch.graph = resolveExecutionGraph(branch.graph, revisit);
                         }
                     });
                     break ;
                 case NodeType.IF:
                     graph.branches.forEach((branch: ExecutionBranch) => {
                         if (result.get('branch') === branch.branchId && branch.graph) {
-                            branch.graph = resolveExecutionGraph(branch.graph);
+                            branch.graph = resolveExecutionGraph(branch.graph, revisit);
                         }
                     });
+                    break ;
+                case NodeType.FOR:
+                    if (graph.branches[0].graph) {
+                        graph.branches[0].graph = handleFor(graph.branches[0].graph, rawInputs);
+                    }
                     break ;
             }
         }
@@ -216,16 +241,16 @@ export function handleExecution(graph: ExecutionGraph): ExecutionGraph {
     return graph;
 }
 
-export function resolveExecutionGraph(graph: ExecutionGraph): ExecutionGraph {
-    if (graph.visited) {
+export function resolveExecutionGraph(graph: ExecutionGraph, revisit: boolean = false): ExecutionGraph {
+    if (graph.visited && !revisit) {
         return graph;
     }
 
-    graph = handleExecution(graph);
+    graph = handleExecution(graph, revisit);
     graph.visited = true;
 
     if (graph.next) {
-        graph.next = resolveExecutionGraph(graph.next);
+        graph.next = resolveExecutionGraph(graph.next, revisit);
     }
 
     return graph;

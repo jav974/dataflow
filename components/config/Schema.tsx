@@ -20,6 +20,8 @@ enum NodeType {
 
     COMPARE = "compare",
     IF = "if",
+    FOR = "for",
+    FOREACH = "foreach",
     SET = "set_variable",
     GET = "get_variable",
 

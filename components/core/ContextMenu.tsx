@@ -86,10 +86,17 @@ export default function ContextMenu() {
                     ]
                 },
                 {
-                    name: "Conditional",
+                    name: "Conditions",
                     children: [
                         createNodeMenuEntry("If", NodeType.IF),
                         createNodeMenuEntry("Compare", NodeType.COMPARE),
+                    ]
+                },
+                {
+                    name: "Loops",
+                    children: [
+                        createNodeMenuEntry("For", NodeType.FOR),
+                        createNodeMenuEntry("Foreach", NodeType.FOREACH),
                     ]
                 },
                 {
