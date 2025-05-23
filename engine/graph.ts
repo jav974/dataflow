@@ -159,7 +159,7 @@ export function resolveInputs(graph: ExecutionGraph, revisit: boolean = false): 
         inputs.set(input.inputId, input.defaultValue);
 
         if (input.resolve) {
-            if (!input.resolve.graph.visited || revisit) {
+            if (input.resolve.graph.nodeType !== NodeType.FOR && (!input.resolve.graph.visited || revisit)) {
                 input.resolve.graph = resolveExecutionGraph(input.resolve.graph, revisit);
             }
 
@@ -174,19 +174,19 @@ export function resolveInputs(graph: ExecutionGraph, revisit: boolean = false): 
     return inputs;
 }
 
-function handleFor(graph: ExecutionGraph, inputs: Map<string, ParameterValueType>): ExecutionGraph {
+function handleFor(forGraph: ExecutionGraph, graph: ExecutionGraph, inputs: Map<string, ParameterValueType>): ExecutionGraph {
     const first = Number(inputs.get('first'));
     const last = Number(inputs.get('last'));
     const inclusive = inputs.get('inclusive');
 
     if (first <= last) {
         for (let i = first; inclusive ? i <= last : i < last; i++) {
-            graph.outputs[0].value = i;
+            forGraph.outputs[0].value = i;
             graph = resolveExecutionGraph(graph, true);
         }
     } else {
         for (let i = first; inclusive ? i >= last : i > last; i--) {
-            graph.outputs[0].value = i;
+            forGraph.outputs[0].value = i;
             graph = resolveExecutionGraph(graph, true);
         }
     }
@@ -229,7 +229,7 @@ export function handleExecution(graph: ExecutionGraph, revisit: boolean = false)
                     break ;
                 case NodeType.FOR:
                     if (graph.branches[0].graph) {
-                        graph.branches[0].graph = handleFor(graph.branches[0].graph, rawInputs);
+                        graph.branches[0].graph = handleFor(graph, graph.branches[0].graph, rawInputs);
                     }
                     break ;
             }

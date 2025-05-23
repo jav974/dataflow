@@ -129,7 +129,7 @@ const handleIf: NodeExecutor = (inputs: NodeExecParams, context: NodeExecContext
 };
 
 const handleFor: NodeExecutor = (inputs: NodeExecParams, context: NodeExecContext): NodeExecParams => {
-    return (new Map()).set('index', 0);
+    return (new Map()).set('index', Number(inputs.get('first')));
 };
 
 registry.set(NodeType.START, handleStart);
