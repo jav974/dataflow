@@ -9,6 +9,7 @@ import { jsonToMap } from "@/engine/utils";
 import StartNode from "./special/StartNode";
 import ReturnNode from "./special/ReturnNode";
 import SequenceNode from "./sequence/SequenceNode";
+import CompareNode from "./conditional/CompareNode";
 
 registry.set(NodeType.START, {
     builder: (node: NodeConfig) => <StartNode node={node} />,
@@ -152,11 +153,11 @@ registry.set(NodeType.GET, {
     }
 });
 
-registry.set(NodeType.CONDITIONAL_IF, {
-    builder: (node: NodeConfig) => <IfNode node={node} />,
+registry.set(NodeType.COMPARE, {
+    builder: (node: NodeConfig) => <CompareNode node={node} />,
     config: {
-        type: NodeType.CONDITIONAL_IF,
-        name: "If",
+        type: NodeType.COMPARE,
+        name: "Compare",
         executable: false,
         inputs: [
             {
@@ -206,6 +207,22 @@ registry.set(NodeType.CONDITIONAL_IF, {
         ],
         outputs: [
             {id: "result", name: "result", type: ParameterType.ANY}
+        ]
+    }
+});
+
+registry.set(NodeType.IF, {
+    builder: (node: NodeConfig) => <IfNode node={node} />,
+    config: {
+        executable: true,
+        name: "If",
+        type: NodeType.IF,
+        inputs: [
+            {id: "value", name: "value", type: ParameterType.BOOLEAN, editable: true, required: true, defaultValue: true}
+        ],
+        outputBranches: [
+            {id: "on_true", name: "onTrue"},
+            {id: "on_false", name: "onFalse"}
         ]
     }
 });

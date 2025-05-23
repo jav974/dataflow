@@ -1,14 +1,14 @@
 import Node, { NodeProps } from "@/components/core/Node";
 
-interface IfNodeProps extends NodeProps {
+interface CompareNodeProps extends NodeProps {
 }
 
-export default function IfNode({node}: IfNodeProps) {
+export default function CompareNode({node}: CompareNodeProps) {
     return (
         <Node
             node={node}
-            hasContinue={true}
-            hasExecute={true}
+            hasContinue={false}
+            hasExecute={false}
             size={{width: 200, height: 400}}
         />
     );

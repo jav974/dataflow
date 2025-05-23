@@ -52,7 +52,7 @@ const handleMathMod: NodeExecutor = (inputs: NodeExecParams): NodeExecParams => 
     return handleSimpleMath(inputs, context);
 };
 
-const handleConditionalIf: NodeExecutor = (inputs: NodeExecParams): NodeExecParams => {
+const handleCompare: NodeExecutor = (inputs: NodeExecParams): NodeExecParams => {
     const result: NodeExecParams = new Map();
     const A = inputs.get('A');
     const B = inputs.get('B');
@@ -118,6 +118,12 @@ const handleReturn: NodeExecutor = (inputs: NodeExecParams, context: NodeExecCon
     return new Map();
 };
 
+const handleIf: NodeExecutor = (inputs: NodeExecParams, context: NodeExecContext): NodeExecParams => {
+    const value = inputs.get('value');
+
+    return (new Map()).set('branch', value ? 'on_true' : 'on_false');
+}
+
 const dummyExecutor: NodeExecutor = (inputs: NodeExecParams, context: NodeExecContext): NodeExecParams => {
     return new Map();
 }
@@ -131,7 +137,8 @@ registry.set(NodeType.MATH_MUL, handleMathMul);
 registry.set(NodeType.MATH_DIV, handleMathDiv);
 registry.set(NodeType.MATH_MOD, handleMathMod);
 
-registry.set(NodeType.CONDITIONAL_IF, handleConditionalIf);
+registry.set(NodeType.COMPARE, handleCompare);
+registry.set(NodeType.IF, handleIf);
 
 registry.set(NodeType.SET, handleSetVar);
 registry.set(NodeType.GET, handleGetVar);

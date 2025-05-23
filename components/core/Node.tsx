@@ -199,7 +199,7 @@ export default function Node({
 
                 {children}
 
-                <div className={`${node.inputs && node.outputs ? 'grid-cols-2' : 'grid-cols-1'} grid gap-1`}>
+                <div className={`${node.inputs && (node.outputs || node.outputBranches) ? 'grid-cols-2' : 'grid-cols-1'} grid gap-1`}>
                     <NodeInputs
                         nodeId={node.id}
                         nodeType={node.type}

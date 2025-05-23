@@ -88,7 +88,8 @@ export default function ContextMenu() {
                 {
                     name: "Conditional",
                     children: [
-                        createNodeMenuEntry("If", NodeType.CONDITIONAL_IF)
+                        createNodeMenuEntry("If", NodeType.IF),
+                        createNodeMenuEntry("Compare", NodeType.COMPARE),
                     ]
                 },
                 {

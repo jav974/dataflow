@@ -18,7 +18,8 @@ enum NodeType {
     STRING_LTRIM = "ltrim",
     STRING_RTRIM = "rtrim",
 
-    CONDITIONAL_IF = "conditional_if",
+    COMPARE = "compare",
+    IF = "if",
     SET = "set_variable",
     GET = "get_variable",
 

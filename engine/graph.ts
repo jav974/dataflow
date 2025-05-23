@@ -200,6 +200,13 @@ export function handleExecution(graph: ExecutionGraph): ExecutionGraph {
                         }
                     });
                     break ;
+                case NodeType.IF:
+                    graph.branches.forEach((branch: ExecutionBranch) => {
+                        if (result.get('branch') === branch.branchId && branch.graph) {
+                            branch.graph = resolveExecutionGraph(branch.graph);
+                        }
+                    });
+                    break ;
             }
         }
     } else {

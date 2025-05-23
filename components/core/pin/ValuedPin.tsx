@@ -72,6 +72,7 @@ export default function ValuedPin({id, name, type, required, defaultValue, remov
     }, []);
 
     const baseInputClassName = "p-1 outline field-sizing-fixed w-[65%] max-h-[20px]";
+    // const baseInputClassName = "p-1 outline field-sizing-content max-h-[20px]";
     const inputClassName = `${baseInputClassName} ${errors[id]
         ? 'outline-red-500/50 focus:outline-red-500'
         : 'outline-blue-500/50 focus:outline-blue-500'
