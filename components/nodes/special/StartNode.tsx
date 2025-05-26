@@ -7,21 +7,19 @@ interface StartNodeProps extends NodeProps {
 }
 
 export default function StartNode({node}: StartNodeProps) {
-    const {variables} = useGraphContext();
+    const {setVariable, removeVariable} = useGraphContext();
     const outputs = useRef<OutputConfig[]>([...node.outputs ?? []]);
 
     useEffect(() => {
         node.outputs?.forEach((output: OutputConfig) => {
-            variables.ref.current.set(output.id, output.name);
+            setVariable(output.id, output.name, output.type, false);
         });
 
         outputs.current.forEach((output: OutputConfig) => {
             if (!node.outputs?.includes(output)) {
-                variables.ref.current.delete(output.id);
+                removeVariable(output.id);
             }
         });
-
-        variables.setLastUpdated(Date.now());
 
         outputs.current = [...node.outputs ?? []];
     }, [node.outputs]);

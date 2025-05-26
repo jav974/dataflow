@@ -35,7 +35,7 @@ export default function Toolbar() {
             newConfig.nodes = nodes.ref.current;
             newConfig.zoom = zoom.ref.current;
             newConfig.types = types.ref.current;
-            newConfig.variables = JSON.stringify(Object.fromEntries(variables.ref.current));
+            newConfig.variables = variables.ref.current;
             saveGraph(graph.name, newConfig);
         }
     }, [graph, saveGraph]);

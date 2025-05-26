@@ -13,12 +13,14 @@ import Select, { OptionProps } from "@/components/forms/Select";
 import Checkbox from "@/components/forms/Checkbox";
 import Tooltip from "@/components/ui/Tooltip";
 import { v4 as uuidv4 } from "uuid";
+import useKnownTypes from "@/hooks/useKnownTypes";
 
 interface TypeDefNodeProps extends NodeProps {
 }
 
 export default function TypeDefNode({node}: TypeDefNodeProps) {
     const {types} = useGraphContext();
+    const {options: knownTypes} = useKnownTypes();
     const formRef = useRef<HTMLFormElement | null>(null);
     const schema = useMemo((): yup.ObjectSchema<TypeDefinition> => {
         return yup.object({
@@ -73,20 +75,6 @@ export default function TypeDefNode({node}: TypeDefNodeProps) {
     const onBlur = useCallback(() => {
         formRef.current?.requestSubmit();
     }, []);
-
-    const knownTypes: OptionProps[] = useMemo((): OptionProps[] => {
-        const options: OptionProps[] = [
-            {name: "boolean", value: "boolean"},
-            {name: "number", value: "number"},
-            {name: "string", value: "string"},
-        ];
-
-        types.ref.current.forEach((type: GraphType) => {
-            options.push({name: type.name, value: type.id});
-        });
-
-        return options;
-    }, [types.lastUpdated]);
 
     const handleAddProperty = useCallback(() => {
         append({

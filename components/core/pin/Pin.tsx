@@ -5,6 +5,7 @@ import { NodeType, ParameterType } from "../../config/Schema";
 import NamedPin from "./NamedPin";
 import ValuedPin from "./ValuedPin";
 import Tooltip from "@/components/ui/Tooltip";
+import { PinStyle } from "@/components/config/Style";
 
 interface PinProps {
     nodeId: string;
@@ -17,10 +18,11 @@ interface PinProps {
     removable?: boolean;
     defaultValue?: any;
     editable?: boolean;
+    isCollection?: boolean;
     onRef: (id: string, el: HTMLDivElement | null) => void;
 }
 
-function Pin({ nodeId, id, nodeType, name, type, required, isInput, onRef, removable = false, defaultValue, editable }: PinProps) {
+function Pin({ nodeId, id, nodeType, name, type, required, isInput, onRef, removable = false, defaultValue, editable, isCollection = false }: PinProps) {
     const {removeNodeInput, removeNodeOutput, setInputDefaultValue, setOutputName, setInputName, computedResult} = useGraphContext();
     const {isConnected, onClick, handlePointerDown, handlePointerUp} = useLinkable(nodeId, id, isInput, !isInput);
     
@@ -56,11 +58,10 @@ function Pin({ nodeId, id, nodeType, name, type, required, isInput, onRef, remov
     }, [computedResult.lastUpdated, nodeId, id]);
 
     const pinContainerClass = "flex items-center gap-1" + (!isInput ? " flex-row-reverse" : "");
-    const basePinClass = "min-w-[12px] min-h-[12px] rounded-full cursor-pointer";
-    const pinClass = `${basePinClass} ${isConnected
-        ? 'bg-blue-500'
-        : 'border-2 border-blue-500 bg-transparent'
-    }`;
+    const typeClass = isCollection ? "border-dotted" : "rounded-full";
+    const style = PinStyle[type] ?? PinStyle.custom;
+    const connectedClass = isConnected ? style.connectedClass : `border-2 bg-transparent ${style.disconnectedClass}`;
+    const pinClass = `min-w-[12px] min-h-[12px] ${typeClass} ${connectedClass} cursor-pointer`;
 
     return (
         <Tooltip tooltip={executionValue}>

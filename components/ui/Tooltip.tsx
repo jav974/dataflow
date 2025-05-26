@@ -1,3 +1,4 @@
+import useHoverable from "@/hooks/useHoverable";
 import React from "react";
 
 interface TooltipProps {
@@ -6,11 +7,13 @@ interface TooltipProps {
 }
 
 export default function Tooltip({tooltip, children}: TooltipProps) {
+    const {isHovered, handleMouseEnter, handleMouseLeave} = useHoverable();
+
     return (
-        <div className="relative group">
+        <div className="relative" onPointerEnter={handleMouseEnter} onPointerLeave={handleMouseLeave}>
             {children}
             {tooltip !== undefined && tooltip !== null &&
-                <div className="absolute top-8 opacity-0 bg-gray-700 text-white text-sm px-2 py-1 rounded-md transition-opacity duration-200 group-hover:opacity-100">
+                <div className={`z-10000 ${isHovered ? 'block' : 'hidden'} absolute top-8 bg-gray-700 text-white text-sm px-2 py-1 rounded-md`}>
                     {tooltip}
                 </div>
             }

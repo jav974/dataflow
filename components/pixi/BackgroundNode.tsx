@@ -92,8 +92,8 @@ export default function BackgroundNode({ width, height }: BackgroundNodeProps) {
     const handlePointerUp = useCallback((e: FederatedPointerEvent) => {
         onPointerUp({
             type: PointerEventType.POINTER_UP,
-            x: e.clientX * scale.ref.current,
-            y: e.clientY * scale.ref.current,
+            x: e.clientX,
+            y: e.clientY,
             element: "background"
         });
 

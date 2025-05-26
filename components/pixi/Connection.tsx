@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Graphics } from "pixi.js";
+import { Graphics, StrokeStyle } from "pixi.js";
 import { ConnectorConfig, Coordinates } from "../config/Schema";
 import { Node, Pin, useNodes } from "@/contexts/NodeContext";
 import { drawBezierCurve } from "./functions";
 import FastGraphics from "./FastGraphics";
-import { LINE_STYLE } from "../config/Style";
+import { LineStyle } from "../config/Style";
 
 interface ConnectionProps {
     from: ConnectorConfig;
@@ -20,6 +20,8 @@ export default function Connection({from, to}: ConnectionProps) {
     const fromPos = useRef<Coordinates | undefined>(undefined);
     const toPos = useRef<Coordinates | undefined>(undefined);
     const [updatedAt, setUpdatedAt] = useState<number>(0);
+    const [strokeStyleStart, setStrokeStyleStart] = useState<StrokeStyle>(LineStyle.flow);
+    const [strokeStyleEnd, setStrokeStyleEnd] = useState<StrokeStyle>(LineStyle.flow);
 
     useEffect(() => {
         // Initialize nodes
@@ -33,6 +35,17 @@ export default function Connection({from, to}: ConnectionProps) {
                 if (from.pin !== 'continue' && to.pin !== 'execute') {
                     fromPin.current = fromNode.current.outputs.find(output => output.id === from.pin);
                     toPin.current = toNode.current.inputs.find(input => input.id === to.pin);
+
+                    const outputConfig = fromNode.current.mutableNodeConfig.outputs?.find(output => output.id === from.pin);
+                    const inputConfig = toNode.current.mutableNodeConfig.inputs?.find(input => input.id === to.pin);
+
+                    if (outputConfig) {
+                        setStrokeStyleStart(LineStyle[outputConfig.type] ?? LineStyle.custom);
+                    }
+
+                    if (inputConfig) {
+                        setStrokeStyleEnd(LineStyle[inputConfig.type] ?? LineStyle.custom);
+                    }
                 }
                 // Output (branch) to Execute
                 else if (from.pin !== 'continue' && to.pin === 'execute') {
@@ -79,9 +92,9 @@ export default function Connection({from, to}: ConnectionProps) {
         if (fromPos.current && toPos.current) {
             g.beginPath();
             drawBezierCurve(g, fromPos.current, toPos.current);
-            g.stroke(LINE_STYLE);
+            g.stroke(strokeStyleStart);
         }
-    }, []);
+    }, [strokeStyleStart, strokeStyleEnd]);
 
     return <FastGraphics draw={draw} drawDependencies={[updatedAt]}/>
 }

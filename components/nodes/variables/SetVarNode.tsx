@@ -5,25 +5,48 @@ import { FormProvider, useForm } from "react-hook-form"
 import { yupResolver } from "@hookform/resolvers/yup"
 import * as yup from "yup"
 import Input from "@/components/forms/Input";
+import useKnownTypes from "@/hooks/useKnownTypes";
+import Select from "@/components/forms/Select";
+import Tooltip from "@/components/ui/Tooltip";
+import Checkbox from "@/components/forms/Checkbox";
 
 interface SetVarNodeProps extends NodeProps {
 }
 
 export default function SetVarNode({node}: SetVarNodeProps) {
-    const {setVariable, variables, setNodeContext} = useGraphContext();
+    const {setVariable, variables, setNodeInputs, setNodeOutputs} = useGraphContext();
+    const {options} = useKnownTypes();
     const formRef = useRef<HTMLFormElement | null>(null);
-    const schema = useMemo(() => yup.object({name: yup.string().required()}), []);
+    const schema = useMemo(() => yup.object({
+        name: yup.string().required(),
+        type: yup.string().required(),
+        isCollection: yup.boolean().required()
+    }), []);
+    const variable = useMemo(
+        () => variables.ref.current.find(v => v.id === node.id),
+        [node.id, variables.lastUpdated]
+    );
     const methods = useForm({
         resolver: yupResolver(schema),
         defaultValues: {
-            name: variables.ref.current.get(node.id) ?? ""
+            name: variable?.name ?? "",
+            type: variable?.type ?? "boolean",
+            isCollection: variable?.isCollection ?? false
         }
     });
-    const onSubmit = useCallback((data: any, event?: React.BaseSyntheticEvent) => {
-        event?.preventDefault();
-        setVariable(node.id, data.name);
-        setNodeContext(node.id, (new Map()).set('var', data.name));
-    }, [node.id, setVariable, setNodeContext]);
+    const onSubmit = useCallback((data: any) => {
+        setVariable(node.id, data.name, data.type, data.isCollection);
+        const input = node.inputs ? node.inputs[0] : undefined;
+        const output = node.outputs ? node.outputs[0] : undefined;
+
+        if (input) {
+            setNodeInputs(node.id, [{...input, type: data.type, isCollection: data.isCollection}]);
+        }
+
+        if (output) {
+            setNodeOutputs(node.id, [{...output, type: data.type, isCollection: data.isCollection}]);
+        }
+    }, [node.id, setVariable, setNodeInputs, setNodeOutputs]);
 
     const onBlur = useCallback(() => {
         formRef.current?.requestSubmit();
@@ -41,8 +64,12 @@ export default function SetVarNode({node}: SetVarNodeProps) {
             size={{width: 200, height: 100}}
         >
             <FormProvider {...methods}>
-                <form ref={formRef} className="flex p-2" onSubmit={methods.handleSubmit(onSubmit)}>
-                    <Input className="grow text-center" classNameOverride={inputClassName} name="name" placeholder="Variable name" onBlur={onBlur} />
+                <form ref={formRef} className="flex flex-nowrap items-end gap-1" onSubmit={methods.handleSubmit(onSubmit)}>
+                    <Select name="type" onBlur={onBlur} options={options}/>
+                    <Input className="grow text-center" name="name" placeholder="Variable name" onBlur={onBlur} />
+                    <Tooltip tooltip="Collection?">
+                        <Checkbox className="grow-0" name="isCollection" onBlur={onBlur}/>
+                    </Tooltip>
                 </form>
             </FormProvider>
         </Node>

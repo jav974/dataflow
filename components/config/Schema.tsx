@@ -51,14 +51,20 @@ interface GraphType extends TypeDefinition {
     id: string;
 }
 
+interface VariableConfig {
+    id: string;
+    name: string;
+    type: string;
+    isCollection: boolean;
+}
+
 interface AppConfig {
     name: string;
     nodes: NodeConfig[];
     connections?: ConnectionConfig[];
-    zoom?: number;
-    // JSON.stringify() of a Map<string, string>
-    variables?: string;
+    variables: VariableConfig[];
     types?: GraphType[];
+    zoom?: number;
 }
 
 interface Coordinates {
@@ -97,12 +103,14 @@ interface InputConfig {
     required: boolean;
     defaultValue?: any;
     editable?: boolean;
+    isCollection?: boolean;
 }
 
 interface OutputConfig {
     id: string;
     name: string;
     type: ParameterType;
+    isCollection?: boolean;
 }
 
 interface OutputBranchConfig {
@@ -118,4 +126,4 @@ function parseAppConfig(config: string): AppConfig {
 type ParameterValueType = string | number | undefined | null;
 
 export { NodeType, ParameterType, parseAppConfig };
-export type { GraphType, TypeDefinition, TypeProperty, AppConfig, NodeConfig, InputConfig, OutputConfig, ConnectorConfig, ConnectionConfig, Coordinates, ParameterValueType, OutputBranchConfig };
+export type { GraphType, TypeDefinition, TypeProperty, AppConfig, NodeConfig, InputConfig, OutputConfig, ConnectorConfig, ConnectionConfig, Coordinates, ParameterValueType, OutputBranchConfig, VariableConfig };

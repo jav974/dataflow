@@ -12,9 +12,9 @@ type InputProps = DetailedHTMLProps<InputHTMLAttributes<HTMLInputElement>, HTMLI
 export default function Input({id, orientation, name, className, classNameOverride, ...props }: InputProps) {
     const {register, formState: {errors}} = useFormContext();
     const error = getValueByPath(errors, name);
-    const color = error ? "red" : "blue";
+    const colorClassName = error ? "border-b-red-500/50 focus:border-b-red-500" : "border-b-blue-500/50 focus:border-b-blue-500";
     const baseClassName = "pl-1 pr-1 outline-none field-sizing-content min-w-[50px] max-h-[20px] border-b-1";
-    const finalClassName = classNameOverride ?? `${className} ${baseClassName} ${orientation === "right" ? 'text-right' : ''} border-b-${color}-500/50 focus:border-b-${color}-500`;
+    const finalClassName = classNameOverride ?? `${className} ${baseClassName} ${orientation === "right" ? 'text-right' : ''} ${colorClassName}`;
     const registration = register(name);
 
     const handlePointerDownCapture = useCallback((e: React.PointerEvent<HTMLInputElement>) => {

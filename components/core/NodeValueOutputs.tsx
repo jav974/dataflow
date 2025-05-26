@@ -50,6 +50,7 @@ export default function NodeValueOutputs({nodeId, nodeType, outputs, onRef, mult
                     onRef={onRef}
                     editable={multiple}
                     removable={multiple}
+                    isCollection={output.isCollection}
                 />
             ))}
 

@@ -3,7 +3,7 @@ import { createContext, useContext, useState, useCallback } from 'react';
 import { useGraphContext } from './GraphContext';
 import { RefState, useRefState } from '@/hooks/useRefState';
 import { Size } from 'pixi.js';
-import { GraphResult } from '@/engine/graph';
+import { GraphResult } from '@/engine/types';
 
 export interface Pin {
     id: string;
@@ -215,6 +215,10 @@ export function NodeProvider({ children }: { children: React.ReactNode }) {
         setConnectionDrag(undefined);
     }, []);
 
+    const openContextMenu = useCallback((position: Coordinates) => {
+        setRightClickPosition(position);
+    }, []);
+
     const onPointerUp = useCallback((e: PointerEvent) => {
         if (connectionDrag && e.id && connectionDrag.connector.id !== e.id) {
             const dst = buildConnectionDrag({id: e.id, pin: e.element});
@@ -230,11 +234,7 @@ export function NodeProvider({ children }: { children: React.ReactNode }) {
         }
 
         stopConnectionDrag();
-    }, [connectionDrag, addConnection, stopConnectionDrag, removeConnections]);
-
-    const openContextMenu = useCallback((position: Coordinates) => {
-        setRightClickPosition(position);
-    }, []);
+    }, [connectionDrag, addConnection, stopConnectionDrag, removeConnections, openContextMenu]);
 
     const closeContextMenu = useCallback(() => {
         setRightClickPosition(undefined);

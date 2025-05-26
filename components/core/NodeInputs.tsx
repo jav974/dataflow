@@ -106,6 +106,7 @@ export default function NodeInputs({nodeId, nodeType, inputs, onRef, multiple = 
                         removable={multiple && inputParams > minInputParams}
                         defaultValue={input.defaultValue}
                         editable={input.editable}
+                        isCollection={input.isCollection}
                     />
                 </div>
             ))}

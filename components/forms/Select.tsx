@@ -17,8 +17,11 @@ export type SelectProps = DetailedHTMLProps<InputHTMLAttributes<HTMLSelectElemen
 export default function Select({id, name, className, classNameOverride, options, onBlur, ...props}: SelectProps) {
     const {register, formState: {errors}} = useFormContext();
     const error = getValueByPath(errors, name);
-    const color = error ? "red" : "blue";
-    const finalClassName = classNameOverride ?? `${className} mb-0.25 bg-gray-700 outline outline-${color}-500/50 focus:outline-${color}-500`;
+    const colorClassName = error
+        ? "outline-red-500/50 focus:outline-red-500"
+        : "outline-blue-500/50 focus:outline-blue-500"
+    ;
+    const finalClassName = classNameOverride ?? `${className} mb-0.25 bg-gray-700 outline ${colorClassName}`;
     const registration = register(name);
 
     const handlePointerDownCapture = useCallback((e: React.PointerEvent<HTMLSelectElement>) => {

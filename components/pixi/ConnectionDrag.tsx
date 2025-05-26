@@ -1,62 +1,96 @@
-import { Graphics } from "pixi.js";
+import { Graphics, StrokeStyle } from "pixi.js";
 import FastGraphics from "./FastGraphics";
-import { useCallback, useEffect, useState } from "react";
-import { useNodes, Node, PointerEventType } from "@/contexts/NodeContext";
-import { LINE_STYLE } from "../config/Style";
+import { useCallback, useMemo } from "react";
+import { useNodes, Node, PointerEventType, Pin } from "@/contexts/NodeContext";
+import { LINE_STYLE, LineStyle } from "../config/Style";
 import { drawBezierCurve } from "./functions";
 import { useGraphContext } from "@/contexts/GraphContext";
 import { useRefState } from "@/hooks/useRefState";
 import { Coordinates } from "../config/Schema";
 
+interface ConnectionOrigin {
+    node: Node;
+    pin: Pin;
+    isDst: boolean;
+    pos: Coordinates;
+    lineStyle: StrokeStyle;
+}
+
 export default function ConnectionDrag() {
     const { connectionDrag, nodes, onPointerUp } = useNodes();
     const { scale, canvasPosition } = useGraphContext();
-    const [fromNode, setFromNode] = useState<Node | undefined>(undefined);
     const position = useRefState<Coordinates>({x: 0, y: 0});
-
-    useEffect(() => {
+    const origin = useMemo((): ConnectionOrigin | undefined => {
         if (!connectionDrag) {
-            setFromNode(undefined);
-            return;
+            return undefined;
         }
 
-        setFromNode(nodes.ref.current.get(connectionDrag.connector.id));
+        const node = nodes.ref.current.get(connectionDrag.connector.id);
+        if (!node) return undefined;
+
+        let pin: Pin | undefined = undefined;
+        let isDst = true;
+        let lineStyle: StrokeStyle = LineStyle.flow;
+
+        if (connectionDrag.connector.pin === "execute") {
+            pin = node.executePin;
+        } else if (connectionDrag.connector.pin === "continue") {
+            pin = node.continuePin;
+            isDst = false;
+        } else {
+            pin = node.inputs.find((pin) => pin.id === connectionDrag.connector.pin);
+            
+            if (!pin) {
+                isDst = false;
+                pin = node.outputs.find((pin) => pin.id === connectionDrag.connector.pin);
+
+                if (!pin) {
+                    pin = node.branches.find((pin) => pin.id === connectionDrag.connector.pin);
+                } else {
+                    const output = node.mutableNodeConfig.outputs?.find((output) => output.id === pin?.id);
+                    if (output) {
+                        lineStyle = LineStyle[output.type] ?? LineStyle.custom;
+                    }
+                }
+            } else {
+                const input = node.mutableNodeConfig.inputs?.find((input) => input.id === pin?.id);
+                if (input) {
+                    lineStyle = LineStyle[input.type] ?? LineStyle.custom;
+                }
+            }
+        }
+
+        if (!pin) {
+            return undefined;
+        }
+
+        return {
+            node,
+            pin,
+            isDst,
+            pos: {
+                x: node.mutableNodeConfig.position.x + pin.position.x,
+                y: node.mutableNodeConfig.position.y + pin.position.y
+            },
+            lineStyle
+        };
     }, [connectionDrag]);
 
     const draw = useCallback((g: Graphics) => {
         g.clear();
 
-        if (!fromNode) {
-            return ;
-        }
-
-        let fromPin = undefined;
-
-        if (connectionDrag?.connector.pin === "execute") {
-            fromPin = fromNode?.executePin;
-        } else if (connectionDrag?.connector.pin === "continue") {
-            fromPin = fromNode?.continuePin;
-        } else {
-            fromPin = fromNode?.inputs.find((pin) => pin.id === connectionDrag?.connector.pin);
-            
-            if (!fromPin) {
-                fromPin = fromNode?.outputs.find((pin) => pin.id === connectionDrag?.connector.pin);
-
-                if (!fromPin) {
-                    fromPin = fromNode?.branches.find((pin) => pin.id === connectionDrag?.connector.pin);
-                }
-            }
-        }
- 
-        if (!fromPin) {
+        if (!origin) {
             return ;
         }
 
         g.beginPath();
-        const from = { x: fromNode.mutableNodeConfig.position.x + fromPin.position.x, y: fromNode.mutableNodeConfig.position.y + fromPin.position.y };
-        drawBezierCurve(g, from, position.ref.current);
-        g.stroke(LINE_STYLE);
-    }, [fromNode]);
+        drawBezierCurve(
+            g,
+            origin.isDst ? position.ref.current : origin.pos,
+            origin.isDst ? origin.pos : position.ref.current
+        );
+        g.stroke(origin.lineStyle);
+    }, [origin]);
 
     const handlePointerMove = useCallback((e: PointerEvent) => {
         position.ref.current.x = (e.clientX - canvasPosition.ref.current.x) * scale.ref.current;
@@ -66,7 +100,7 @@ export default function ConnectionDrag() {
 
     const handlePointerUp = useCallback((e: PointerEvent) => {
         onPointerUp({ element: 'connection', x: e.clientX, y: e.clientY, type: PointerEventType.POINTER_UP });
-    }, []);
+    }, [onPointerUp]);
 
     return (
         <FastGraphics eventMode="dynamic" draw={draw} drawDependencies={[position.lastUpdated]} onPointerUp={handlePointerUp} onGlobalPointerMove={handlePointerMove}/>

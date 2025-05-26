@@ -1,5 +1,5 @@
 import React, { createContext, useCallback, useContext, useEffect, useState } from "react";
-import { AppConfig, ConnectionConfig, ConnectorConfig, Coordinates, GraphType, InputConfig, NodeConfig, NodeType, OutputBranchConfig, OutputConfig } from "@/components/config/Schema";
+import { AppConfig, ConnectionConfig, ConnectorConfig, Coordinates, GraphType, InputConfig, NodeConfig, NodeType, OutputBranchConfig, OutputConfig, VariableConfig } from "@/components/config/Schema";
 import { RefState, useRefState } from "@/hooks/useRefState";
 
 interface GraphContextType {
@@ -9,7 +9,7 @@ interface GraphContextType {
     zoom: RefState<number>;
     scale: RefState<number>;
     canvasPosition: RefState<Coordinates>;
-    variables: RefState<Map<string, string>>;
+    variables: RefState<VariableConfig[]>;
     types: RefState<GraphType[]>;
     computedResult: RefState<Map<string, any>>;
     addNode: (node: NodeConfig) => void;
@@ -30,8 +30,8 @@ interface GraphContextType {
     loadGraph: (graph: AppConfig) => void;
     zoomIn: () => void;
     zoomOut: () => void;
-    setVariable: (nodeId: string, name: string) => void;
-    removeVariable: (nodeId: string) => void;
+    setVariable: (id: string, name: string, type: string, isCollection: boolean) => void;
+    removeVariable: (id: string) => void;
     setNodeContext: (nodeId: string, context: Map<string, any>) => void;
     setOutputName: (nodeId: string, outputId: string, name: string) => void;
     setInputName: (nodeId: string, inputId: string, name: string) => void;
@@ -50,7 +50,7 @@ export function GraphProvider({children}: GraphProviderProps) {
     const canvasPosition = useRefState<Coordinates>({x: 0, y: 0});
     const zoom = useRefState<number>(100);
     const scale = useRefState<number>(zoom.ref.current != 0 ? 1 / (zoom.ref.current / 100) : 0);
-    const variables = useRefState<Map<string, string>>(new Map());
+    const variables = useRefState<VariableConfig[]>([]);
     const types = useRefState<GraphType[]>([]);
     const computedResult = useRefState<Map<string, any>>(new Map());
 
@@ -246,19 +246,7 @@ export function GraphProvider({children}: GraphProviderProps) {
         connections.update(graph.connections ?? []);
         zoom.update(graph.zoom ?? 100);
         types.update(graph.types ?? []);
-
-        try {
-            const _variables = JSON.parse(graph.variables ?? "{}");
-            const _map: Map<string, string> = new Map();
-            for (const [key, value] of Object.entries<string>(_variables)) {
-                _map.set(key, value);
-            }
-
-            variables.update(_map);
-        } catch (e: any) {
-            variables.update(new Map());
-            console.log("Error deserializing schema variables", e);
-        }
+        variables.update(graph.variables ?? []);
     }, []);
 
     const zoomIn = useCallback(() => {
@@ -269,14 +257,27 @@ export function GraphProvider({children}: GraphProviderProps) {
         zoom.update(zoom.ref.current - 2);
     }, []);
 
-    const setVariable = useCallback((nodeId: string, name: string) => {
-        variables.ref.current.set(nodeId, name);
+    const setVariable = useCallback((id: string, name: string, type: string, isCollection: boolean) => {
+        const variable = variables.ref.current.find(v => v.id === id);
+
+        if (variable) {
+            variable.name = name;
+            variable.type = type;
+            variable.isCollection = isCollection;
+        } else {
+            variables.ref.current.push({id, name, type, isCollection});
+        }
+
         variables.setLastUpdated(Date.now());
     }, []);
 
-    const removeVariable = useCallback((nodeId: string) => {
-        variables.ref.current.delete(nodeId);
-        variables.setLastUpdated(Date.now());
+    const removeVariable = useCallback((id: string) => {
+        const index = variables.ref.current.findIndex(v => v.id === id);
+
+        if (index !== -1) {
+            variables.ref.current.splice(index, 1);
+            variables.setLastUpdated(Date.now());
+        }
     }, []);
 
     const setNodeContext = useCallback((nodeId: string, context: Map<string, any>) => {
