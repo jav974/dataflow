@@ -99,7 +99,7 @@ export default function Node({
 
         // Get output branch pin positions
         for (const [key, pin] of outputBranchPinsRef.current.entries()) {
-            const pinData = node.outputBranches?.find(branch => branch.id === key);
+            const pinData = node.branches?.find(branch => branch.id === key);
 
             if (pin && pinData) {
                 let data: OutputBranchPin = { ...getPin(key, pin, containerRect, {x: 14, y: 10}), ...pinData };
@@ -199,7 +199,7 @@ export default function Node({
 
                 {children}
 
-                <div className={`${node.inputs && (node.outputs || node.outputBranches) ? 'grid-cols-2' : 'grid-cols-1'} grid gap-1`}>
+                <div className={`${node.inputs && (node.outputs || node.branches) ? 'grid-cols-2' : 'grid-cols-1'} grid gap-1`}>
                     <NodeInputs
                         nodeId={node.id}
                         nodeType={node.type}
@@ -218,7 +218,7 @@ export default function Node({
                         onBranchRef={onPinOutputBranchRef}
                         multiple={outputMultiple}
                         branchMultiple={branchMultiple}
-                        branches={node.outputBranches}
+                        branches={node.branches}
                         minBranches={minBranches}
                     />
                 </div>

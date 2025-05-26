@@ -10,10 +10,11 @@ import { useGraphContext } from "@/contexts/GraphContext";
 import { executeGraph } from "@/actions/graph";
 import { runGraph } from "@/engine/graph";
 import { useNodes } from "@/contexts/NodeContext";
+import { getIOValues } from "@/engine/utils";
 
 export default function Toolbar() {
     const { graphs, loadGraph, graph, saveGraph, deleteGraph } = useUserGraph();
-    const { connections, nodes, zoom, variables } = useGraphContext();
+    const { connections, nodes, zoom, variables, types, computedResult } = useGraphContext();
     const [isNewModalOpen, setIsNewModalOpen] = useState(false);
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [isPlaying, setIsPlaying] = useState<boolean>(false);
@@ -33,6 +34,7 @@ export default function Toolbar() {
             newConfig.connections = connections.ref.current;
             newConfig.nodes = nodes.ref.current;
             newConfig.zoom = zoom.ref.current;
+            newConfig.types = types.ref.current;
             newConfig.variables = JSON.stringify(Object.fromEntries(variables.ref.current));
             saveGraph(graph.name, newConfig);
         }
@@ -57,8 +59,7 @@ export default function Toolbar() {
 
             const result = runGraph(graph, {Ad: 36});
             setGraphResult(result);
-            
-            console.log(result);
+            computedResult.update(result?.graph ? getIOValues(result.graph) : new Map());
 
             setTimeout(() => setIsPlaying(false), 0);
         }

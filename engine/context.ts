@@ -1,6 +1,4 @@
-export type KeyValue<T = any> = {
-    [key: string]: T;
-}
+export type KeyValue<T = any> = Record<string, T>;
 
 interface ExecContext {
     variables: KeyValue;

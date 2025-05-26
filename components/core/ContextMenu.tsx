@@ -76,8 +76,6 @@ export default function ContextMenu() {
         return {
             children: [
                 ...specialEntries,
-                createNodeMenuEntry("Sequence", NodeType.SEQUENCE),
-                createNodeMenuEntry("Fetch", NodeType.FETCH),
                 {
                     name: "Variables",
                     children: [
@@ -108,7 +106,10 @@ export default function ContextMenu() {
                         createNodeMenuEntry("Divide", NodeType.MATH_DIV),
                         createNodeMenuEntry("Modulo", NodeType.MATH_MOD),
                     ]
-                }
+                },
+                createNodeMenuEntry("Sequence", NodeType.SEQUENCE),
+                createNodeMenuEntry("Fetch", NodeType.FETCH),
+                createNodeMenuEntry("Type", NodeType.TYPEDEF),
             ]
         }
     }, [createNodeMenuEntry, nodes.lastUpdated]);

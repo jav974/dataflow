@@ -132,6 +132,10 @@ const handleFor: NodeExecutor = (inputs: NodeExecParams, context: NodeExecContex
     return (new Map()).set('index', Number(inputs.get('first')));
 };
 
+const handleForeach: NodeExecutor = (inputs: NodeExecParams, context: NodeExecContext): NodeExecParams => {
+    return (new Map()).set('index', undefined).set('item', undefined);
+};
+
 registry.set(NodeType.START, handleStart);
 registry.set(NodeType.RETURN, handleReturn);
 
@@ -144,6 +148,7 @@ registry.set(NodeType.MATH_MOD, handleMathMod);
 registry.set(NodeType.COMPARE, handleCompare);
 registry.set(NodeType.IF, handleIf);
 registry.set(NodeType.FOR, handleFor);
+registry.set(NodeType.FOREACH, handleForeach);
 
 registry.set(NodeType.SET, handleSetVar);
 registry.set(NodeType.GET, handleGetVar);

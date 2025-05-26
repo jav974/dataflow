@@ -1,5 +1,5 @@
 import React, { createContext, useCallback, useContext, useEffect, useState } from "react";
-import { AppConfig, ConnectionConfig, ConnectorConfig, Coordinates, InputConfig, NodeConfig, NodeType, OutputBranchConfig, OutputConfig } from "@/components/config/Schema";
+import { AppConfig, ConnectionConfig, ConnectorConfig, Coordinates, GraphType, InputConfig, NodeConfig, NodeType, OutputBranchConfig, OutputConfig } from "@/components/config/Schema";
 import { RefState, useRefState } from "@/hooks/useRefState";
 
 interface GraphContextType {
@@ -10,6 +10,8 @@ interface GraphContextType {
     scale: RefState<number>;
     canvasPosition: RefState<Coordinates>;
     variables: RefState<Map<string, string>>;
+    types: RefState<GraphType[]>;
+    computedResult: RefState<Map<string, any>>;
     addNode: (node: NodeConfig) => void;
     updateNode: (node: NodeConfig) => void;
     removeNode: (id: string) => void;
@@ -49,6 +51,8 @@ export function GraphProvider({children}: GraphProviderProps) {
     const zoom = useRefState<number>(100);
     const scale = useRefState<number>(zoom.ref.current != 0 ? 1 / (zoom.ref.current / 100) : 0);
     const variables = useRefState<Map<string, string>>(new Map());
+    const types = useRefState<GraphType[]>([]);
+    const computedResult = useRefState<Map<string, any>>(new Map());
 
     useEffect(() => {
         scale.update(zoom.ref.current != 0 ? 1 / (zoom.ref.current / 100) : 0);
@@ -160,8 +164,8 @@ export function GraphProvider({children}: GraphProviderProps) {
         const node = nodes.ref.current.find((n: NodeConfig) => n.id === id);
 
         if (node) {
-            if ((node.outputBranches?.findIndex((b: OutputBranchConfig): boolean => b.id === branch.id) ?? -1) === -1) {
-                updateNode({...node, outputBranches: [...(node.outputBranches || []), branch]});
+            if ((node.branches?.findIndex((b: OutputBranchConfig): boolean => b.id === branch.id) ?? -1) === -1) {
+                updateNode({...node, branches: [...(node.branches || []), branch]});
             }
         }
     }, []);
@@ -170,7 +174,7 @@ export function GraphProvider({children}: GraphProviderProps) {
         const node = nodes.ref.current.find((n: NodeConfig) => n.id === nodeId);
 
         if (node) {
-            updateNode({...node, outputBranches: node.outputBranches?.filter((b: OutputBranchConfig) => b.id !== branchId)});
+            updateNode({...node, branches: node.branches?.filter((b: OutputBranchConfig) => b.id !== branchId)});
         }
     }, []);
 
@@ -178,7 +182,7 @@ export function GraphProvider({children}: GraphProviderProps) {
         const node = nodes.ref.current.find((n: NodeConfig) => n.id === id);
 
         if (node) {
-            updateNode({...node, outputBranches: branches});
+            updateNode({...node, branches: branches});
         }
     }, [updateNode]);
 
@@ -241,6 +245,7 @@ export function GraphProvider({children}: GraphProviderProps) {
         nodes.update(graph.nodes);
         connections.update(graph.connections ?? []);
         zoom.update(graph.zoom ?? 100);
+        types.update(graph.types ?? []);
 
         try {
             const _variables = JSON.parse(graph.variables ?? "{}");
@@ -290,6 +295,8 @@ export function GraphProvider({children}: GraphProviderProps) {
         scale,
         canvasPosition,
         variables,
+        types,
+        computedResult,
         addNode,
         updateNode,
         removeNode,

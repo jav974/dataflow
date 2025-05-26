@@ -15,8 +15,6 @@ enum NodeType {
 
     STRING_CONCAT = "concat",
     STRING_TRIM = "trim",
-    STRING_LTRIM = "ltrim",
-    STRING_RTRIM = "rtrim",
 
     COMPARE = "compare",
     IF = "if",
@@ -24,8 +22,9 @@ enum NodeType {
     FOREACH = "foreach",
     SET = "set_variable",
     GET = "get_variable",
-
     SEQUENCE = "sequence",
+
+    TYPEDEF = "typedef",
 }
 
 enum ParameterType {
@@ -35,6 +34,23 @@ enum ParameterType {
     ANY = "any"
 }
 
+interface TypeProperty {
+    id: string;
+    name: string;
+    type: string;
+    isCollection: boolean;
+}
+
+interface TypeDefinition {
+    id: string;
+    name: string;
+    properties: TypeProperty[]
+}
+
+interface GraphType extends TypeDefinition {
+    id: string;
+}
+
 interface AppConfig {
     name: string;
     nodes: NodeConfig[];
@@ -42,6 +58,7 @@ interface AppConfig {
     zoom?: number;
     // JSON.stringify() of a Map<string, string>
     variables?: string;
+    types?: GraphType[];
 }
 
 interface Coordinates {
@@ -57,8 +74,8 @@ interface NodeConfig {
     type: NodeType;
     inputs?: InputConfig[];
     outputs?: OutputConfig[];
+    branches?: OutputBranchConfig[];
     position: Coordinates;
-    outputBranches?: OutputBranchConfig[];
     // JSON.stringify() of a Map<string, any>
     context?: string;
 }
@@ -100,6 +117,5 @@ function parseAppConfig(config: string): AppConfig {
 
 type ParameterValueType = string | number | undefined | null;
 
-export { NodeType, ParameterType };
-export type { AppConfig, NodeConfig, InputConfig, OutputConfig, ConnectorConfig, ConnectionConfig, Coordinates, ParameterValueType, OutputBranchConfig };
-export { parseAppConfig };
+export { NodeType, ParameterType, parseAppConfig };
+export type { GraphType, TypeDefinition, TypeProperty, AppConfig, NodeConfig, InputConfig, OutputConfig, ConnectorConfig, ConnectionConfig, Coordinates, ParameterValueType, OutputBranchConfig };

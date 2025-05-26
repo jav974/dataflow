@@ -11,6 +11,8 @@ import ReturnNode from "./special/ReturnNode";
 import SequenceNode from "./sequence/SequenceNode";
 import CompareNode from "./conditional/CompareNode";
 import ForNode from "./loop/ForNode";
+import ForeachNode from "./loop/ForeachNode";
+import TypeDefNode from "./type/TypeDefNode";
 
 registry.set(NodeType.START, {
     builder: (node: NodeConfig) => <StartNode node={node} />,
@@ -172,7 +174,7 @@ registry.set(NodeType.COMPARE, {
             {
                 id: "B",
                 name: "B",
-                required: true,
+                required: false,
                 type: ParameterType.ANY,
                 defaultValue: 0,
                 editable: true
@@ -221,7 +223,7 @@ registry.set(NodeType.IF, {
         inputs: [
             {id: "value", name: "value", type: ParameterType.BOOLEAN, editable: true, required: true, defaultValue: true}
         ],
-        outputBranches: [
+        branches: [
             {id: "on_true", name: "onTrue"},
             {id: "on_false", name: "onFalse"}
         ]
@@ -234,7 +236,7 @@ registry.set(NodeType.SEQUENCE, {
         executable: true,
         name: "Sequence",
         type: NodeType.SEQUENCE,
-        outputBranches: [
+        branches: [
             {id: "then_1", name: "Then"},
             {id: "then_2", name: "Then"}
         ]
@@ -252,11 +254,39 @@ registry.set(NodeType.FOR, {
             {id: "last", name: "Last", type: ParameterType.NUMBER, required: true, defaultValue: 0, editable: true},
             {id: "inclusive", name: "Inclusive", type: ParameterType.BOOLEAN, required: false, defaultValue: false, editable: true},
         ],
-        outputBranches: [
+        branches: [
             {id: "callback", name: "callback"}
         ],
         outputs: [
             {id: "index", name: "index", type: ParameterType.NUMBER}
         ]
+    }
+});
+
+registry.set(NodeType.FOREACH, {
+    builder: (node: NodeConfig) => <ForeachNode node={node} />,
+    config: {
+        executable: true,
+        name: "Foreach",
+        type: NodeType.FOREACH,
+        inputs: [
+            {id: "value", name: "value", type: ParameterType.ANY, required: true, editable: false, defaultValue: []}
+        ],
+        outputs: [
+            {id: "index", name: "index", type: ParameterType.ANY},
+            {id: "item", name: "item", type: ParameterType.ANY}
+        ],
+        branches: [
+            {id: "callback", name: "callback"}
+        ]
+    }
+});
+
+registry.set(NodeType.TYPEDEF, {
+    builder: (node: NodeConfig) => <TypeDefNode node={node} />,
+    config: {
+        executable: false,
+        name: "Define Type",
+        type: NodeType.TYPEDEF,
     }
 });

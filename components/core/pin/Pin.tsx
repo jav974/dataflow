@@ -1,9 +1,10 @@
-import React, { useCallback } from "react";
+import React, { useCallback, useMemo } from "react";
 import useLinkable from "@/hooks/useLinkable";
 import { useGraphContext } from "@/contexts/GraphContext";
 import { NodeType, ParameterType } from "../../config/Schema";
 import NamedPin from "./NamedPin";
 import ValuedPin from "./ValuedPin";
+import Tooltip from "@/components/ui/Tooltip";
 
 interface PinProps {
     nodeId: string;
@@ -20,7 +21,7 @@ interface PinProps {
 }
 
 function Pin({ nodeId, id, nodeType, name, type, required, isInput, onRef, removable = false, defaultValue, editable }: PinProps) {
-    const {removeNodeInput, removeNodeOutput, setInputDefaultValue, setOutputName, setInputName} = useGraphContext();
+    const {removeNodeInput, removeNodeOutput, setInputDefaultValue, setOutputName, setInputName, computedResult} = useGraphContext();
     const {isConnected, onClick, handlePointerDown, handlePointerUp} = useLinkable(nodeId, id, isInput, !isInput);
     
     const onPinRef = useCallback((el: HTMLDivElement | null) => {
@@ -50,6 +51,10 @@ function Pin({ nodeId, id, nodeType, name, type, required, isInput, onRef, remov
         setInputName(nodeId, id, data[id]);
     }, [nodeId, id, setInputName]);
 
+    const executionValue = useMemo((): any => {
+        return computedResult.ref.current.get(nodeId + ':' + id);
+    }, [computedResult.lastUpdated, nodeId, id]);
+
     const pinContainerClass = "flex items-center gap-1" + (!isInput ? " flex-row-reverse" : "");
     const basePinClass = "min-w-[12px] min-h-[12px] rounded-full cursor-pointer";
     const pinClass = `${basePinClass} ${isConnected
@@ -58,31 +63,33 @@ function Pin({ nodeId, id, nodeType, name, type, required, isInput, onRef, remov
     }`;
 
     return (
-        <div className={pinContainerClass}>
-            <div
-                ref={onPinRef}
-                className={pinClass}
-                onClick={onClick}
-                onPointerDownCapture={handlePointerDown}
-                onPointerUp={handlePointerUp}
-            >
-            </div>
-            <div className="text-gray-300 text-sm">
-                {!isInput && !editable && name}
-                {!isInput && editable &&
-                    <NamedPin id={id} value={name} removable={true} onSubmit={handleOutputSubmit} onRemove={handleRemoveOutputPin}/>
-                }
+        <Tooltip tooltip={executionValue}>
+            <div className={pinContainerClass}>
+                <div
+                    ref={onPinRef}
+                    className={pinClass}
+                    onClick={onClick}
+                    onPointerDownCapture={handlePointerDown}
+                    onPointerUp={handlePointerUp}
+                >
+                </div>
+                <div className="text-gray-300 text-sm">
+                    {!isInput && !editable && name}
+                    {!isInput && editable &&
+                        <NamedPin id={id} value={name} removable={true} onSubmit={handleOutputSubmit} onRemove={handleRemoveOutputPin}/>
+                    }
 
-                {isInput && !editable && name}
-                {isInput && editable && !isConnected && nodeType !== NodeType.RETURN &&
-                    <ValuedPin id={id} name={name} type={type} defaultValue={defaultValue} required={required ?? false} removable={removable} onSubmit={handleInputSubmit} onRemove={handleRemoveInputPin} />
-                }
-                {nodeType === NodeType.RETURN &&
-                    <NamedPin id={id} value={name} removable={true} onSubmit={handleInputNameSubmit} onRemove={handleRemoveInputPin} orientation="left"/>
-                }
-                {required && !editable && <span className="text-red-500 ml-1">*</span>}
+                    {isInput && !editable && name}
+                    {isInput && editable && !isConnected && nodeType !== NodeType.RETURN &&
+                        <ValuedPin id={id} name={name} type={type} defaultValue={defaultValue} required={required ?? false} removable={removable} onSubmit={handleInputSubmit} onRemove={handleRemoveInputPin} />
+                    }
+                    {nodeType === NodeType.RETURN &&
+                        <NamedPin id={id} value={name} removable={true} onSubmit={handleInputNameSubmit} onRemove={handleRemoveInputPin} orientation="left"/>
+                    }
+                    {required && !editable && <span className="text-red-500 ml-1">*</span>}
+                </div>
             </div>
-        </div>
+        </Tooltip>
     );
 }
 

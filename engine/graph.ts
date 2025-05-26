@@ -1,54 +1,12 @@
-import { AppConfig, ConnectionConfig, ConnectorConfig, InputConfig, NodeConfig, NodeType, OutputBranchConfig, OutputConfig, ParameterType, ParameterValueType } from "@/components/config/Schema";
+import { AppConfig, ConnectionConfig, InputConfig, NodeConfig, NodeType, OutputBranchConfig, OutputConfig, ParameterValueType } from "@/components/config/Schema";
 import registry from "./registry";
-import { jsonToMap } from "./utils";
+import { jsonToMap, Stack } from "./utils";
 import executionContext, { KeyValue } from "./context";
+import { ExecutionBranch, ExecutionGraph, ExecutionInput, ExecutionOutput, GraphResult } from "./types";
 import "./handlers";
 
 const graphs: Map<string, ExecutionGraph> = new Map();
-
-export interface ExecutionInputResolver {
-    graph: ExecutionGraph;
-    src: ConnectorConfig;
-}
-
-export interface ExecutionInput {
-    nodeId: string;
-    inputId: string;
-    inputType: ParameterType;
-    inputName: string;
-    defaultValue?: ParameterValueType;
-    resolve?: ExecutionInputResolver;
-}
-
-export interface ExecutionOutput {
-    nodeId: string;
-    outputId: string;
-    outputName: string;
-    outputType: ParameterType;
-    value: ParameterValueType;
-}
-
-export interface ExecutionBranch {
-    nodeId: string;
-    branchId: string;
-    graph?: ExecutionGraph;
-}
-
-export interface ExecutionGraph {
-    nodeType: NodeType;
-    nodeId: string;
-    inputs?: ExecutionInput[];
-    outputs: ExecutionOutput[];
-    branches: ExecutionBranch[];
-    next: ExecutionGraph | null;
-    visited: boolean;
-    context: Map<string, any>;
-}
-
-export interface GraphResult {
-    graph: ExecutionGraph;
-    result: KeyValue;
-}
+const stack = new Stack<ExecutionGraph>();
 
 export function findStartNode(graph: AppConfig): NodeConfig | undefined {
     let node = graph.nodes.find((n: NodeConfig) =>
@@ -120,7 +78,7 @@ export function nodeConfigToExecutionGraph(node: NodeConfig, graph: AppConfig): 
         nodeType: node.type,
         inputs: node.inputs?.map((input: InputConfig): ExecutionInput =>
             inputConfigToExecutionInput(node.id, input, graph)
-        ),
+        ) ?? [],
         outputs: node.outputs?.map((output: OutputConfig): ExecutionOutput => ({
             nodeId: node.id,
             outputId: output.id,
@@ -128,7 +86,7 @@ export function nodeConfigToExecutionGraph(node: NodeConfig, graph: AppConfig): 
             outputName: output.name,
             value: undefined
         })) ?? [],
-        branches: node.outputBranches?.map((branch: OutputBranchConfig): ExecutionBranch => ({
+        branches: node.branches?.map((branch: OutputBranchConfig): ExecutionBranch => ({
             nodeId: node.id,
             branchId: branch.id
         })) ?? [],
@@ -155,11 +113,13 @@ export function nodeConfigToExecutionGraph(node: NodeConfig, graph: AppConfig): 
 export function resolveInputs(graph: ExecutionGraph, revisit: boolean = false): Map<string, ParameterValueType> {
     const inputs: Map<string, ParameterValueType> = new Map();
 
-    graph.inputs?.forEach((input: ExecutionInput) => {
+    graph.inputs.forEach((input: ExecutionInput) => {
         inputs.set(input.inputId, input.defaultValue);
 
         if (input.resolve) {
-            if (input.resolve.graph.nodeType !== NodeType.FOR && (!input.resolve.graph.visited || revisit)) {
+            const bannedRevisitGraph = stack.peek();
+
+            if (input.resolve.graph.nodeId !== bannedRevisitGraph?.nodeId && (!input.resolve.graph.visited || revisit)) {
                 input.resolve.graph = resolveExecutionGraph(input.resolve.graph, revisit);
             }
 
@@ -179,6 +139,8 @@ function handleFor(forGraph: ExecutionGraph, graph: ExecutionGraph, inputs: Map<
     const last = Number(inputs.get('last'));
     const inclusive = inputs.get('inclusive');
 
+    stack.push(forGraph);
+
     if (first <= last) {
         for (let i = first; inclusive ? i <= last : i < last; i++) {
             forGraph.outputs[0].value = i;
@@ -191,6 +153,52 @@ function handleFor(forGraph: ExecutionGraph, graph: ExecutionGraph, inputs: Map<
         }
     }
 
+    stack.pop();
+
+    return graph;
+}
+
+function handleForeach(
+    foreachGraph: ExecutionGraph, 
+    graph: ExecutionGraph, 
+    inputs: Map<string, ParameterValueType>
+): ExecutionGraph {
+    const target: any = inputs.get("value");
+
+    // Exclude unwanted types
+    if (
+        target === null ||
+        target === undefined ||
+        typeof target !== "object" || 
+        typeof target === "function" ||
+        target instanceof WeakMap || 
+        target instanceof WeakSet || 
+        ArrayBuffer.isView(target) || 
+        target instanceof Error
+    ) {
+        return graph;
+    }
+
+    stack.push(foreachGraph);
+
+    // Handle iterable objects (Array, Map, Set)
+    if (Symbol.iterator in target) {
+        for (const [key, value] of target.entries()) {
+            foreachGraph.outputs[0].value = key;
+            foreachGraph.outputs[1].value = value;
+            graph = resolveExecutionGraph(graph, true);
+        }
+    } 
+    // Handle plain objects (iterate over keys)
+    else {
+        Object.entries<any>(target).forEach(([key, value]) => {
+            foreachGraph.outputs[0].value = key;
+            foreachGraph.outputs[1].value = value;
+            graph = resolveExecutionGraph(graph, true);
+        });
+    }
+
+    stack.pop();
     return graph;
 }
 
@@ -232,6 +240,11 @@ export function handleExecution(graph: ExecutionGraph, revisit: boolean = false)
                         graph.branches[0].graph = handleFor(graph, graph.branches[0].graph, rawInputs);
                     }
                     break ;
+                case NodeType.FOREACH:
+                    if (graph.branches[0].graph) {
+                        graph.branches[0].graph = handleForeach(graph, graph.branches[0].graph, rawInputs);
+                    }
+                    break ;
             }
         }
     } else {
@@ -265,6 +278,7 @@ export function buildExecutionGraph(graph: AppConfig): ExecutionGraph | undefine
     }
 
     graphs.clear();
+    stack.clear();
 
     return nodeConfigToExecutionGraph(startingNode, graph);
 }

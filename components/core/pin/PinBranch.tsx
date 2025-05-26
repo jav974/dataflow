@@ -29,7 +29,7 @@ export default function PinBranch({ nodeId, id, name, onRef, removable }: PinBra
     }, [nodeId, id, removeNodeBranch, removeConnections]);
 
     return (
-        <div className="flex items-center gap-1 flex-row-reverse" onPointerEnter={handleMouseEnter} onPointerLeave={handleMouseLeave}>
+        <div className="text-sm text-gray-300 flex items-center gap-1 flex-row-reverse" onPointerEnter={handleMouseEnter} onPointerLeave={handleMouseLeave}>
             <div
                 ref={onPinRef}
                 onClick={onClick}
