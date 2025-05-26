@@ -73,7 +73,7 @@ function Pin({ nodeId, id, nodeType, name, type, required, isInput, onRef, remov
                     onPointerUp={handlePointerUp}
                 >
                 </div>
-                <div className="text-gray-300 text-sm">
+                <div className={`flex grow text-gray-300 text-sm ${!isInput ? 'flex-row-reverse' : ''}`}>
                     {!isInput && !editable && name}
                     {!isInput && editable &&
                         <NamedPin id={id} value={name} removable={true} onSubmit={handleOutputSubmit} onRemove={handleRemoveOutputPin}/>

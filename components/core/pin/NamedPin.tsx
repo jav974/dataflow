@@ -1,8 +1,9 @@
 import { useCallback, useMemo, useRef } from "react";
 import useHoverable from "@/hooks/useHoverable";
-import { useForm } from "react-hook-form"
+import { FormProvider, useForm } from "react-hook-form"
 import { yupResolver } from "@hookform/resolvers/yup"
 import * as yup from "yup"
+import Input from "@/components/forms/Input";
 
 interface NamedPinProps {
     id: string;
@@ -20,7 +21,7 @@ export default function NamedPin({id, value, removable, onSubmit, onRemove, orie
         return yup.object({[id]: yup.string().required()});
     }, [id]);
 
-    const {register, handleSubmit, formState: { errors }} = useForm({
+    const methods = useForm({
         resolver: yupResolver(schema),
         defaultValues: {
             [id]: value
@@ -31,28 +32,18 @@ export default function NamedPin({id, value, removable, onSubmit, onRemove, orie
         formRef.current?.requestSubmit();
     }, []);
 
-    const onPointerDownCapture = useCallback((e: React.PointerEvent<HTMLInputElement>) => {
-        e.stopPropagation();
-    }, []);
-
-    const baseClassName = "ml-1 p-1 outline-none field-sizing-content min-w-[50px] max-h-[20px] border-b-1";
-    const className = `${baseClassName} ${orientation === "right" ? 'text-right' : ''} ${errors[id]
-        ? 'border-b-red-500/50 focus:border-b-red-500'
-        : 'border-b-blue-500/50 focus:border-b-blue-500'
-    }`;
-
     return (
-        <form ref={formRef} onSubmit={handleSubmit(onSubmit)} onPointerEnter={handleMouseEnter} onPointerLeave={handleMouseLeave}>
-            {removable && orientation === "right" && <sup className={`${isHovered ? '' : 'invisible'} text-red-500 cursor-pointer`} onClick={onRemove}>[x]</sup>}
-            <input
-                type="text"
-                className={className}
-                {...register(id)}
-                onBlur={onBlur}
-                onPointerDownCapture={onPointerDownCapture}
-                placeholder={value}
-            ></input>
-            {removable && orientation === "left" && <sup className={`${isHovered ? '' : 'invisible'} text-red-500 cursor-pointer`} onClick={onRemove}>[x]</sup>}
-        </form>
+        <FormProvider {...methods}>
+            <form
+                ref={formRef}
+                onSubmit={methods.handleSubmit(onSubmit)}
+                onPointerEnter={handleMouseEnter}
+                onPointerLeave={handleMouseLeave}
+                className={`flex grow ${orientation === 'right' ? 'flex-row-reverse' : ''}`}
+            >
+                <Input className="grow" name={id} onBlur={onBlur} placeholder={value} orientation={orientation} />
+                {removable && <span className={`${isHovered ? '' : 'invisible'} text-red-500 cursor-pointer`} onClick={onRemove}>[x]</span>}
+            </form>
+        </FormProvider>
     );
 }

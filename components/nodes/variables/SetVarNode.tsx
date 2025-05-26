@@ -1,9 +1,10 @@
 import { useGraphContext } from "@/contexts/GraphContext";
 import Node, { NodeProps } from "../../core/Node";
 import { useCallback, useMemo, useRef } from "react";
-import { useForm } from "react-hook-form"
+import { FormProvider, useForm } from "react-hook-form"
 import { yupResolver } from "@hookform/resolvers/yup"
 import * as yup from "yup"
+import Input from "@/components/forms/Input";
 
 interface SetVarNodeProps extends NodeProps {
 }
@@ -12,7 +13,7 @@ export default function SetVarNode({node}: SetVarNodeProps) {
     const {setVariable, variables, setNodeContext} = useGraphContext();
     const formRef = useRef<HTMLFormElement | null>(null);
     const schema = useMemo(() => yup.object({name: yup.string().required()}), []);
-    const {register, handleSubmit, formState: { errors }} = useForm({
+    const methods = useForm({
         resolver: yupResolver(schema),
         defaultValues: {
             name: variables.ref.current.get(node.id) ?? ""
@@ -28,20 +29,22 @@ export default function SetVarNode({node}: SetVarNodeProps) {
         formRef.current?.requestSubmit();
     }, []);
 
-    const inputClassName = errors["name"]
-        ? "p-1 outline outline-red-500/50 focus:outline-red-500 max-h-[30px]"
-        : "p-1 outline outline-blue-500/50 focus:outline-blue-500 max-h-[30px]";
+    const inputClassName = methods.formState.errors["name"]
+        ? "p-1 outline outline-red-500/50 focus:outline-red-500 max-h-[30px] grow text-center"
+        : "p-1 outline outline-blue-500/50 focus:outline-blue-500 max-h-[30px] grow text-center";
 
     return (
         <Node
             node={node}
             hasExecute={true}
             hasContinue={true}
-            size={{width: 100, height: 100}}
+            size={{width: 200, height: 100}}
         >
-            <form ref={formRef} className="p-2" onSubmit={handleSubmit(onSubmit)}>
-                <input {...register('name')} className={inputClassName} placeholder="Variable name" onBlur={onBlur}></input>
-            </form>
+            <FormProvider {...methods}>
+                <form ref={formRef} className="flex p-2" onSubmit={methods.handleSubmit(onSubmit)}>
+                    <Input className="grow text-center" classNameOverride={inputClassName} name="name" placeholder="Variable name" onBlur={onBlur} />
+                </form>
+            </FormProvider>
         </Node>
     );
 }
