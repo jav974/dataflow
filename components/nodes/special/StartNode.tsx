@@ -12,11 +12,11 @@ export default function StartNode({node}: StartNodeProps) {
 
     useEffect(() => {
         node.outputs?.forEach((output: OutputConfig) => {
-            setVariable(output.id, output.name, output.type, false);
+            setVariable(output.id, output.name, output.type, output.isCollection ?? false);
         });
 
         outputs.current.forEach((output: OutputConfig) => {
-            if (!node.outputs?.includes(output)) {
+            if (!node.outputs?.find(o => o.id === output.id)) {
                 removeVariable(output.id);
             }
         });

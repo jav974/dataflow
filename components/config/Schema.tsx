@@ -27,12 +27,14 @@ enum NodeType {
     TYPEDEF = "typedef",
 }
 
-enum ParameterType {
+enum ParameterTypes {
     STRING = "string",
     NUMBER = "number",
     BOOLEAN = "boolean",
     ANY = "any"
 }
+
+type ParameterType = ParameterTypes | string;
 
 interface TypeProperty {
     id: string;
@@ -125,5 +127,5 @@ function parseAppConfig(config: string): AppConfig {
 
 type ParameterValueType = string | number | undefined | null;
 
-export { NodeType, ParameterType, parseAppConfig };
-export type { GraphType, TypeDefinition, TypeProperty, AppConfig, NodeConfig, InputConfig, OutputConfig, ConnectorConfig, ConnectionConfig, Coordinates, ParameterValueType, OutputBranchConfig, VariableConfig };
+export { NodeType, ParameterTypes, parseAppConfig };
+export type { GraphType, TypeDefinition, TypeProperty, AppConfig, NodeConfig, InputConfig, OutputConfig, ConnectorConfig, ConnectionConfig, Coordinates, ParameterValueType, OutputBranchConfig, VariableConfig, ParameterType };

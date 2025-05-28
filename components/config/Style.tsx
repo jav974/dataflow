@@ -1,4 +1,4 @@
-import { FillGradient, type StrokeStyle } from "pixi.js";
+import { type StrokeStyle } from "pixi.js";
 
 const COLOR_BLUE = '#4a90e2';
 const COLOR_BLUE_500 = '#3b82f6';
@@ -16,28 +16,21 @@ const baseStrokeStyle: StrokeStyle = {
 }
 
 const flowStrokeStyle: StrokeStyle = {
+    ...baseStrokeStyle,
     color: COLOR_BLUE, 
     width: 6,
-    ...baseStrokeStyle
+    alpha: 0.8,
 };
 
 const paramStrokeStyle: StrokeStyle = {
-    color: COLOR_BLUE, 
+    ...baseStrokeStyle,
+    color: COLOR_BLUE,
     width: 4,
-    ...baseStrokeStyle
+    alpha: 0.8,
 }
 
 const LINE_STYLE: StrokeStyle = { 
     ...flowStrokeStyle
-    /*fill: new FillGradient({
-        type: 'linear',
-        start: {x: 0, y: 0},
-        end: {x: 1, y: 1},
-        colorStops: [
-            { offset: 0, color: 'green' },
-            { offset: 1, color: 'blue' }
-        ]
-    })*/
 };
 
 const BACKGROUND_LINE_STYLE: StrokeStyle = {
@@ -87,4 +80,4 @@ const LineStyle: Record<string, StrokeStyle> = {
     custom: {...paramStrokeStyle, color: COLOR_PURPLE_500},
 };
 
-export { LINE_STYLE, COLOR_BLUE, BACKGROUND_LINE_STYLE, PinStyle, LineStyle };
+export { LINE_STYLE, COLOR_BLUE, COLOR_BLUE_500, COLOR_GREEN_500, COLOR_PINK_500, COLOR_PURPLE_500, COLOR_RED_500, BACKGROUND_LINE_STYLE, PinStyle, LineStyle };

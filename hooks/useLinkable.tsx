@@ -18,7 +18,7 @@ export default function useLinkable(id: string, pin: string, isInput: boolean = 
     const onClick = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
         e.preventDefault();
         e.stopPropagation();
-        
+
         if (e.ctrlKey) {
             if (isInput || pin === "execute") {
                 removeConnections(undefined, {id, pin});

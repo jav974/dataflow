@@ -1,5 +1,5 @@
 import { useCallback, useMemo } from "react";
-import { InputConfig, NodeType, ParameterType } from "../config/Schema";
+import { InputConfig, NodeType, ParameterType, ParameterTypes } from "../config/Schema";
 import Pin from "./pin/Pin";
 import useHoverable from "@/hooks/useHoverable";
 import BaseIcon from "../icons/BaseIcon";
@@ -32,7 +32,7 @@ export default function NodeInputs({nodeId, nodeType, inputs, onRef, multiple = 
             addNodeInput(nodeId, {
                 id: uuidv4(),
                 name: "",
-                type: inputMultipleType ?? ParameterType.STRING,
+                type: inputMultipleType ?? ParameterTypes.STRING,
                 required: true,
                 editable: true
             });
@@ -40,7 +40,7 @@ export default function NodeInputs({nodeId, nodeType, inputs, onRef, multiple = 
             addNodeInput(nodeId, {
                 id: uuidv4(),
                 name: "name",
-                type: ParameterType.ANY,
+                type: ParameterTypes.ANY,
                 required: false,
                 editable: true
             });
@@ -68,7 +68,7 @@ export default function NodeInputs({nodeId, nodeType, inputs, onRef, multiple = 
         addNodeInput(nodeId, {
             id: inputId,
             name: "",
-            type: inputMultipleType ?? ParameterType.STRING,
+            type: inputMultipleType ?? ParameterTypes.STRING,
             required: true,
             editable: true
         });

@@ -1,27 +1,31 @@
-import { Graphics, StrokeStyle } from "pixi.js";
-import FastGraphics from "./FastGraphics";
+import { Container, Texture } from "pixi.js";
 import { useCallback, useMemo } from "react";
 import { useNodes, Node, PointerEventType, Pin } from "@/contexts/NodeContext";
-import { LINE_STYLE, LineStyle } from "../config/Style";
-import { drawBezierCurve } from "./functions";
 import { useGraphContext } from "@/contexts/GraphContext";
 import { useRefState } from "@/hooks/useRefState";
 import { Coordinates } from "../config/Schema";
+import { LineTextures } from "./textures";
+import { useExtend } from "@pixi/react";
+import BezierCurve from "./BezierCurve";
 
 interface ConnectionOrigin {
     node: Node;
     pin: Pin;
     isDst: boolean;
     pos: Coordinates;
-    lineStyle: StrokeStyle;
+    texture: Texture | null;
 }
 
 export default function ConnectionDrag() {
+    useExtend({Container});
+
     const { connectionDrag, nodes, onPointerUp } = useNodes();
     const { scale, canvasPosition } = useGraphContext();
-    const position = useRefState<Coordinates>({x: 0, y: 0});
+    const position = useRefState<Coordinates>({x: NaN, y: NaN});
     const origin = useMemo((): ConnectionOrigin | undefined => {
         if (!connectionDrag) {
+            position.ref.current.x = NaN;
+            position.ref.current.y = NaN;
             return undefined;
         }
 
@@ -30,7 +34,7 @@ export default function ConnectionDrag() {
 
         let pin: Pin | undefined = undefined;
         let isDst = true;
-        let lineStyle: StrokeStyle = LineStyle.flow;
+        let texture: Texture | null = LineTextures.flow;
 
         if (connectionDrag.connector.pin === "execute") {
             pin = node.executePin;
@@ -49,13 +53,13 @@ export default function ConnectionDrag() {
                 } else {
                     const output = node.mutableNodeConfig.outputs?.find((output) => output.id === pin?.id);
                     if (output) {
-                        lineStyle = LineStyle[output.type] ?? LineStyle.custom;
+                        texture = LineTextures[output.type] ?? LineTextures.custom;
                     }
                 }
             } else {
                 const input = node.mutableNodeConfig.inputs?.find((input) => input.id === pin?.id);
                 if (input) {
-                    lineStyle = LineStyle[input.type] ?? LineStyle.custom;
+                    texture = LineTextures[input.type] ?? LineTextures.custom;
                 }
             }
         }
@@ -72,25 +76,9 @@ export default function ConnectionDrag() {
                 x: node.mutableNodeConfig.position.x + pin.position.x,
                 y: node.mutableNodeConfig.position.y + pin.position.y
             },
-            lineStyle
+            texture
         };
     }, [connectionDrag]);
-
-    const draw = useCallback((g: Graphics) => {
-        g.clear();
-
-        if (!origin) {
-            return ;
-        }
-
-        g.beginPath();
-        drawBezierCurve(
-            g,
-            origin.isDst ? position.ref.current : origin.pos,
-            origin.isDst ? origin.pos : position.ref.current
-        );
-        g.stroke(origin.lineStyle);
-    }, [origin]);
 
     const handlePointerMove = useCallback((e: PointerEvent) => {
         position.ref.current.x = (e.clientX - canvasPosition.ref.current.x) * scale.ref.current;
@@ -102,7 +90,23 @@ export default function ConnectionDrag() {
         onPointerUp({ element: 'connection', x: e.clientX, y: e.clientY, type: PointerEventType.POINTER_UP });
     }, [onPointerUp]);
 
+    if (!origin) {
+        return null;
+    }
+
     return (
-        <FastGraphics eventMode="dynamic" draw={draw} drawDependencies={[position.lastUpdated]} onPointerUp={handlePointerUp} onGlobalPointerMove={handlePointerMove}/>
+        <pixiContainer
+            eventMode="dynamic"
+            onPointerUp={handlePointerUp}
+            onGlobalPointerMove={handlePointerMove}
+        >
+            <BezierCurve
+                from={origin.isDst ? position.ref.current : origin.pos}
+                to={origin.isDst ? origin.pos : position.ref.current}
+                alpha={0.8}
+                controlPoints={100}
+                texture={origin.texture ?? undefined}
+            />
+        </pixiContainer>
     );
 }

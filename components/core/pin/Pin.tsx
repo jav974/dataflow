@@ -6,6 +6,7 @@ import NamedPin from "./NamedPin";
 import ValuedPin from "./ValuedPin";
 import Tooltip from "@/components/ui/Tooltip";
 import { PinStyle } from "@/components/config/Style";
+import PinTypeForm from "./PinTypeForm";
 
 interface PinProps {
     nodeId: string;
@@ -61,19 +62,21 @@ function Pin({ nodeId, id, nodeType, name, type, required, isInput, onRef, remov
     const typeClass = isCollection ? "border-dotted" : "rounded-full";
     const style = PinStyle[type] ?? PinStyle.custom;
     const connectedClass = isConnected ? style.connectedClass : `border-2 bg-transparent ${style.disconnectedClass}`;
-    const pinClass = `min-w-[12px] min-h-[12px] ${typeClass} ${connectedClass} cursor-pointer`;
+    const pinClass = `io-pin min-w-[12px] min-h-[12px] ${typeClass} ${connectedClass} cursor-pointer`;
+    const pinTypeForm = !editable ? null : <PinTypeForm nodeId={nodeId} pinId={id} isInput={isInput} type={type} isCollection={isCollection}/>;
 
     return (
         <Tooltip tooltip={executionValue}>
             <div className={pinContainerClass}>
-                <div
-                    ref={onPinRef}
-                    className={pinClass}
-                    onClick={onClick}
-                    onPointerDownCapture={handlePointerDown}
-                    onPointerUp={handlePointerUp}
-                >
-                </div>
+                <Tooltip tooltip={pinTypeForm} showOn="right-click">
+                    <div
+                        ref={onPinRef}
+                        className={pinClass}
+                        onClick={onClick}
+                        onPointerDownCapture={handlePointerDown}
+                        onPointerUp={handlePointerUp}
+                    />
+                </Tooltip>
                 <div className={`flex grow text-gray-300 text-sm ${!isInput ? 'flex-row-reverse' : ''}`}>
                     {!isInput && !editable && name}
                     {!isInput && editable &&

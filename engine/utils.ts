@@ -18,6 +18,13 @@ export function getValueByPath<T>(obj: T, path: string): unknown {
         .reduce((acc: any, key: string) => acc && acc[key], obj);
 }
 
+export function filterObject(obj: object, filteredValue: unknown): object {
+    // Remove undefined values
+    return Object.fromEntries(
+        Object.entries(obj).filter(([_, value]) => value !== filteredValue)
+    );
+}
+
 export function getIOValues(executionGraph: ExecutionGraph, values: Map<string, any> = new Map()): Map<string, any> {
     let iterator: ExecutionGraph | null = executionGraph;
 

@@ -1,4 +1,4 @@
-import { NodeConfig, NodeType, ParameterType } from "../config/Schema";
+import { NodeConfig, NodeType, ParameterTypes } from "../config/Schema";
 import registry from "./registry";
 import FetchNode from "./fetch/FetchNode";
 import MathNode from "./math/MathNode";
@@ -41,10 +41,10 @@ registry.set(NodeType.FETCH, {
         name: "Fetch",
         executable: true,
         inputs: [
-            {id: "url", name: "URL", type: ParameterType.STRING, required: false, editable: true, defaultValue: ''},
+            {id: "url", name: "URL", type: ParameterTypes.STRING, required: false, editable: true, defaultValue: ''},
         ],
         outputs: [
-            {id: "result", name: "result", type: ParameterType.NUMBER}
+            {id: "result", name: "result", type: ParameterTypes.NUMBER}
         ]
     }
 });
@@ -56,11 +56,11 @@ registry.set(NodeType.MATH_ADD, {
         name: "Add",
         executable: false,
         inputs: [
-            {id: "num_a", name: "A", type: ParameterType.NUMBER, required: true, editable: true, defaultValue: 0},
-            {id: "num_b", name: "B", type: ParameterType.NUMBER, required: true, editable: true, defaultValue: 0},
+            {id: "num_a", name: "A", type: ParameterTypes.NUMBER, required: true, editable: true, defaultValue: 0},
+            {id: "num_b", name: "B", type: ParameterTypes.NUMBER, required: true, editable: true, defaultValue: 0},
         ],
         outputs: [
-            {id: "result", name: "result", type: ParameterType.NUMBER}
+            {id: "result", name: "result", type: ParameterTypes.NUMBER}
         ]
     }
 });
@@ -72,11 +72,11 @@ registry.set(NodeType.MATH_SUB, {
         name: "Subtract",
         executable: false,
         inputs: [
-            {id: "num_a", name: "A", type: ParameterType.NUMBER, required: true, editable: true, defaultValue: 0},
-            {id: "num_b", name: "B", type: ParameterType.NUMBER, required: true, editable: true, defaultValue: 0},
+            {id: "num_a", name: "A", type: ParameterTypes.NUMBER, required: true, editable: true, defaultValue: 0},
+            {id: "num_b", name: "B", type: ParameterTypes.NUMBER, required: true, editable: true, defaultValue: 0},
         ],
         outputs: [
-            {id: "result", name: "result", type: ParameterType.NUMBER}
+            {id: "result", name: "result", type: ParameterTypes.NUMBER}
         ]
     }
 });
@@ -88,11 +88,11 @@ registry.set(NodeType.MATH_MUL, {
         name: "Multiply",
         executable: false,
         inputs: [
-            {id: "num_a", name: "A", type: ParameterType.NUMBER, required: true, editable: true, defaultValue: 1},
-            {id: "num_b", name: "B", type: ParameterType.NUMBER, required: true, editable: true, defaultValue: 1},
+            {id: "num_a", name: "A", type: ParameterTypes.NUMBER, required: true, editable: true, defaultValue: 1},
+            {id: "num_b", name: "B", type: ParameterTypes.NUMBER, required: true, editable: true, defaultValue: 1},
         ],
         outputs: [
-            {id: "result", name: "result", type: ParameterType.NUMBER}
+            {id: "result", name: "result", type: ParameterTypes.NUMBER}
         ]
     }
 });
@@ -104,11 +104,11 @@ registry.set(NodeType.MATH_DIV, {
         name: "Divide",
         executable: false,
         inputs: [
-            {id: "num_a", name: "A", type: ParameterType.NUMBER, required: true, editable: true, defaultValue: 1},
-            {id: "num_b", name: "B", type: ParameterType.NUMBER, required: true, editable: true, defaultValue: 1},
+            {id: "num_a", name: "A", type: ParameterTypes.NUMBER, required: true, editable: true, defaultValue: 1},
+            {id: "num_b", name: "B", type: ParameterTypes.NUMBER, required: true, editable: true, defaultValue: 1},
         ],
         outputs: [
-            {id: "result", name: "result", type: ParameterType.NUMBER}
+            {id: "result", name: "result", type: ParameterTypes.NUMBER}
         ]
     }
 });
@@ -120,11 +120,11 @@ registry.set(NodeType.MATH_MOD, {
         name: "Modulo",
         executable: false,
         inputs: [
-            {id: "num_a", name: "A", type: ParameterType.NUMBER, required: true, editable: true, defaultValue: 0},
-            {id: "num_b", name: "B", type: ParameterType.NUMBER, required: true, editable: true, defaultValue: 0},
+            {id: "num_a", name: "A", type: ParameterTypes.NUMBER, required: true, editable: true, defaultValue: 0},
+            {id: "num_b", name: "B", type: ParameterTypes.NUMBER, required: true, editable: true, defaultValue: 0},
         ],
         outputs: [
-            {id: "result", name: "result", type: ParameterType.NUMBER}
+            {id: "result", name: "result", type: ParameterTypes.NUMBER}
         ]
     }
 });
@@ -136,10 +136,10 @@ registry.set(NodeType.SET, {
         name: "Set variable",
         executable: true,
         inputs: [
-            {id: "value", name: "value", type: ParameterType.ANY, required: true, editable: false},
+            {id: "value", name: "value", type: ParameterTypes.ANY, required: true, editable: false},
         ],
         outputs: [
-            {id: "result", name: "result", type: ParameterType.ANY}
+            {id: "result", name: "result", type: ParameterTypes.ANY}
         ]
     }
 });
@@ -151,7 +151,7 @@ registry.set(NodeType.GET, {
         name: "Get variable",
         executable: false,
         outputs: [
-            {id: "value", name: "value", type: ParameterType.ANY}
+            {id: "value", name: "value", type: ParameterTypes.ANY}
         ]
     }
 });
@@ -167,7 +167,7 @@ registry.set(NodeType.COMPARE, {
                 id: "A",
                 name: "A",
                 required: true,
-                type: ParameterType.ANY,
+                type: ParameterTypes.ANY,
                 defaultValue: 0,
                 editable: true
             },
@@ -175,7 +175,7 @@ registry.set(NodeType.COMPARE, {
                 id: "B",
                 name: "B",
                 required: false,
-                type: ParameterType.ANY,
+                type: ParameterTypes.ANY,
                 defaultValue: 0,
                 editable: true
             },
@@ -183,33 +183,33 @@ registry.set(NodeType.COMPARE, {
                 id: "A_EQ_B",
                 name: "A == B",
                 required: true,
-                type: ParameterType.ANY,
+                type: ParameterTypes.ANY,
                 editable: false
             },
             {
                 id: "A_NEQ_B",
                 name: "A != B",
                 required: true,
-                type: ParameterType.ANY,
+                type: ParameterTypes.ANY,
                 editable: false
             },
             {
                 id: "A_SUP_B",
                 name: "A > B",
                 required: true,
-                type: ParameterType.ANY,
+                type: ParameterTypes.ANY,
                 editable: false
             },
             {
                 id: "A_INF_B",
                 name: "A < B",
                 required: true,
-                type: ParameterType.ANY,
+                type: ParameterTypes.ANY,
                 editable: false
             }
         ],
         outputs: [
-            {id: "result", name: "result", type: ParameterType.ANY}
+            {id: "result", name: "result", type: ParameterTypes.ANY}
         ]
     }
 });
@@ -221,7 +221,7 @@ registry.set(NodeType.IF, {
         name: "If",
         type: NodeType.IF,
         inputs: [
-            {id: "value", name: "value", type: ParameterType.BOOLEAN, editable: true, required: true, defaultValue: true}
+            {id: "value", name: "value", type: ParameterTypes.BOOLEAN, editable: true, required: true, defaultValue: true}
         ],
         branches: [
             {id: "on_true", name: "onTrue"},
@@ -250,15 +250,15 @@ registry.set(NodeType.FOR, {
         name: "For",
         type: NodeType.FOR,
         inputs: [
-            {id: "first", name: "First", type: ParameterType.NUMBER, required: true, defaultValue: 0, editable: true},
-            {id: "last", name: "Last", type: ParameterType.NUMBER, required: true, defaultValue: 0, editable: true},
-            {id: "inclusive", name: "Inclusive", type: ParameterType.BOOLEAN, required: false, defaultValue: false, editable: true},
+            {id: "first", name: "First", type: ParameterTypes.NUMBER, required: true, defaultValue: 0, editable: true},
+            {id: "last", name: "Last", type: ParameterTypes.NUMBER, required: true, defaultValue: 0, editable: true},
+            {id: "inclusive", name: "Inclusive", type: ParameterTypes.BOOLEAN, required: false, defaultValue: false, editable: true},
         ],
         branches: [
             {id: "callback", name: "callback"}
         ],
         outputs: [
-            {id: "index", name: "index", type: ParameterType.NUMBER}
+            {id: "index", name: "index", type: ParameterTypes.NUMBER}
         ]
     }
 });
@@ -270,11 +270,11 @@ registry.set(NodeType.FOREACH, {
         name: "Foreach",
         type: NodeType.FOREACH,
         inputs: [
-            {id: "value", name: "value", type: ParameterType.ANY, required: true, editable: false, defaultValue: []}
+            {id: "value", name: "value", type: ParameterTypes.ANY, required: true, editable: false, defaultValue: []}
         ],
         outputs: [
-            {id: "index", name: "index", type: ParameterType.ANY},
-            {id: "item", name: "item", type: ParameterType.ANY}
+            {id: "index", name: "index", type: ParameterTypes.ANY},
+            {id: "item", name: "item", type: ParameterTypes.ANY}
         ],
         branches: [
             {id: "callback", name: "callback"}

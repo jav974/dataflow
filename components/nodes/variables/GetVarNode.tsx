@@ -6,11 +6,16 @@ interface GetVarNodeProps extends NodeProps {
 }
 
 export default function GetVarNode({node, context}: GetVarNodeProps) {
-    const {variables, setNodeContext} = useGraphContext();
+    const {variables, setNodeContext, updateNodeOutput} = useGraphContext();
     const [hasError, setHasError] = useState<boolean>(false);
     const contextVar = useMemo(() => {
         return context?.get('var');
     }, [context]);
+    const variable = useMemo(() => {
+        if (!contextVar) return undefined;
+        const v = variables.ref.current.find(v => v.id === contextVar);
+        return v ? {...v} : undefined;
+    }, [variables.lastUpdated, contextVar]);
 
     const options = useMemo((): React.ReactElement[] => {
         const result: React.ReactElement[] = [];
@@ -39,6 +44,12 @@ export default function GetVarNode({node, context}: GetVarNodeProps) {
             setNodeContext(node.id, (new Map(context)).set('var', variables.ref.current[0].id));
         }
     }, [node.id, context, setNodeContext]);
+
+    useEffect(() => {
+        if (variable && node.outputs && node.outputs.length > 0) {
+            updateNodeOutput(node.id, {id: node.outputs[0].id, type: variable.type, isCollection: variable.isCollection});
+        }
+    }, [node.id, variable]);
 
     const onChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
         setNodeContext(node.id, (new Map(context)).set('var', e.target.value));

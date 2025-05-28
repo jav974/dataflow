@@ -1,6 +1,7 @@
 import React, { createContext, useCallback, useContext, useEffect, useState } from "react";
 import { AppConfig, ConnectionConfig, ConnectorConfig, Coordinates, GraphType, InputConfig, NodeConfig, NodeType, OutputBranchConfig, OutputConfig, VariableConfig } from "@/components/config/Schema";
 import { RefState, useRefState } from "@/hooks/useRefState";
+import { filterObject } from "@/engine/utils";
 
 interface GraphContextType {
     name: string;
@@ -16,10 +17,12 @@ interface GraphContextType {
     updateNode: (node: NodeConfig) => void;
     removeNode: (id: string) => void;
     addNodeInput: (id: string, input: InputConfig) => void;
+    updateNodeInput: (id: string, input: Partial<InputConfig>) => void;
     removeNodeInput: (nodeId: string, inputId: string) => void;
     setNodeInputs: (id: string, inputs: InputConfig[]) => void;
     setInputDefaultValue: (nodeId: string, inputId: string, value: any) => void;
     addNodeOutput: (id: string, output: OutputConfig) => void;
+    updateNodeOutput: (id: string, output: Partial<OutputConfig>) => void;
     removeNodeOutput: (nodeId: string, outputId: string) => void;
     setNodeOutputs: (id: string, outputs: OutputConfig[]) => void;
     addNodeBranch: (id: string, branch: OutputBranchConfig) => void;
@@ -110,6 +113,18 @@ export function GraphProvider({children}: GraphProviderProps) {
         }
     }, [updateNode]);
 
+    const updateNodeInput = useCallback((id: string, input: Partial<InputConfig>) => {
+        const node = nodes.ref.current.find((n: NodeConfig) => n.id === id);
+
+        if (node) {
+            const index = node.inputs?.findIndex((i: InputConfig): boolean => i.id === input.id);
+
+            if (index !== -1) {
+                updateNode({...node, inputs: node.inputs?.map((i) => i.id === input.id ? {...i, ...filterObject(input, undefined)} : i)});
+            }
+        }
+    }, [updateNode]);
+
     const setNodeInputs = useCallback((id: string, inputs: InputConfig[]) => {
         const node = nodes.ref.current.find((n: NodeConfig) => n.id === id);
 
@@ -140,6 +155,18 @@ export function GraphProvider({children}: GraphProviderProps) {
         if (node) {
             if ((node.outputs?.findIndex((i: OutputConfig): boolean => i.id === output.id) ?? -1) === -1) {
                 updateNode({...node, outputs: [...(node.outputs || []), output]});
+            }
+        }
+    }, [updateNode]);
+
+    const updateNodeOutput = useCallback((id: string, output: Partial<OutputConfig>) => {
+        const node = nodes.ref.current.find((n: NodeConfig) => n.id === id);
+
+        if (node) {
+            const index = node.outputs?.findIndex((o: OutputConfig): boolean => o.id === output.id);
+
+            if (index !== -1) {
+                updateNode({...node, outputs: node.outputs?.map((o) => o.id === output.id ? {...o, ...filterObject(output, undefined)} : o)});
             }
         }
     }, [updateNode]);
@@ -302,10 +329,12 @@ export function GraphProvider({children}: GraphProviderProps) {
         updateNode,
         removeNode,
         addNodeInput,
+        updateNodeInput,
         setNodeInputs,
         removeNodeInput,
         setInputDefaultValue,
         addNodeOutput,
+        updateNodeOutput,
         removeNodeOutput,
         setNodeOutputs,
         addNodeBranch,

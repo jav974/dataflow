@@ -1,10 +1,10 @@
-import { useCallback, useEffect, useRef, useState } from "react";
-import { Graphics, StrokeStyle } from "pixi.js";
+import { useEffect, useRef, useState } from "react";
+import { MeshRope, Texture } from "pixi.js";
 import { ConnectorConfig, Coordinates } from "../config/Schema";
 import { Node, Pin, useNodes } from "@/contexts/NodeContext";
-import { drawBezierCurve } from "./functions";
-import FastGraphics from "./FastGraphics";
-import { LineStyle } from "../config/Style";
+import { useExtend } from "@pixi/react";
+import { LineTextures } from "./textures";
+import BezierCurve from "./BezierCurve";
 
 interface ConnectionProps {
     from: ConnectorConfig;
@@ -12,6 +12,8 @@ interface ConnectionProps {
 }
 
 export default function Connection({from, to}: ConnectionProps) {
+    useExtend({MeshRope});
+
     const { nodes } = useNodes();
     const fromNode = useRef<Node | undefined>(undefined);
     const toNode = useRef<Node | undefined>(undefined);
@@ -19,9 +21,7 @@ export default function Connection({from, to}: ConnectionProps) {
     const toPin = useRef<Pin | undefined>(undefined);
     const fromPos = useRef<Coordinates | undefined>(undefined);
     const toPos = useRef<Coordinates | undefined>(undefined);
-    const [updatedAt, setUpdatedAt] = useState<number>(0);
-    const [strokeStyleStart, setStrokeStyleStart] = useState<StrokeStyle>(LineStyle.flow);
-    const [strokeStyleEnd, setStrokeStyleEnd] = useState<StrokeStyle>(LineStyle.flow);
+    const [texture, setTexture] = useState<Texture | null>(LineTextures.flow);
 
     useEffect(() => {
         // Initialize nodes
@@ -39,12 +39,12 @@ export default function Connection({from, to}: ConnectionProps) {
                     const outputConfig = fromNode.current.mutableNodeConfig.outputs?.find(output => output.id === from.pin);
                     const inputConfig = toNode.current.mutableNodeConfig.inputs?.find(input => input.id === to.pin);
 
-                    if (outputConfig) {
-                        setStrokeStyleStart(LineStyle[outputConfig.type] ?? LineStyle.custom);
-                    }
-
-                    if (inputConfig) {
-                        setStrokeStyleEnd(LineStyle[inputConfig.type] ?? LineStyle.custom);
+                    if (outputConfig && inputConfig) {
+                        const key = outputConfig.type !== inputConfig.type
+                            ? `${outputConfig.type}_${inputConfig.type}`
+                            : outputConfig.type
+                        ;
+                        setTexture(LineTextures[key] ?? LineTextures.custom);
                     }
                 }
                 // Output (branch) to Execute
@@ -71,7 +71,6 @@ export default function Connection({from, to}: ConnectionProps) {
             ) {
                 fromPos.current = tmpFrom;
                 toPos.current = tmpTo;
-                setUpdatedAt(Date.now());
             }
         } else {
             fromPos.current = undefined;
@@ -86,15 +85,17 @@ export default function Connection({from, to}: ConnectionProps) {
         };
     }, [from, to, nodes.lastUpdated]);
 
-    const draw = useCallback((g: Graphics) => {
-        g.clear();
+    if (!fromPos.current || !toPos.current) {
+        return null;
+    }
 
-        if (fromPos.current && toPos.current) {
-            g.beginPath();
-            drawBezierCurve(g, fromPos.current, toPos.current);
-            g.stroke(strokeStyleStart);
-        }
-    }, [strokeStyleStart, strokeStyleEnd]);
-
-    return <FastGraphics draw={draw} drawDependencies={[updatedAt]}/>
+    return (
+        <BezierCurve
+            from={fromPos.current}
+            to={toPos.current}
+            alpha={0.8}
+            controlPoints={100}
+            texture={texture ?? undefined}
+        />
+    );
 }

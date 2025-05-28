@@ -1,4 +1,4 @@
-import { ParameterType } from "@/components/config/Schema";
+import { ParameterTypes } from "@/components/config/Schema";
 import Node, { NodeProps } from "@/components/core/Node";
 
 export interface MathNodeProps extends NodeProps {
@@ -13,7 +13,7 @@ export default function MathNode({ node }: MathNodeProps) {
             hasContinue={false}
             inputMultiple={true}
             minInputParams={2}
-            inputMultipleType={ParameterType.NUMBER}
+            inputMultipleType={ParameterTypes.NUMBER}
         />
     );
 }

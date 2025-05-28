@@ -1,4 +1,4 @@
-import { ParameterType } from "@/components/config/Schema";
+import { ParameterType, ParameterTypes } from "@/components/config/Schema";
 import useHoverable from "@/hooks/useHoverable";
 import { useCallback, useMemo, useRef } from "react";
 import { FormProvider, useForm } from "react-hook-form"
@@ -24,13 +24,13 @@ export default function ValuedPin({id, name, type, required, defaultValue, remov
         let fieldSchema: yup.Schema;
 
         switch (type) {
-            case ParameterType.NUMBER:
+            case ParameterTypes.NUMBER:
                 fieldSchema = yup.number();
                 break;
-            case ParameterType.BOOLEAN:
+            case ParameterTypes.BOOLEAN:
                 fieldSchema = yup.boolean();
                 break;
-            case ParameterType.STRING:
+            case ParameterTypes.STRING:
             default:
                 fieldSchema = yup.string();
                 break;
@@ -45,13 +45,13 @@ export default function ValuedPin({id, name, type, required, defaultValue, remov
 
     const defaultPinValue = useMemo(() => {
         switch (type) {
-            case ParameterType.NUMBER:
+            case ParameterTypes.NUMBER:
                 return defaultValue ?? 0;
-            case ParameterType.BOOLEAN:
+            case ParameterTypes.BOOLEAN:
                 return defaultValue ?? "false";
-            case ParameterType.ANY:
+            case ParameterTypes.ANY:
                 return undefined;
-            case ParameterType.STRING:
+            case ParameterTypes.STRING:
             default:
                 return defaultValue ?? "";
         }

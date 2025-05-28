@@ -1,6 +1,6 @@
 import { useGraphContext } from '@/contexts/GraphContext';
-import Connection from './Connection';
 import { ConnectionConfig } from '../config/Schema';
+import Connection from './Connection';
 
 export default function Connections() {
     const { connections } = useGraphContext();

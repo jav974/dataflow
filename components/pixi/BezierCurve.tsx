@@ -1,0 +1,47 @@
+import { useEffect, useRef } from "react";
+import { MeshRope, Texture } from "pixi.js";
+import { Coordinates } from "../config/Schema";
+import { getBezierPoints } from "./functions";
+import { PixiReactElementProps, useExtend } from "@pixi/react";
+import { useRefState } from "@/hooks/useRefState";
+
+interface BezierCurveProps extends Omit<PixiReactElementProps<typeof MeshRope>, "points" | "texture"> {
+    from: Coordinates;
+    to: Coordinates;
+    controlPoints?: number;
+    texture?: Texture;
+}
+
+export default function BezierCurve({from, to, controlPoints = 100, texture = Texture.WHITE, ...props}: BezierCurveProps) {
+    useExtend({MeshRope});
+
+    const points = useRefState<Coordinates[]>([]);
+
+    // Initialize control points for the current line
+    // It is important to make sure that the points ref remains unchanged as it is used as read buffer for pixi shader
+    useEffect(() => {
+        for (let i = 0; i < controlPoints; i++) {
+            points.ref.current.push({x: 0, y: 0});
+        }
+        points.setLastUpdated(Date.now());
+    }, []);
+
+    useEffect(() => {
+        const newPoints = getBezierPoints(from, to, controlPoints);
+
+        for (let i = 0; i < newPoints.length; ++i) {
+            points.ref.current[i].x = newPoints[i].x;
+            points.ref.current[i].y = newPoints[i].y;
+        }
+    }, [from.x, from.y, to.x, to.y]);
+
+    if (points.ref.current.length === 0) {
+        return null;
+    }
+
+    return <pixiMeshRope
+        {...props}
+        texture={texture}
+        points={points.ref.current}
+    />
+}

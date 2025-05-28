@@ -200,13 +200,13 @@ export function NodeProvider({ children }: { children: React.ReactNode }) {
         const drag = buildConnectionDrag(connector);
         if (!drag) return ;
 
-        // Only Output connectors can be connected to multiple other connectors
-        if (!drag.info.isOutput) {
-            removeConnections(
-                drag.info.isSrc ? connector : undefined,
-                !drag.info.isSrc ? connector : undefined
-            );
-        }
+        // // Only Output connectors can be connected to multiple other connectors
+        // if (!drag.info.isOutput) {
+        //     removeConnections(
+        //         drag.info.isSrc ? connector : undefined,
+        //         !drag.info.isSrc ? connector : undefined
+        //     );
+        // }
 
         setConnectionDrag(drag);
     }, [removeConnections]);
@@ -226,6 +226,11 @@ export function NodeProvider({ children }: { children: React.ReactNode }) {
             if (dst && validateConnection(connectionDrag, dst, true)) {
                 const from = connectionDrag.info.isSrc ? connectionDrag : dst;
                 const to = !connectionDrag.info.isSrc ? connectionDrag : dst;
+
+                // Only Output connectors can be connected to multiple other connectors
+                if (!from.info.isOutput) {
+                    removeConnections(from.connector);
+                }
 
                 // Dst connectors can only be Input or Execute, so remove any existing connection they have
                 removeConnections(undefined, to.connector);

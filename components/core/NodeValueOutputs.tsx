@@ -1,5 +1,5 @@
 import { AddCircleIcon } from "@hugeicons/core-free-icons";
-import { NodeType, OutputConfig, ParameterType } from "../config/Schema";
+import { NodeType, OutputConfig, ParameterTypes } from "../config/Schema";
 import BaseIcon from "../icons/BaseIcon";
 import Pin from "./pin/Pin";
 import { COLOR_BLUE } from "../config/Style";
@@ -24,7 +24,7 @@ export default function NodeValueOutputs({nodeId, nodeType, outputs, onRef, mult
         addNodeOutput(nodeId, {
             id: uuidv4(),
             name: "name",
-            type: ParameterType.ANY
+            type: ParameterTypes.ANY
         });
     }, [nodeId, addNodeOutput]);
 

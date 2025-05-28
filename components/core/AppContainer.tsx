@@ -3,7 +3,7 @@ import ApplicationTemplates from "./ApplicationTemplates";
 import BackgroundNode from "../pixi/BackgroundNode";
 import ApplicationGraph from "./ApplicationGraph";
 import ContextMenu from "./ContextMenu";
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef } from "react";
 import { useNodes } from "@/contexts/NodeContext";
 import Toolbar from "./Toolbar";
 import { useUserGraph } from "@/contexts/UserGraphContext";
@@ -15,7 +15,7 @@ export default function AppContainer() {
     const parentRef = useRef<HTMLDivElement>(null);
     const [size, setSize] = usePersistedState<Size>("dataflow-canvas-size", {width: 0, height: 0});
     const { closeContextMenu } = useNodes();
-    const { loadGraph, zoomIn, zoomOut } = useGraphContext();
+    const { loadGraph, zoomIn, zoomOut, scale } = useGraphContext();
     const { graph } = useUserGraph();
 
     // Disable right click default context menu (will be replaced)
@@ -88,11 +88,12 @@ export default function AppContainer() {
                 clearBeforeRender={true}
                 width={size.width}
                 height={size.height}
-                preference="webgpu"
+                // preference="webgpu"
+                preference="webgl"
                 powerPreference="high-performance"
             >
                 <BackgroundNode width={size.width} height={size.height} />
-                <ApplicationGraph />
+                <ApplicationGraph width={size.width} height={size.height} />
             </Application>
             <ApplicationTemplates />
             <ContextMenu />
