@@ -1,12 +1,12 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 
 type PersistedState<T> = [T, (value: T) => void];
 
 function retrieveValue<T>(key: string, defaultValue: T | null | undefined): T | null | undefined {
-    if (typeof localStorage === "undefined") {
+    if (typeof sessionStorage === "undefined") {
         return defaultValue;
     }
-    const storedValue = localStorage.getItem(key);
+    const storedValue = sessionStorage.getItem(key);
     return storedValue ? JSON.parse(storedValue) : defaultValue;
 }
 
@@ -17,18 +17,18 @@ export function usePersistedState<T>(key: string, value: T | undefined): Persist
 export function usePersistedState<T>(key: string, value: T | null | undefined): PersistedState<T | null | undefined> {
     const [state, setState] = useState<T | null | undefined>(retrieveValue<T>(key, value));
 
-    useEffect(() => {
-        //setState(retrieveValue<T>(key, value));
-
-        return () => {
-            localStorage.removeItem(key);
-        };
-    }, []);
-
     const updateState = useCallback((value: T | null | undefined): void => {
-        localStorage.setItem(key, JSON.stringify(value));
+        sessionStorage.setItem(key, JSON.stringify(value));
         setState(value);
     }, []);
 
     return [state, updateState];
+}
+
+export function useFetchPersistedState<T>(key: string, value?: T): T;
+export function useFetchPersistedState<T>(key: string, value?: T | null): T | null;
+export function useFetchPersistedState<T>(key: string, value?: T | undefined): T | undefined;
+
+export function useFetchPersistedState<T>(key: string, value?: T | null | undefined): typeof value {
+    return retrieveValue<T>(key, value);
 }

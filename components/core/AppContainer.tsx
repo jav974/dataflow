@@ -1,6 +1,6 @@
 import { Application } from "@pixi/react";
 import ApplicationTemplates from "./ApplicationTemplates";
-import BackgroundNode from "../pixi/BackgroundNode";
+import Background from "../pixi/Background";
 import ApplicationGraph from "./ApplicationGraph";
 import ContextMenu from "./ContextMenu";
 import React, { useCallback, useEffect, useRef } from "react";
@@ -15,7 +15,7 @@ export default function AppContainer() {
     const parentRef = useRef<HTMLDivElement>(null);
     const [size, setSize] = usePersistedState<Size>("dataflow-canvas-size", {width: 0, height: 0});
     const { closeContextMenu } = useNodes();
-    const { loadGraph, zoomIn, zoomOut, scale } = useGraphContext();
+    const { loadGraph, zoomIn, zoomOut } = useGraphContext();
     const { graph } = useUserGraph();
 
     // Disable right click default context menu (will be replaced)
@@ -28,6 +28,7 @@ export default function AppContainer() {
         closeContextMenu();
     }, [closeContextMenu]);
 
+    // Handle zoom with mouse wheel while holding ctrl key
     const handleWheel = useCallback((e: WheelEvent) => {
         if (e.ctrlKey) {
             e.preventDefault();
@@ -65,6 +66,7 @@ export default function AppContainer() {
         };
     }, []);
 
+    // Load the graph when it changes (when user switches between graphs or at initial load)
     useEffect(() => {
         if (graph) {
             loadGraph(graph);
@@ -92,7 +94,7 @@ export default function AppContainer() {
                 preference="webgl"
                 powerPreference="high-performance"
             >
-                <BackgroundNode width={size.width} height={size.height} />
+                <Background />
                 <ApplicationGraph />
             </Application>
             <ApplicationTemplates />

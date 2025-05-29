@@ -14,6 +14,7 @@ export default function ApplicationGraph() {
         <pixiContainer
             position={canvasPosition.ref.current}
             scale={zoom.ref.current / 100}
+            roundPixels={true}
         >
             {nodes.ref.current.map((node) => <HtmlNode key={`${name}_${node.id}`} node={node} />)}
             <Connections />

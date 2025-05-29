@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { MeshRope, Texture } from "pixi.js";
+import { Texture } from "pixi.js";
 import { ConnectorConfig, Coordinates } from "../config/Schema";
 import { Node, Pin, useNodes } from "@/contexts/NodeContext";
 import { LineTextures } from "./textures";

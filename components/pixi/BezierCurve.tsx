@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect } from "react";
 import { MeshRope, Texture } from "pixi.js";
 import { Coordinates } from "../config/Schema";
 import { getBezierPoints } from "./functions";

@@ -1,5 +1,5 @@
 import { useExtend } from '@pixi/react';
-import { Container, FederatedPointerEvent, Graphics } from 'pixi.js';
+import { Container, FederatedPointerEvent, Graphics, Size } from 'pixi.js';
 import React, { useCallback, useEffect, useMemo } from 'react';
 import FastGraphics from './FastGraphics';
 import useDraggable from '@/hooks/pixi/useDraggable';
@@ -7,15 +7,12 @@ import { PointerEventType, useNodes } from '@/contexts/NodeContext';
 import { useGraphContext } from '@/contexts/GraphContext';
 import usePointerPosition from '@/hooks/usePointerPosition';
 import { BACKGROUND_LINE_STYLE, COLOR_BLUE } from '../config/Style';
+import { useFetchPersistedState } from '@/hooks/usePersistedState';
 
-interface BackgroundNodeProps {
-    width: number;
-    height: number;
-}
-
-export default function BackgroundNode({ width, height }: BackgroundNodeProps) {
+export default function Background() {
     useExtend({Container});
 
+    const { width, height } = useFetchPersistedState<Size>("dataflow-canvas-size", { width: 0, height: 0 });
     const { zoom, scale, canvasPosition } = useGraphContext();
     const { position, lastUpdated: positionLastUpdated, handlers } = useDraggable();
     const { position: pointerPosition, lastUpdated: pointerPositionLastUpdated } = usePointerPosition();
@@ -26,10 +23,6 @@ export default function BackgroundNode({ width, height }: BackgroundNodeProps) {
         lineSpacing: 10,
         dotRadius: 1,
     }), []);
-    const dotFillSettings = useMemo(() => ({
-        color: 0x2E4057,
-        alpha: 1,
-    }), []);
     const backgroundFillSettings = useMemo(() => ({
         color: 0xFCEFEF,
         alpha: 1,
@@ -39,10 +32,12 @@ export default function BackgroundNode({ width, height }: BackgroundNodeProps) {
         alpha: 0.5,
     }), []);
 
+    // Update canvas position after background position or zoom changes
     useEffect(() => {
         canvasPosition.update({ x: position.x / scale.ref.current, y: position.y / scale.ref.current });
     }, [positionLastUpdated, zoom.lastUpdated]);
 
+    // Update selection area when selection is started and pointer position changes
     useEffect(() => {
         if (selectionStart) {
             selectionArea.update({
@@ -54,11 +49,7 @@ export default function BackgroundNode({ width, height }: BackgroundNodeProps) {
         }
     }, [selectionStart, pointerPositionLastUpdated]);
 
-    const drawDot = useCallback((g: Graphics, x: number, y: number, radius: number) => {
-        g.circle(x, y, radius);
-        g.fill(dotFillSettings);
-    }, [dotFillSettings]);
-
+    // PIXI callback to draw the background grid
     const draw = useCallback((g: Graphics) => {
         g.clear();
         g.rect(0, 0, width, height);
@@ -79,14 +70,16 @@ export default function BackgroundNode({ width, height }: BackgroundNodeProps) {
         }
 
         g.stroke(BACKGROUND_LINE_STYLE);
-    }, [backgroundFillSettings, backgroundSettings, drawDot, width, height]);
+    }, [backgroundFillSettings, backgroundSettings, width, height]);
 
+    // Open context menu on right click
     const handleRightClick = useCallback((e: FederatedPointerEvent) => {
         e.preventDefault();
         e.stopPropagation();
         openContextMenu({ x: e.clientX, y: e.clientY });
     }, [openContextMenu]);
 
+    // Stop selection or stop moving the canvas on pointer up
     const handlePointerUp = useCallback((e: FederatedPointerEvent) => {
         onPointerUp({
             type: PointerEventType.POINTER_UP,
@@ -102,6 +95,7 @@ export default function BackgroundNode({ width, height }: BackgroundNodeProps) {
         }
     }, [onPointerUp, selectionStart, handlers.onPointerUp]);
 
+    // Either move the canvas or start selection rectangle on pointer down
     const handlePointerDown = useCallback((e: FederatedPointerEvent) => {
         if (e.ctrlKey) {    // Move canvas
             handlers.onPointerDown(e);
@@ -110,6 +104,7 @@ export default function BackgroundNode({ width, height }: BackgroundNodeProps) {
         }
     }, [handlers.onPointerDown]);
 
+    // PIXI callback to draw selection rectangle
     const drawSelection = useCallback((g: Graphics) => {
         g.clear();
 
