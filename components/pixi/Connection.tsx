@@ -21,7 +21,7 @@ export default function Connection({from, to}: ConnectionProps) {
     const toPin = useRef<Pin | undefined>(undefined);
     const fromPos = useRef<Coordinates | undefined>(undefined);
     const toPos = useRef<Coordinates | undefined>(undefined);
-    const [texture, setTexture] = useState<Texture | null>(LineTextures.flow);
+    const [texture, setTexture] = useState<Texture | null>(null);
 
     useEffect(() => {
         // Initialize nodes
@@ -51,11 +51,13 @@ export default function Connection({from, to}: ConnectionProps) {
                 else if (from.pin !== 'continue' && to.pin === 'execute') {
                     fromPin.current = fromNode.current.branches.find(branch => branch.id === from.pin);
                     toPin.current = toNode.current.executePin;
+                    setTexture(LineTextures.flow);
                 }
                 // Continue to Execute
                 else if (from.pin === 'continue' && to.pin === 'execute') {
                     fromPin.current = fromNode.current.continuePin;
                     toPin.current = toNode.current.executePin;
+                    setTexture(LineTextures.flow);
                 }
             }
         }
