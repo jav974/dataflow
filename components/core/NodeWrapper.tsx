@@ -1,25 +1,27 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { useNodes } from "@/contexts/NodeContext";
 
-export default function NodeWrapper({ nodeId, children }: { nodeId: string, children?: React.ReactNode }) {
-    const ref = useRef<HTMLDivElement>(null);
+interface NodeWrapperProps {
+    nodeId: string;
+    children: React.ReactNode;
+}
+
+export default function NodeWrapper({ nodeId, children }: NodeWrapperProps) {
     const { renderTargets } = useNodes();
     const [layout, setLayout] = useState<HTMLElement | null>(null);
 
     useEffect(() => {
         const el = renderTargets.ref.current.get(nodeId);
 
-        if (!el) {
-            return;
+        if (el) {
+            setLayout(el);
         }
-
-        setLayout(el);
     }, [renderTargets.lastUpdated]);
 
     if (!layout) {
         return null;
     }
 
-    return createPortal(<div ref={ref}>{children}</div>, layout);
+    return createPortal(children, layout);
 }

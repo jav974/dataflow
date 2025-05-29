@@ -1,13 +1,12 @@
 import { useEffect } from "react";
-import { MeshRope, Texture } from "pixi.js";
-import { Coordinates } from "../config/Schema";
+import { MeshRope, Texture, PointData } from "pixi.js";
 import { getBezierPoints } from "./functions";
 import { PixiReactElementProps, useExtend } from "@pixi/react";
 import { useRefState } from "@/hooks/useRefState";
 
 interface BezierCurveProps extends Omit<PixiReactElementProps<typeof MeshRope>, "points" | "texture"> {
-    from: Coordinates;
-    to: Coordinates;
+    from: PointData;
+    to: PointData;
     controlPoints?: number;
     texture?: Texture;
 }
@@ -15,7 +14,7 @@ interface BezierCurveProps extends Omit<PixiReactElementProps<typeof MeshRope>, 
 export default function BezierCurve({from, to, controlPoints = 100, texture = Texture.WHITE, ...props}: BezierCurveProps) {
     useExtend({MeshRope});
 
-    const points = useRefState<Coordinates[]>([]);
+    const points = useRefState<PointData[]>([]);
 
     // Initialize control points for the current line
     // It is important to make sure that the points ref remains unchanged as it is used as read buffer for pixi shader

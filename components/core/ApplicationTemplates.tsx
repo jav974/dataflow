@@ -16,7 +16,14 @@ export default function ApplicationTemplates() {
 
             if (!reactElementBuilder) {
                 console.log(`Unknown type ${node.type}`);
-                return <NodeWrapper nodeId={node.id} key={node.id} />
+                
+                return (
+                    <NodeWrapper nodeId={node.id} key={node.id}>
+                        <div className="unknown-node">
+                            <span>Unknown Node Type: {node.type}</span>
+                        </div>
+                    </NodeWrapper>
+                );
             }
 
             return (
@@ -29,9 +36,11 @@ export default function ApplicationTemplates() {
         setTemplates(_templates);
     }, [nodes.lastUpdated]);
 
-    return <ErrorBoundary>
-        <div id="html-layouts" className="hidden">
-            {templates}
-        </div>
-    </ErrorBoundary>;
+    return (
+        <ErrorBoundary>
+            <div id="html-layouts" className="hidden">
+                {templates}
+            </div>
+        </ErrorBoundary>
+    );
 }
