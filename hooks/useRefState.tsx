@@ -3,8 +3,8 @@ import React, { useCallback, useRef, useState } from "react";
 export interface RefState<T> {
     readonly ref: React.RefObject<T>;
     readonly lastUpdated: number;
-    update: (value: T) => void;
-    setLastUpdated: (lastUpdated: number) => void;
+    readonly update: (value: T) => void;
+    readonly setLastUpdated: (lastUpdated: number) => void;
 }
 
 export function useRefState<T>(initialValue: T): RefState<T>;

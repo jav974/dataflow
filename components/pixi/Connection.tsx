@@ -41,7 +41,7 @@ export default function Connection({from, to}: ConnectionProps) {
                             ? `${outputConfig.type}_${inputConfig.type}`
                             : outputConfig.type
                         ;
-                        setTexture(LineTextures[key] ?? LineTextures.custom);
+                        setTexture(LineTextures[key] ?? LineTextures.error);
                     }
                 }
                 // Output (branch) to Execute

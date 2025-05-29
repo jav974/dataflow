@@ -207,7 +207,7 @@ export default function Node({
                         onRef={onPinInputRef}
                         multiple={inputMultiple}
                         minInputParams={minInputParams}
-                        inputMultipleType={inputMultipleType}
+                        multipleType={inputMultipleType}
                     />
 
                     <NodeOutputs

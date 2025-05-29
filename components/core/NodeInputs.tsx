@@ -15,11 +15,11 @@ interface NodeInputsProps {
     inputs?: InputConfig[];
     multiple?: boolean;
     minInputParams?: number;
-    inputMultipleType?: ParameterType;
+    multipleType?: ParameterType;
     onRef: (inputId: string, el: HTMLDivElement | null) => void;
 }
 
-export default function NodeInputs({nodeId, nodeType, inputs, onRef, multiple = false, minInputParams = 0, inputMultipleType}: NodeInputsProps) {
+export default function NodeInputs({nodeId, nodeType, inputs, onRef, multiple = false, minInputParams = 0, multipleType}: NodeInputsProps) {
     const {isHovered, handleMouseEnter, handleMouseLeave} = useHoverable();
     const {addNodeInput, addConnection} = useGraphContext();
     const {nodes, connectionDrag, stopConnectionDrag} = useNodes();
@@ -32,7 +32,7 @@ export default function NodeInputs({nodeId, nodeType, inputs, onRef, multiple = 
             addNodeInput(nodeId, {
                 id: uuidv4(),
                 name: "",
-                type: inputMultipleType ?? ParameterTypes.STRING,
+                type: multipleType ?? ParameterTypes.STRING,
                 required: true,
                 editable: true
             });
@@ -45,7 +45,7 @@ export default function NodeInputs({nodeId, nodeType, inputs, onRef, multiple = 
                 editable: true
             });
         }
-    }, [addNodeInput, nodeId, inputs, inputMultipleType, multiple, nodeType]);
+    }, [addNodeInput, nodeId, inputs, multipleType, multiple, nodeType]);
 
     const handlePointerUp = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
         if (!isHovered || !multiple || !connectionDrag) return ;
@@ -56,7 +56,7 @@ export default function NodeInputs({nodeId, nodeType, inputs, onRef, multiple = 
         const output = node.outputs.find((pin: OutputPin) => pin.id === connectionDrag.connector.pin);
         if (!output) return;
 
-        if (output.type !== inputMultipleType) {
+        if (output.type !== multipleType && multipleType !== ParameterTypes.ANY) {
             // TODO
             return ;
         }
@@ -67,10 +67,11 @@ export default function NodeInputs({nodeId, nodeType, inputs, onRef, multiple = 
 
         addNodeInput(nodeId, {
             id: inputId,
-            name: "",
-            type: inputMultipleType ?? ParameterTypes.STRING,
+            name: "New",
+            type: output.type,
             required: true,
-            editable: true
+            editable: true,
+            isCollection: output.isCollection
         });
 
         addConnection({
@@ -79,7 +80,7 @@ export default function NodeInputs({nodeId, nodeType, inputs, onRef, multiple = 
         });
 
         stopConnectionDrag();
-    }, [nodeId, connectionDrag, inputMultipleType, isHovered, multiple, addNodeInput, addConnection, stopConnectionDrag]);
+    }, [nodeId, connectionDrag, multipleType, isHovered, multiple, addNodeInput, addConnection, stopConnectionDrag]);
 
     if (!inputs?.length && !multiple) {
         return null;
@@ -107,6 +108,7 @@ export default function NodeInputs({nodeId, nodeType, inputs, onRef, multiple = 
                         defaultValue={input.defaultValue}
                         editable={input.editable}
                         isCollection={input.isCollection}
+                        typeEditable={input.editable && (!multiple || multipleType === ParameterTypes.ANY)}
                     />
                 </div>
             ))}
