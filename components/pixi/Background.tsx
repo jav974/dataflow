@@ -2,7 +2,7 @@ import { useExtend } from '@pixi/react';
 import { Container, FederatedPointerEvent, Graphics, Size } from 'pixi.js';
 import React, { useCallback, useEffect, useMemo } from 'react';
 import FastGraphics from './FastGraphics';
-import useDraggable from '@/hooks/pixi/useDraggable';
+import useDraggable from '@/hooks/useDraggable';
 import { PointerEventType, useNodes } from '@/contexts/NodeContext';
 import { useGraphContext } from '@/contexts/GraphContext';
 import usePointerPosition from '@/hooks/usePointerPosition';

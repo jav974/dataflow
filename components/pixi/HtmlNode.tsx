@@ -1,6 +1,6 @@
 import { PixiReactElementProps, useExtend } from '@pixi/react';
 import { DOMContainer } from 'pixi.js';
-import useDraggable from '@/hooks/pixi/useDraggable';
+import useDraggable from '@/hooks/useDraggable';
 import { useEffect, useState } from 'react';
 import { useNodes } from '@/contexts/NodeContext';
 import { NodeConfig } from '../config/Schema';

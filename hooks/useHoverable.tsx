@@ -1,6 +1,12 @@
 import { useCallback, useState } from "react";
 
-export default function useHoverable() {
+interface UseHoverableReturn {
+    isHovered: boolean;
+    handleMouseEnter: () => void;
+    handleMouseLeave: () => void;
+}
+
+export default function useHoverable(): UseHoverableReturn {
     const [isHovered, setIsHovered] = useState<boolean>(false);
 
     const handleMouseEnter = useCallback(() => {

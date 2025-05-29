@@ -2,7 +2,14 @@ import { useCallback, useMemo } from "react";
 import { useGraphContext } from "@/contexts/GraphContext";
 import { PointerEventType, useNodes } from "@/contexts/NodeContext";
 
-export default function useLinkable(id: string, pin: string, isInput: boolean = false, isOutput: boolean = false, isBranch: boolean = false) {
+interface UseLinkableReturn {
+    isConnected: boolean;
+    onClick: (e: React.MouseEvent<HTMLDivElement>) => void;
+    handlePointerDown: (e: React.PointerEvent<HTMLDivElement>) => void;
+    handlePointerUp: (e: React.PointerEvent<HTMLDivElement>) => void;
+}
+
+export default function useLinkable(id: string, pin: string, isInput: boolean = false, isOutput: boolean = false): UseLinkableReturn {
     const { startConnectionDrag, onPointerUp } = useNodes();
     const { removeConnections, connections } = useGraphContext();
     const isConnected = useMemo(() => {
