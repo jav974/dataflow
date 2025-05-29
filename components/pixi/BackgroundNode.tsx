@@ -1,4 +1,4 @@
-import {extend} from '@pixi/react';
+import { useExtend } from '@pixi/react';
 import { Container, FederatedPointerEvent, Graphics } from 'pixi.js';
 import React, { useCallback, useEffect, useMemo } from 'react';
 import FastGraphics from './FastGraphics';
@@ -6,11 +6,7 @@ import useDraggable from '@/hooks/pixi/useDraggable';
 import { PointerEventType, useNodes } from '@/contexts/NodeContext';
 import { useGraphContext } from '@/contexts/GraphContext';
 import usePointerPosition from '@/hooks/usePointerPosition';
-import { BACKGROUND_LINE_STYLE, COLOR_BLUE, LINE_STYLE } from '../config/Style';
-
-extend({
-    Container,
-});
+import { BACKGROUND_LINE_STYLE, COLOR_BLUE } from '../config/Style';
 
 interface BackgroundNodeProps {
     width: number;
@@ -18,6 +14,8 @@ interface BackgroundNodeProps {
 }
 
 export default function BackgroundNode({ width, height }: BackgroundNodeProps) {
+    useExtend({Container});
+
     const { zoom, scale, canvasPosition } = useGraphContext();
     const { position, lastUpdated: positionLastUpdated, handlers } = useDraggable();
     const { position: pointerPosition, lastUpdated: pointerPositionLastUpdated } = usePointerPosition();

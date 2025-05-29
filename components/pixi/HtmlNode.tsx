@@ -1,19 +1,17 @@
-import { extend, PixiReactElementProps } from '@pixi/react';
+import { PixiReactElementProps, useExtend } from '@pixi/react';
 import { DOMContainer } from 'pixi.js';
 import useDraggable from '@/hooks/pixi/useDraggable';
 import { useEffect, useState } from 'react';
 import { useNodes } from '@/contexts/NodeContext';
 import { NodeConfig } from '../config/Schema';
 
-extend({
-    DOMContainer
-});
-
 interface HtmlNodeProps extends PixiReactElementProps<typeof DOMContainer> {
     node: NodeConfig;
 }
 
 export default function HtmlNode({ node, ...props }: HtmlNodeProps) {
+    useExtend({DOMContainer});
+
     const { position, handlers, lastUpdated: positionLastUpdated } = useDraggable(node.position);
     const [layout, setLayout] = useState<HTMLElement | undefined>(undefined);
     const { updateNodePosition, setRenderTarget, isSelected, selectedNodes, nodes } = useNodes();

@@ -1,4 +1,4 @@
-import { extend, PixiReactElementProps, useExtend } from "@pixi/react";
+import { PixiReactElementProps, useExtend } from "@pixi/react";
 import { Graphics } from "pixi.js";
 import { useCallback, useEffect, useRef } from "react";
 

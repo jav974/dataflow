@@ -273,7 +273,7 @@ export function GraphProvider({children}: GraphProviderProps) {
         connections.update(graph.connections ?? []);
         zoom.update(graph.zoom ?? 100);
         types.update(graph.types ?? []);
-        variables.update(graph.variables ?? []);
+        variables.update(Array.isArray(graph.variables) ? graph.variables : []);
     }, []);
 
     const zoomIn = useCallback(() => {

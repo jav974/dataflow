@@ -26,6 +26,7 @@ export default function BezierCurve({from, to, controlPoints = 100, texture = Te
         points.setLastUpdated(Date.now());
     }, []);
 
+    // Update the points of the bezier curve when the from or to coordinates change
     useEffect(() => {
         const newPoints = getBezierPoints(from, to, controlPoints);
 
@@ -35,6 +36,7 @@ export default function BezierCurve({from, to, controlPoints = 100, texture = Te
         }
     }, [from.x, from.y, to.x, to.y]);
 
+    // If there are no points, do not render the curve, otherwise it will throw a memory error from pixi.js
     if (points.ref.current.length === 0) {
         return null;
     }

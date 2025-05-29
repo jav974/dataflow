@@ -93,7 +93,7 @@ export default function AppContainer() {
                 powerPreference="high-performance"
             >
                 <BackgroundNode width={size.width} height={size.height} />
-                <ApplicationGraph width={size.width} height={size.height} />
+                <ApplicationGraph />
             </Application>
             <ApplicationTemplates />
             <ContextMenu />

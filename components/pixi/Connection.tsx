@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from "react";
 import { MeshRope, Texture } from "pixi.js";
 import { ConnectorConfig, Coordinates } from "../config/Schema";
 import { Node, Pin, useNodes } from "@/contexts/NodeContext";
-import { useExtend } from "@pixi/react";
 import { LineTextures } from "./textures";
 import BezierCurve from "./BezierCurve";
 
@@ -12,8 +11,6 @@ interface ConnectionProps {
 }
 
 export default function Connection({from, to}: ConnectionProps) {
-    useExtend({MeshRope});
-
     const { nodes } = useNodes();
     const fromNode = useRef<Node | undefined>(undefined);
     const toNode = useRef<Node | undefined>(undefined);

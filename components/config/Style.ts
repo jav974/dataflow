@@ -7,32 +7,6 @@ const COLOR_GREEN_500 = '#22c55e';
 const COLOR_PURPLE_500 = '#a855f7';
 const COLOR_PINK_500 = '#ec4899';
 
-const baseStrokeStyle: StrokeStyle = {
-    alpha: 1,
-    alignment: 0.5,
-    cap: 'round',
-    join: 'round',
-    miterLimit: 10,
-}
-
-const flowStrokeStyle: StrokeStyle = {
-    ...baseStrokeStyle,
-    color: COLOR_BLUE, 
-    width: 6,
-    alpha: 0.8,
-};
-
-const paramStrokeStyle: StrokeStyle = {
-    ...baseStrokeStyle,
-    color: COLOR_BLUE,
-    width: 4,
-    alpha: 0.8,
-}
-
-const LINE_STYLE: StrokeStyle = { 
-    ...flowStrokeStyle
-};
-
 const BACKGROUND_LINE_STYLE: StrokeStyle = {
     color: 0, 
     width: 0.25,
@@ -71,13 +45,4 @@ const PinStyle: Record<string, PinState> = {
     }
 };
 
-const LineStyle: Record<string, StrokeStyle> = {
-    flow: flowStrokeStyle,
-    boolean: {...paramStrokeStyle, color: COLOR_RED_500},
-    number: {...paramStrokeStyle, color: COLOR_GREEN_500},
-    string: {...paramStrokeStyle, color: COLOR_PINK_500},
-    any: {...paramStrokeStyle, color: COLOR_BLUE_500},
-    custom: {...paramStrokeStyle, color: COLOR_PURPLE_500},
-};
-
-export { LINE_STYLE, COLOR_BLUE, COLOR_BLUE_500, COLOR_GREEN_500, COLOR_PINK_500, COLOR_PURPLE_500, COLOR_RED_500, BACKGROUND_LINE_STYLE, PinStyle, LineStyle };
+export { COLOR_BLUE, COLOR_BLUE_500, COLOR_GREEN_500, COLOR_PINK_500, COLOR_PURPLE_500, COLOR_RED_500, BACKGROUND_LINE_STYLE, PinStyle };
