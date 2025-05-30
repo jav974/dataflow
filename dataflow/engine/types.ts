@@ -1,4 +1,4 @@
-import { ConnectorConfig, NodeType, ParameterType, ParameterValueType } from "@/dataflow/config/schema";
+import { AppConfig, ConnectorConfig, NodeType, ParameterType, ParameterValueType } from "@/dataflow/config/schema";
 import { KeyValue } from "./context";
 
 export interface ExecutionInputResolver {
@@ -44,3 +44,5 @@ export interface GraphResult {
     graph: ExecutionGraph;
     result: KeyValue;
 }
+
+export type GraphExecutor = (graph: AppConfig, params?: KeyValue) => Promise<GraphResult | undefined>;

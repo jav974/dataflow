@@ -13,11 +13,11 @@ function toFloats(params: NodeExecParams): number[] {
     return Array.from(params.values()).map(toFloat);
 }
 
-const dummyExecutor: NodeExecutor = (inputs: NodeExecParams, context: NodeExecContext): NodeExecParams => {
+const dummyExecutor: NodeExecutor = async (inputs: NodeExecParams, context: NodeExecContext): Promise<NodeExecParams> => {
     return new Map();
 }
 
-const handleSimpleMath: NodeExecutor = (inputs: NodeExecParams, context: NodeExecContext): NodeExecParams => {
+const handleSimpleMath: NodeExecutor = async (inputs: NodeExecParams, context: NodeExecContext): Promise<NodeExecParams> => {
     const result: NodeExecParams = new Map();
     const _inputs = toFloats(inputs);
     
@@ -26,37 +26,37 @@ const handleSimpleMath: NodeExecutor = (inputs: NodeExecParams, context: NodeExe
     return result;
 }
 
-const handleMathAdd: NodeExecutor = (inputs: NodeExecParams): NodeExecParams => {
+const handleMathAdd: NodeExecutor = async (inputs: NodeExecParams): Promise<NodeExecParams> => {
     const context: SimpleMathContext = new Map();
     context.set('callback', math_add);
     return handleSimpleMath(inputs, context);
 };
 
-const handleMathSub: NodeExecutor = (inputs: NodeExecParams): NodeExecParams => {
+const handleMathSub: NodeExecutor = async (inputs: NodeExecParams): Promise<NodeExecParams> => {
     const context: SimpleMathContext = new Map();
     context.set('callback', math_sub);
     return handleSimpleMath(inputs, context);
 };
 
-const handleMathMul: NodeExecutor = (inputs: NodeExecParams): NodeExecParams => {
+const handleMathMul: NodeExecutor = async (inputs: NodeExecParams): Promise<NodeExecParams> => {
     const context: SimpleMathContext = new Map();
     context.set('callback', math_mul);
     return handleSimpleMath(inputs, context);
 };
 
-const handleMathDiv: NodeExecutor = (inputs: NodeExecParams): NodeExecParams => {
+const handleMathDiv: NodeExecutor = async (inputs: NodeExecParams): Promise<NodeExecParams> => {
     const context: SimpleMathContext = new Map();
     context.set('callback', math_div);
     return handleSimpleMath(inputs, context);
 };
 
-const handleMathMod: NodeExecutor = (inputs: NodeExecParams): NodeExecParams => {
+const handleMathMod: NodeExecutor = async (inputs: NodeExecParams): Promise<NodeExecParams> => {
     const context: SimpleMathContext = new Map();
     context.set('callback', math_mod);
     return handleSimpleMath(inputs, context);
 };
 
-const handleCompare: NodeExecutor = (inputs: NodeExecParams): NodeExecParams => {
+const handleCompare: NodeExecutor = async (inputs: NodeExecParams): Promise<NodeExecParams> => {
     const result: NodeExecParams = new Map();
     const A = inputs.get('A');
     const B = inputs.get('B');
@@ -65,12 +65,12 @@ const handleCompare: NodeExecutor = (inputs: NodeExecParams): NodeExecParams => 
     const A_SUP_B = inputs.get('A_SUP_B');
     const A_INF_B = inputs.get('A_INF_B');
 
-    if (A == B) {
+    if (A == B || ((A === undefined || A === null) && (B as string) === '')) {
         result.set('result', A_EQ_B);
     } else if (isNumeric(A) && isNumeric(B) && Number(A) > Number(B)) {
-        result.set('result', A_SUP_B);
+        result.set('result', A_SUP_B !== undefined ? A_SUP_B : A_NEQ_B);
     } else if (isNumeric(A) && isNumeric(B) && Number(A) < Number(B)) {
-        result.set('result', A_INF_B);
+        result.set('result', A_INF_B !== undefined ? A_INF_B : A_NEQ_B);
     } else {
         result.set('result', A_NEQ_B);
     }
@@ -78,7 +78,7 @@ const handleCompare: NodeExecutor = (inputs: NodeExecParams): NodeExecParams => 
     return result;
 };
 
-const handleSetVar: NodeExecutor = (inputs: NodeExecParams, context: NodeExecContext): NodeExecParams => {
+const handleSetVar: NodeExecutor = async (inputs: NodeExecParams, context: NodeExecContext): Promise<NodeExecParams> => {
     const result: NodeExecParams = new Map();
     const value = inputs.get('value');
 
@@ -88,7 +88,7 @@ const handleSetVar: NodeExecutor = (inputs: NodeExecParams, context: NodeExecCon
     return result;
 }
 
-const handleGetVar: NodeExecutor = (_: NodeExecParams, context: NodeExecContext): NodeExecParams => {
+const handleGetVar: NodeExecutor = async (_: NodeExecParams, context: NodeExecContext): Promise<NodeExecParams> => {
     const result: NodeExecParams = new Map();
     const value = executionContext.variables[context.get('var')];
 
@@ -97,7 +97,7 @@ const handleGetVar: NodeExecutor = (_: NodeExecParams, context: NodeExecContext)
     return result;
 };
 
-const handleStart: NodeExecutor = (_: NodeExecParams, context: NodeExecContext): NodeExecParams => {
+const handleStart: NodeExecutor = async (_: NodeExecParams, context: NodeExecContext): Promise<NodeExecParams> => {
     const result: Map<string, any> = new Map();
     executionContext.variables = {};
     executionContext.result = {};
@@ -112,7 +112,7 @@ const handleStart: NodeExecutor = (_: NodeExecParams, context: NodeExecContext):
     return result;
 };
 
-const handleReturn: NodeExecutor = (inputs: NodeExecParams, context: NodeExecContext): NodeExecParams => {
+const handleReturn: NodeExecutor = async (inputs: NodeExecParams, context: NodeExecContext): Promise<NodeExecParams> => {
     executionContext.result = {};
 
     for (const [key, value] of inputs) {
@@ -122,17 +122,17 @@ const handleReturn: NodeExecutor = (inputs: NodeExecParams, context: NodeExecCon
     return new Map();
 };
 
-const handleIf: NodeExecutor = (inputs: NodeExecParams, context: NodeExecContext): NodeExecParams => {
+const handleIf: NodeExecutor = async (inputs: NodeExecParams, context: NodeExecContext): Promise<NodeExecParams> => {
     const value = inputs.get('value');
 
     return (new Map()).set('branch', value ? 'on_true' : 'on_false');
 };
 
-const handleFor: NodeExecutor = (inputs: NodeExecParams, context: NodeExecContext): NodeExecParams => {
+const handleFor: NodeExecutor = async (inputs: NodeExecParams, context: NodeExecContext): Promise<NodeExecParams> => {
     return (new Map()).set('index', Number(inputs.get('first')));
 };
 
-const handleForeach: NodeExecutor = (inputs: NodeExecParams, context: NodeExecContext): NodeExecParams => {
+const handleForeach: NodeExecutor = async (inputs: NodeExecParams, context: NodeExecContext): Promise<NodeExecParams> => {
     return (new Map()).set('index', undefined).set('item', undefined);
 };
 

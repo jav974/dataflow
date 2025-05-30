@@ -110,17 +110,19 @@ export function nodeConfigToExecutionGraph(node: NodeConfig, graph: AppConfig): 
     return executionGraph;
 }
 
-export function resolveInputs(graph: ExecutionGraph, revisit: boolean = false): Map<string, ParameterValueType> {
+export async function resolveInputs(graph: ExecutionGraph, revisit: boolean = false): Promise<Map<string, ParameterValueType>> {
     const inputs: Map<string, ParameterValueType> = new Map();
 
-    graph.inputs.forEach((input: ExecutionInput) => {
+    for (const input of graph.inputs) {
         inputs.set(input.inputId, input.defaultValue);
 
         if (input.resolve) {
             const bannedRevisitGraph = stack.peek();
 
-            if (input.resolve.graph.nodeId !== bannedRevisitGraph?.nodeId && (!input.resolve.graph.visited || revisit)) {
-                input.resolve.graph = resolveExecutionGraph(input.resolve.graph, revisit);
+            if (input.resolve.graph.nodeType !== NodeType.START) {
+                if (input.resolve.graph.nodeId !== bannedRevisitGraph?.nodeId && (!input.resolve.graph.visited || revisit)) {
+                    input.resolve.graph = await resolveExecutionGraph(input.resolve.graph, revisit);
+                }
             }
 
             const executionOutput = input.resolve.graph.outputs.find(
@@ -129,12 +131,12 @@ export function resolveInputs(graph: ExecutionGraph, revisit: boolean = false): 
 
             inputs.set(input.inputId, executionOutput?.value);
         }
-    });
+    }
 
     return inputs;
 }
 
-function handleFor(forGraph: ExecutionGraph, graph: ExecutionGraph, inputs: Map<string, ParameterValueType>): ExecutionGraph {
+async function handleFor(forGraph: ExecutionGraph, graph: ExecutionGraph, inputs: Map<string, ParameterValueType>): Promise<ExecutionGraph> {
     const first = Number(inputs.get('first'));
     const last = Number(inputs.get('last'));
     const inclusive = inputs.get('inclusive');
@@ -144,12 +146,12 @@ function handleFor(forGraph: ExecutionGraph, graph: ExecutionGraph, inputs: Map<
     if (first <= last) {
         for (let i = first; inclusive ? i <= last : i < last; i++) {
             forGraph.outputs[0].value = i;
-            graph = resolveExecutionGraph(graph, true);
+            graph = await resolveExecutionGraph(graph, true);
         }
     } else {
         for (let i = first; inclusive ? i >= last : i > last; i--) {
             forGraph.outputs[0].value = i;
-            graph = resolveExecutionGraph(graph, true);
+            graph = await resolveExecutionGraph(graph, true);
         }
     }
 
@@ -158,11 +160,11 @@ function handleFor(forGraph: ExecutionGraph, graph: ExecutionGraph, inputs: Map<
     return graph;
 }
 
-function handleForeach(
+async function handleForeach(
     foreachGraph: ExecutionGraph, 
     graph: ExecutionGraph, 
     inputs: Map<string, ParameterValueType>
-): ExecutionGraph {
+): Promise<ExecutionGraph> {
     const target: any = inputs.get("value");
 
     // Exclude unwanted types
@@ -186,28 +188,30 @@ function handleForeach(
         for (const [key, value] of target.entries()) {
             foreachGraph.outputs[0].value = key;
             foreachGraph.outputs[1].value = value;
-            graph = resolveExecutionGraph(graph, true);
+            graph = await resolveExecutionGraph(graph, true);
         }
     } 
     // Handle plain objects (iterate over keys)
     else {
-        Object.entries<any>(target).forEach(([key, value]) => {
+        const entries = Object.entries<any>(target);
+
+        for (const [key, value] of entries) {
             foreachGraph.outputs[0].value = key;
             foreachGraph.outputs[1].value = value;
-            graph = resolveExecutionGraph(graph, true);
-        });
+            graph = await resolveExecutionGraph(graph, true);
+        }
     }
 
     stack.pop();
     return graph;
 }
 
-export function handleExecution(graph: ExecutionGraph, revisit: boolean = false): ExecutionGraph {
-    const rawInputs = resolveInputs(graph, revisit);
+export async function handleExecution(graph: ExecutionGraph, revisit: boolean = false): Promise<ExecutionGraph> {
     const executor = registry.get(graph.nodeType);
 
     if (executor) {
-        const result = executor(rawInputs, graph.context);
+        const rawInputs = await resolveInputs(graph, revisit);
+        const result = await executor(rawInputs, graph.context);
 
         // Map executor result to graph outputs
         graph.outputs = graph.outputs.map((output: ExecutionOutput) => {
@@ -222,27 +226,27 @@ export function handleExecution(graph: ExecutionGraph, revisit: boolean = false)
         if (graph.branches.length > 0) {
             switch (graph.nodeType) {
                 case NodeType.SEQUENCE:
-                    graph.branches.forEach((branch: ExecutionBranch) => {
+                    for (const branch of graph.branches) {
                         if (branch.graph) {
-                            branch.graph = resolveExecutionGraph(branch.graph, revisit);
+                            branch.graph = await resolveExecutionGraph(branch.graph, revisit);
                         }
-                    });
+                    }
                     break ;
                 case NodeType.IF:
-                    graph.branches.forEach((branch: ExecutionBranch) => {
+                    for (const branch of graph.branches) {
                         if (result.get('branch') === branch.branchId && branch.graph) {
-                            branch.graph = resolveExecutionGraph(branch.graph, revisit);
+                            branch.graph = await resolveExecutionGraph(branch.graph, revisit);
                         }
-                    });
+                    }
                     break ;
                 case NodeType.FOR:
                     if (graph.branches[0].graph) {
-                        graph.branches[0].graph = handleFor(graph, graph.branches[0].graph, rawInputs);
+                        graph.branches[0].graph = await handleFor(graph, graph.branches[0].graph, rawInputs);
                     }
                     break ;
                 case NodeType.FOREACH:
                     if (graph.branches[0].graph) {
-                        graph.branches[0].graph = handleForeach(graph, graph.branches[0].graph, rawInputs);
+                        graph.branches[0].graph = await handleForeach(graph, graph.branches[0].graph, rawInputs);
                     }
                     break ;
             }
@@ -254,16 +258,16 @@ export function handleExecution(graph: ExecutionGraph, revisit: boolean = false)
     return graph;
 }
 
-export function resolveExecutionGraph(graph: ExecutionGraph, revisit: boolean = false): ExecutionGraph {
+export async function resolveExecutionGraph(graph: ExecutionGraph, revisit: boolean = false): Promise<ExecutionGraph> {
     if (graph.visited && !revisit) {
         return graph;
     }
 
-    graph = handleExecution(graph, revisit);
+    graph = await handleExecution(graph, revisit);
     graph.visited = true;
 
     if (graph.next) {
-        graph.next = resolveExecutionGraph(graph.next, revisit);
+        graph.next = await resolveExecutionGraph(graph.next, revisit);
     }
 
     return graph;
@@ -283,15 +287,17 @@ export function buildExecutionGraph(graph: AppConfig): ExecutionGraph | undefine
     return nodeConfigToExecutionGraph(startingNode, graph);
 }
 
-export function runGraph(graph: AppConfig, params: KeyValue): GraphResult | undefined {
+export async function runGraph(graph: AppConfig, params?: KeyValue): Promise<GraphResult | undefined> {
     let executionGraph = buildExecutionGraph(graph);
     if (!executionGraph) return undefined;
 
-    executionGraph.outputs?.forEach((output: ExecutionOutput) => {
-        executionGraph?.context.set(output.outputId, params[output.outputId] ?? params[output.outputName]);
-    });
+    if (params) {
+        executionGraph.outputs?.forEach((output: ExecutionOutput) => {
+            executionGraph?.context.set(output.outputId, params[output.outputId] ?? params[output.outputName]);
+        });
+    }
 
-    executionGraph = resolveExecutionGraph(executionGraph);
+    executionGraph = await resolveExecutionGraph(executionGraph);
     let iterator = executionGraph;
 
     while (iterator.next) {
