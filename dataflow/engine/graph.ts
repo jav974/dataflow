@@ -119,10 +119,8 @@ export async function resolveInputs(graph: ExecutionGraph, revisit: boolean = fa
         if (input.resolve) {
             const bannedRevisitGraph = stack.peek();
 
-            if (input.resolve.graph.nodeType !== NodeType.START) {
-                if (input.resolve.graph.nodeId !== bannedRevisitGraph?.nodeId && (!input.resolve.graph.visited || revisit)) {
-                    input.resolve.graph = await resolveExecutionGraph(input.resolve.graph, revisit);
-                }
+            if (input.resolve.graph.nodeId !== bannedRevisitGraph?.nodeId && (!input.resolve.graph.visited || revisit)) {
+                input.resolve.graph = await resolveExecutionGraph(input.resolve.graph, revisit);
             }
 
             const executionOutput = input.resolve.graph.outputs.find(
@@ -259,7 +257,7 @@ export async function handleExecution(graph: ExecutionGraph, revisit: boolean = 
 }
 
 export async function resolveExecutionGraph(graph: ExecutionGraph, revisit: boolean = false): Promise<ExecutionGraph> {
-    if (graph.visited && !revisit) {
+    if (graph.visited && (!revisit || graph.nodeType === NodeType.START)) {
         return graph;
     }
 
