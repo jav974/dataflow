@@ -4,7 +4,7 @@ import Node, { NodeProps } from "@/dataflow/components/core/Node";
 export interface MathNodeProps extends NodeProps {
 }
 
-export default function MathNode({ node }: MathNodeProps) {
+export default function MathNode({ node, ...props }: MathNodeProps) {
     return (
         <Node
             node={node}
@@ -14,6 +14,7 @@ export default function MathNode({ node }: MathNodeProps) {
             inputMultiple={true}
             minInputParams={2}
             inputMultipleType={ParameterTypes.NUMBER}
+            {...props}
         />
     );
 }

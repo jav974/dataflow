@@ -56,6 +56,27 @@ const handleMathMod: NodeExecutor = async (inputs: NodeExecParams): Promise<Node
     return handleSimpleMath(inputs, context);
 };
 
+const handleMathPow: NodeExecutor = async (inputs: NodeExecParams, context: NodeExecContext): Promise<NodeExecParams> => {
+    const result: NodeExecParams = new Map();
+    const base = toFloat(inputs.get('base'));
+    const exponent = toFloat(inputs.get('exponent'));
+    const power = Math.pow(base, exponent);
+
+    result.set('result', power);
+
+    return result;
+};
+
+const handleMathSqrt: NodeExecutor = async (inputs: NodeExecParams, context: NodeExecContext): Promise<NodeExecParams> => {
+    const result: NodeExecParams = new Map();
+    const value = toFloat(inputs.get('value'));
+    const sqrt = Math.sqrt(value);
+
+    result.set('result', sqrt);
+
+    return result;
+};
+
 const handleCompare: NodeExecutor = async (inputs: NodeExecParams): Promise<NodeExecParams> => {
     const result: NodeExecParams = new Map();
     const A = inputs.get('A');
@@ -136,6 +157,85 @@ const handleForeach: NodeExecutor = async (inputs: NodeExecParams, context: Node
     return (new Map()).set('index', undefined).set('item', undefined);
 };
 
+const handleStringTrim: NodeExecutor = async (inputs: NodeExecParams): Promise<NodeExecParams> => {
+    const result: NodeExecParams = new Map();
+    const value = inputs.get('value')?.toString() ?? '';
+    const ltrim = inputs.get('ltrim') ?? true;
+    const rtrim = inputs.get('rtrim') ?? true;
+
+    result.set('result', value);
+
+    if (ltrim && rtrim) {
+        result.set('result', value.trim());
+    } else if (ltrim) {
+        result.set('result', value.replace(/^\s+/, ''));
+    } else if (rtrim) {
+        result.set('result', value.replace(/\s+$/, ''));
+    }
+
+    return result;
+};
+
+const handleStringConcat: NodeExecutor = async (inputs: NodeExecParams): Promise<NodeExecParams> => {
+    const result: NodeExecParams = new Map();
+    const values = Array.from(inputs.values()).map(v => v?.toString() ?? '');
+    const concatenated = values.join('');
+    
+    result.set('result', concatenated);
+    
+    return result;
+};
+
+const handleStringSplit: NodeExecutor = async (inputs: NodeExecParams): Promise<NodeExecParams> => {
+    const result: NodeExecParams = new Map();
+    const value = (inputs.get('value')?.toString() ?? '') as string;
+    const separator = inputs.get('separator')?.toString() ?? '';
+    const parts = value.split(separator).map(part => part.trim());
+
+    result.set('result', parts);
+
+    return result;
+};
+
+const handleStringReplace: NodeExecutor = async (inputs: NodeExecParams): Promise<NodeExecParams> => {
+    const result: NodeExecParams = new Map();
+    const value = inputs.get('value')?.toString() ?? '';
+    const search = inputs.get('search')?.toString() ?? '';
+    const replace = inputs.get('replace')?.toString() ?? '';
+    const all = inputs.get('all') ?? true;
+    const caseSensitive = inputs.get('case_sensitive') ?? true;
+    let flags = all ? 'g' : '';
+    flags += caseSensitive ? '' : 'i';
+    const replaced = value.replace(new RegExp(search, flags), replace);
+
+    result.set('result', replaced);
+
+    return result;
+};
+
+const handleStringLength: NodeExecutor = async (inputs: NodeExecParams): Promise<NodeExecParams> => {
+    const result: NodeExecParams = new Map();
+    const value = inputs.get('value')?.toString() ?? '';
+    
+    result.set('result', value.length);
+    
+    return result;
+};
+
+const handleStringToUpper: NodeExecutor = async (inputs: NodeExecParams): Promise<NodeExecParams> => {
+    const result: NodeExecParams = new Map();
+    const value = inputs.get('value')?.toString() ?? '';
+    result.set('result', value.toUpperCase());
+    return result;
+};
+
+const handleStringToLower: NodeExecutor = async (inputs: NodeExecParams): Promise<NodeExecParams> => {
+    const result: NodeExecParams = new Map();
+    const value = inputs.get('value')?.toString() ?? '';
+    result.set('result', value.toLowerCase());
+    return result;
+};
+
 registry.set(NodeType.START, handleStart);
 registry.set(NodeType.RETURN, handleReturn);
 
@@ -144,6 +244,8 @@ registry.set(NodeType.MATH_SUB, handleMathSub);
 registry.set(NodeType.MATH_MUL, handleMathMul);
 registry.set(NodeType.MATH_DIV, handleMathDiv);
 registry.set(NodeType.MATH_MOD, handleMathMod);
+registry.set(NodeType.MATH_POW, handleMathPow);
+registry.set(NodeType.MATH_SQRT, handleMathSqrt);
 
 registry.set(NodeType.COMPARE, handleCompare);
 registry.set(NodeType.IF, handleIf);
@@ -154,3 +256,11 @@ registry.set(NodeType.SET, handleSetVar);
 registry.set(NodeType.GET, handleGetVar);
 
 registry.set(NodeType.SEQUENCE, dummyExecutor);
+
+registry.set(NodeType.STRING_TRIM, handleStringTrim);
+registry.set(NodeType.STRING_CONCAT, handleStringConcat);
+registry.set(NodeType.STRING_SPLIT, handleStringSplit);
+registry.set(NodeType.STRING_REPLACE, handleStringReplace);
+registry.set(NodeType.STRING_LENGTH, handleStringLength);
+registry.set(NodeType.STRING_TO_UPPER, handleStringToUpper);
+registry.set(NodeType.STRING_TO_LOWER, handleStringToLower);

@@ -15,6 +15,11 @@ enum NodeType {
 
     STRING_CONCAT = "concat",
     STRING_TRIM = "trim",
+    STRING_SPLIT = "split",
+    STRING_REPLACE = "replace",
+    STRING_LENGTH = "length",
+    STRING_TO_UPPER = "to_upper",
+    STRING_TO_LOWER = "to_lower",
 
     COMPARE = "compare",
     IF = "if",
@@ -125,7 +130,7 @@ function parseAppConfig(config: string): AppConfig {
     return parsedConfig;
 }
 
-type ParameterValueType = string | number | undefined | null;
+type ParameterValueType = any;
 
 export { NodeType, ParameterTypes, parseAppConfig };
 export type { GraphType, TypeDefinition, TypeProperty, AppConfig, NodeConfig, InputConfig, OutputConfig, ConnectorConfig, ConnectionConfig, Coordinates, ParameterValueType, OutputBranchConfig, VariableConfig, ParameterType };

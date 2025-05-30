@@ -1,5 +1,6 @@
+import useFocusable from "@/dataflow/hooks/useFocusable";
 import useHoverable from "@/dataflow/hooks/useHoverable";
-import React, { HTMLAttributes, useCallback, useEffect, useMemo, useState, useRef } from "react";
+import React, { HTMLAttributes, useEffect, useMemo, useState, useRef } from "react";
 
 interface TooltipProps {
     tooltip?: React.ReactNode;
@@ -11,49 +12,22 @@ export default function Tooltip({ tooltip, children, showOn = "hover" }: Tooltip
     const { isHovered, handleMouseEnter, handleMouseLeave } = useHoverable();
     const [visible, setVisible] = useState<boolean>(false);
     const tooltipRef = useRef<HTMLDivElement>(null);
+    const {isFocused, handlers: { onPointerDown, onContextMenu }} = useFocusable(tooltipRef);
 
-    const handleClick = useCallback(() => {
-        setVisible(true);
-    }, []);
-
-    const handleRightClick = useCallback((event: React.MouseEvent) => {
-        event.preventDefault(); // Prevent default context menu
-        setVisible(true);
-    }, []);
-
-    const handleClickOutside = useCallback((event: MouseEvent) => {
-        if (tooltipRef.current && !tooltipRef.current.contains(event.target as Node)) {
-            setVisible(false);
-        }
-    }, []);
-
-    // Close tooltip when clicking elsewhere
-    useEffect(() => {
-        if (visible) {
-            document.addEventListener("mousedown", handleClickOutside);
-            document.addEventListener("contextmenu", handleClickOutside);
-        }
-
-        return () => {
-            document.removeEventListener("mousedown", handleClickOutside);
-            document.removeEventListener("contextmenu", handleClickOutside);
-        };
-    }, [visible]);
-
-    const handlers = useMemo((): Partial<HTMLAttributes<HTMLDivElement>> => {
+    const handlers = useMemo((): Partial<HTMLAttributes<HTMLElement>> => {
         switch (showOn) {
             case "hover":
                 return { onPointerEnter: handleMouseEnter, onPointerLeave: handleMouseLeave };
             case "click":
-                return { onClick: handleClick };
+                return { onClick: onPointerDown };
             case "right-click":
-                return { onContextMenu: handleRightClick };
+                return { onContextMenu };
         }
     }, [showOn, handleMouseEnter, handleMouseLeave]);
 
     useEffect(() => {
-        setVisible(isHovered);
-    }, [isHovered]);
+        setVisible(isHovered || isFocused);
+    }, [isHovered, isFocused]);
 
     return (
         <div className="relative" {...handlers} ref={tooltipRef}>

@@ -10,6 +10,7 @@ import NodeInputs from "./NodeInputs";
 import NodeOutputs from "./NodeOutputs";
 import useHoverable from "@/dataflow/hooks/useHoverable";
 import { isOverlapping } from "../pixi/functions";
+import useFocusable from "@/dataflow/hooks/useFocusable";
 
 export interface NodeProps {
     node: NodeConfig;
@@ -41,6 +42,7 @@ export default function Node({
     const { removeNode, scale } = useGraphContext();
     const { isHovered, handleMouseEnter, handleMouseLeave } = useHoverable();
     const selected = isSelected(node.id);
+    const {isFocused, handlers: { onPointerDown, onContextMenu }} = useFocusable(containerRef);
 
     const getScaledRelativePosition = useCallback((outerRect: DOMRect, innerRect: DOMRect, adjustments?: Coordinates): Coordinates => {
         return {
@@ -182,9 +184,11 @@ export default function Node({
             onPointerEnter={handleMouseEnter}
             onPointerLeave={handleMouseLeave}
             onPointerUp={onPointerUp}
+            onPointerDown={onPointerDown}
+            onContextMenu={onContextMenu}
         >
             <div
-                className={`bg-gray-800 rounded-lg p-1 ${selected ? 'outline-6 rounded outline-blue-500' : ''}`}
+                className={`bg-gray-800 rounded-lg p-1 ${selected ? 'outline-4 rounded outline-blue-500' : ''} ${isFocused ? 'outline-2 rounded outline-orange-500' : ''}`}
                 style={{opacity: 0.9, minWidth: `${size?.width}px`}}
             >
                 <div className="flex w-full">

@@ -13,6 +13,7 @@ import CompareNode from "./conditional/CompareNode";
 import ForNode from "./loop/ForNode";
 import ForeachNode from "./loop/ForeachNode";
 import TypeDefNode from "./type/TypeDefNode";
+import StringNode from "./string/StringNode";
 
 registry.set(NodeType.START, {
     builder: (node: NodeConfig) => <StartNode node={node} />,
@@ -122,6 +123,37 @@ registry.set(NodeType.MATH_MOD, {
         inputs: [
             {id: "num_a", name: "A", type: ParameterTypes.NUMBER, required: true, editable: true, defaultValue: 0},
             {id: "num_b", name: "B", type: ParameterTypes.NUMBER, required: true, editable: true, defaultValue: 0},
+        ],
+        outputs: [
+            {id: "result", name: "result", type: ParameterTypes.NUMBER}
+        ]
+    }
+});
+
+registry.set(NodeType.MATH_POW, {
+    builder: (node: NodeConfig) => <MathNode node={node} inputMultiple={false} />,
+    config: {
+        type: NodeType.MATH_POW,
+        name: "Power",
+        executable: false,
+        inputs: [
+            {id: "base", name: "Base", type: ParameterTypes.NUMBER, required: true, editable: true, defaultValue: 0},
+            {id: "exponent", name: "Exponent", type: ParameterTypes.NUMBER, required: true, editable: true, defaultValue: 1},
+        ],
+        outputs: [
+            {id: "result", name: "result", type: ParameterTypes.NUMBER}
+        ]
+    }
+});
+
+registry.set(NodeType.MATH_SQRT, {
+    builder: (node: NodeConfig) => <MathNode node={node} inputMultiple={false} />,
+    config: {
+        type: NodeType.MATH_SQRT,
+        name: "Square Root",
+        executable: false,
+        inputs: [
+            {id: "value", name: "Value", type: ParameterTypes.NUMBER, required: true, editable: true, defaultValue: 0},
         ],
         outputs: [
             {id: "result", name: "result", type: ParameterTypes.NUMBER}
@@ -270,7 +302,7 @@ registry.set(NodeType.FOREACH, {
         name: "Foreach",
         type: NodeType.FOREACH,
         inputs: [
-            {id: "value", name: "value", type: ParameterTypes.ANY, required: true, editable: false, defaultValue: []}
+            {id: "value", name: "value", type: ParameterTypes.ANY, required: true, editable: false, isCollection: true, defaultValue: []}
         ],
         outputs: [
             {id: "index", name: "index", type: ParameterTypes.ANY},
@@ -288,5 +320,117 @@ registry.set(NodeType.TYPEDEF, {
         executable: false,
         name: "Define Type",
         type: NodeType.TYPEDEF,
+    }
+});
+
+registry.set(NodeType.STRING_TRIM, {
+    builder: (node: NodeConfig) => <StringNode node={node} />,
+    config: {
+        type: NodeType.STRING_TRIM,
+        name: "Trim",
+        executable: true,
+        inputs: [
+            {id: "value", name: "Value", type: ParameterTypes.STRING, required: true, editable: true, defaultValue: ""},
+            {id: "left", name: "ltrim", type: ParameterTypes.BOOLEAN, required: true, editable: true, defaultValue: true},
+            {id: "right", name: "rtrim", type: ParameterTypes.BOOLEAN, required: true, editable: true, defaultValue: true}
+        ],
+        outputs: [
+            {id: "result", name: "result", type: ParameterTypes.STRING}
+        ]
+    }
+});
+
+registry.set(NodeType.STRING_CONCAT, {
+    builder: (node: NodeConfig) => <StringNode node={node} inputMultiple={true} inputMultipleType={ParameterTypes.STRING} />,
+    config: {
+        type: NodeType.STRING_CONCAT,
+        name: "Concatenate",
+        executable: true,
+        inputs: [
+            {id: "value", name: "Value", type: ParameterTypes.STRING, required: true, editable: true, defaultValue: ""}
+        ],
+        outputs: [
+            {id: "result", name: "result", type: ParameterTypes.STRING}
+        ]
+    }
+});
+
+registry.set(NodeType.STRING_SPLIT, {
+    builder: (node: NodeConfig) => <StringNode node={node} />,
+    config: {
+        type: NodeType.STRING_SPLIT,
+        name: "Split",
+        executable: true,
+        inputs: [
+            {id: "value", name: "Value", type: ParameterTypes.STRING, required: true, editable: true, defaultValue: ""},
+            {id: "separator", name: "Separator", type: ParameterTypes.STRING, required: false, editable: true, defaultValue: ""}
+        ],
+        outputs: [
+            {id: "result", name: "result", type: ParameterTypes.STRING, isCollection: true}
+        ]
+    }
+});
+
+registry.set(NodeType.STRING_REPLACE, {
+    builder: (node: NodeConfig) => <StringNode node={node} />,
+    config: {
+        type: NodeType.STRING_REPLACE,
+        name: "Replace",
+        executable: true,
+        inputs: [
+            {id: "value", name: "Value", type: ParameterTypes.STRING, required: true, editable: true, defaultValue: ""},
+            {id: "search", name: "Search", type: ParameterTypes.STRING, required: true, editable: true, defaultValue: ""},
+            {id: "replace", name: "Replace", type: ParameterTypes.STRING, required: true, editable: true, defaultValue: ""},
+            {id: "all", name: "Replace all", type: ParameterTypes.BOOLEAN, required: false, editable: true, defaultValue: true},
+            {id: "case_sensitive", name: "Case sensitive", type: ParameterTypes.BOOLEAN, required: false, editable: true, defaultValue: true},
+        ],
+        outputs: [
+            {id: "result", name: "result", type: ParameterTypes.STRING}
+        ]
+    }
+});
+
+registry.set(NodeType.STRING_LENGTH, {
+    builder: (node: NodeConfig) => <StringNode node={node} />,
+    config: {
+        type: NodeType.STRING_LENGTH,
+        name: "Length",
+        executable: true,
+        inputs: [
+            {id: "value", name: "Value", type: ParameterTypes.STRING, required: true, editable: true, defaultValue: ""}
+        ],
+        outputs: [
+            {id: "result", name: "result", type: ParameterTypes.NUMBER}
+        ]
+    }
+});
+
+registry.set(NodeType.STRING_TO_UPPER, {
+    builder: (node: NodeConfig) => <StringNode node={node} />,
+    config: {
+        type: NodeType.STRING_TO_UPPER,
+        name: "To Upper Case",
+        executable: true,
+        inputs: [
+            {id: "value", name: "Value", type: ParameterTypes.STRING, required: true, editable: true, defaultValue: ""}
+        ],
+        outputs: [
+            {id: "result", name: "result", type: ParameterTypes.STRING}
+        ]
+    }
+});
+
+registry.set(NodeType.STRING_TO_LOWER, {
+    builder: (node: NodeConfig) => <StringNode node={node} />,
+    config: {
+        type: NodeType.STRING_TO_LOWER,
+        name: "To Lower Case",
+        executable: true,
+        inputs: [
+            {id: "value", name: "Value", type: ParameterTypes.STRING, required: true, editable: true, defaultValue: ""}
+        ],
+        outputs: [
+            {id: "result", name: "result", type: ParameterTypes.STRING}
+        ]
     }
 });

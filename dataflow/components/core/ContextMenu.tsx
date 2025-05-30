@@ -21,9 +21,9 @@ function HorizontalMenu({menu}: {menu: MenuTree}) {
     }
 
     return (
-        <div className="relative group hover:bg-white/20">
+        <div className="relative group hover:bg-white/20 min-w-max">
             <button className="p-1">{menu.name}</button>
-            <div className="absolute left-full top-[-4] hidden group-hover:flex flex-col bg-black/50 p-1">
+            <div className="absolute left-full top-[-4] hidden group-hover:flex flex-col bg-black/50 p-1 min-w-max">
                 {menu.children.map((m: MenuTree, index: number) => <HorizontalMenu key={index} menu={m}/>)}
             </div>
         </div>
@@ -105,6 +105,20 @@ export default function ContextMenu() {
                         createNodeMenuEntry("Multiply", NodeType.MATH_MUL),
                         createNodeMenuEntry("Divide", NodeType.MATH_DIV),
                         createNodeMenuEntry("Modulo", NodeType.MATH_MOD),
+                        createNodeMenuEntry("Power", NodeType.MATH_POW),
+                        createNodeMenuEntry("Square root", NodeType.MATH_SQRT),
+                    ]
+                },
+                {
+                    name: "String",
+                    children: [
+                        createNodeMenuEntry("Trim", NodeType.STRING_TRIM),
+                        createNodeMenuEntry("Concat", NodeType.STRING_CONCAT),
+                        createNodeMenuEntry("Split", NodeType.STRING_SPLIT),
+                        createNodeMenuEntry("Replace", NodeType.STRING_REPLACE),
+                        createNodeMenuEntry("Length", NodeType.STRING_LENGTH),
+                        createNodeMenuEntry("To Upper Case", NodeType.STRING_TO_UPPER),
+                        createNodeMenuEntry("To Lower Case", NodeType.STRING_TO_LOWER),
                     ]
                 },
                 createNodeMenuEntry("Sequence", NodeType.SEQUENCE),
