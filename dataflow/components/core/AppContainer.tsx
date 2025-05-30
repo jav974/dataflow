@@ -76,27 +76,28 @@ export default function AppContainer() {
     return (
         <div
             id="pixi-container"
-            ref={parentRef}
             className="overflow-hidden select-none"
             style={{width: '100vw', height: '100vh', maxWidth: '100vw', maxHeight: '100vh'}}
             onContextMenu={handleContextMenu}
             onClick={handleClick}
         >
             <Toolbar />
-            <Application
-                bezierSmoothness={1}
-                antialias={true}
-                resizeTo={parentRef}
-                clearBeforeRender={true}
-                width={size.width}
-                height={size.height}
-                // preference="webgpu"
-                preference="webgl"
-                powerPreference="high-performance"
-            >
-                <Background />
-                <ApplicationGraph />
-            </Application>
+            <div ref={parentRef}>
+                <Application
+                    bezierSmoothness={1}
+                    antialias={true}
+                    resizeTo={parentRef}
+                    clearBeforeRender={true}
+                    width={size.width}
+                    height={size.height}
+                    // preference="webgpu"
+                    preference="webgl"
+                    powerPreference="high-performance"
+                >
+                    <Background />
+                    <ApplicationGraph />
+                </Application>
+            </div>
             <ApplicationTemplates />
             <ContextMenu />
         </div>

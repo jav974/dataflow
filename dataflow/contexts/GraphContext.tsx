@@ -277,10 +277,12 @@ export function GraphProvider({children}: GraphProviderProps) {
     }, []);
 
     const zoomIn = useCallback(() => {
+        if (zoom.ref.current >= 200) return; // Prevent zooming in too far
         zoom.update(zoom.ref.current + 2);
     }, []);
 
     const zoomOut = useCallback(() => {
+        if (zoom.ref.current <= 2) return; // Prevent zooming out too far
         zoom.update(zoom.ref.current - 2);
     }, []);
 

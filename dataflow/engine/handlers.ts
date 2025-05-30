@@ -190,7 +190,7 @@ const handleStringSplit: NodeExecutor = async (inputs: NodeExecParams): Promise<
     const result: NodeExecParams = new Map();
     const value = (inputs.get('value')?.toString() ?? '') as string;
     const separator = inputs.get('separator')?.toString() ?? '';
-    const parts = value.split(separator).map(part => part.trim());
+    const parts = value.split(separator);
 
     result.set('result', parts);
 

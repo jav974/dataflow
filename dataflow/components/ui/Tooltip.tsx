@@ -23,7 +23,7 @@ export default function Tooltip({ tooltip, children, showOn = "hover" }: Tooltip
             case "right-click":
                 return { onContextMenu };
         }
-    }, [showOn, handleMouseEnter, handleMouseLeave]);
+    }, [showOn, handleMouseEnter, handleMouseLeave, onPointerDown, onContextMenu]);
 
     useEffect(() => {
         setVisible(isHovered || isFocused);

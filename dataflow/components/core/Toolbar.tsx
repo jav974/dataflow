@@ -11,10 +11,12 @@ import { useNodes } from "@/dataflow/contexts/NodeContext";
 import { getIOValues } from "@/dataflow/engine/utils";
 import { useDataflowContext } from "@/dataflow/contexts/DataflowContext";
 import { OptionProps } from "../forms/Select";
+import ResetViewButton from "../buttons/ResetViewButton";
+import ZoomResetButton from "../buttons/ZoomResetButton";
 
 export default function Toolbar() {
     const { graphs, loadGraph, graph, saveGraph, deleteGraph } = useUserGraph();
-    const { connections, nodes, zoom, variables, types, computedResult } = useGraphContext();
+    const { connections, nodes, zoom, variables, types, computedResult, canvasPosition } = useGraphContext();
     const [isNewModalOpen, setIsNewModalOpen] = useState(false);
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [isPlaying, setIsPlaying] = useState<boolean>(false);
@@ -85,10 +87,25 @@ export default function Toolbar() {
         }
     }, [mode, setMode]);
 
+    const handleResetView = useCallback(() => {
+        canvasPosition.update({ x: 0, y: 0 });
+    }, []);
+
+    const handleResetZoom = useCallback(() => {
+        zoom.update(100);
+    }, []);
+
+    const handleChangeZoom = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+        const newZoom = parseInt(e.target.value);
+        if (!isNaN(newZoom) && newZoom >= 2 && newZoom <= 200) {
+            zoom.update(newZoom);
+        }
+    }, []);
+
     return (
         <>
-            <div className="grid grid-cols-3 absolute top-0 left-0 bg-black min-h-[50px] min-w-full z-10000">
-                <div>
+            <div className="grid grid-cols-3 bg-black min-h-[50px] min-w-full z-10000">
+                <div className="flex justify-start items-center gap-4">
                     {graphs && graphs.length > 0 &&
                     <select 
                         className="select h-full bg-black text-white border border-transparent rounded px-4 py-2 focus:border-gray-800 hover:bg-gray-800 transition-colors duration-200" 
@@ -100,6 +117,18 @@ export default function Toolbar() {
                         ))}
                     </select>
                     }
+                    <ResetViewButton onClick={handleResetView}/>
+                    <ZoomResetButton onClick={handleResetZoom}/>
+                    <input
+                        type="range"
+                        id="zoom-range"
+                        name="zoom"
+                        min="2"
+                        max="200"
+                        value={zoom.ref.current}
+                        onChange={handleChangeZoom}
+                        className="w-30"
+                        step="2" />
                 </div>
                 <div className="flex justify-center items-center">
                     {graph && <PlayButton isPlaying={isPlaying} onClick={onPlay}/>}

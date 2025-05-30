@@ -31,7 +31,7 @@ export default function useFocusable(elementRef: React.RefObject<HTMLElement | n
         onContextMenu
     }), [onPointerDown, onContextMenu]);
 
-    // Close tooltip when clicking elsewhere
+    // Set unfocused when clicking elsewhere
     useEffect(() => {
         if (isFocused) {
             document.addEventListener("mousedown", handleClickOutside);

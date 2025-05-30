@@ -13,8 +13,8 @@ export default function Background() {
     useExtend({Container});
 
     const { width, height } = useFetchPersistedState<Size>("dataflow-canvas-size", { width: 0, height: 0 });
-    const { zoom, scale, canvasPosition } = useGraphContext();
-    const { position, lastUpdated: positionLastUpdated, handlers } = useDraggable();
+    const { scale, canvasPosition } = useGraphContext();
+    const { position, lastUpdated: positionLastUpdated, handlers } = useDraggable(canvasPosition.ref.current);
     const { position: pointerPosition, lastUpdated: pointerPositionLastUpdated } = usePointerPosition();
     const { onPointerUp, openContextMenu, selectionArea, selectionStart, startSelection, stopSelection } = useNodes();
 
@@ -32,10 +32,19 @@ export default function Background() {
         alpha: 0.5,
     }), []);
 
-    // Update canvas position after background position or zoom changes
+    // Update canvas position after background position or scale changes
     useEffect(() => {
-        canvasPosition.update({ x: position.x / scale.ref.current, y: position.y / scale.ref.current });
-    }, [positionLastUpdated, zoom.lastUpdated]);
+        canvasPosition.ref.current = { x: position.x / scale.ref.current, y: position.y / scale.ref.current };
+        canvasPosition.setLastUpdated(positionLastUpdated);
+    }, [positionLastUpdated, scale.lastUpdated]);
+
+    // Reset background position according to canvas position external change
+    useEffect(() => {
+        if (canvasPosition.lastUpdated > positionLastUpdated) {
+            position.x = canvasPosition.ref.current.x;
+            position.y = canvasPosition.ref.current.y;
+        }
+    }, [canvasPosition.lastUpdated, positionLastUpdated]);
 
     // Update selection area when selection is started and pointer position changes
     useEffect(() => {
@@ -56,8 +65,8 @@ export default function Background() {
         g.fill(backgroundFillSettings);
 
         const startOffset = 0;
-        const startX = startOffset + ((position.x / scale.ref.current) % backgroundSettings.spacing);
-        const startY = startOffset + ((position.y / scale.ref.current) % backgroundSettings.spacing);
+        const startX = startOffset + ((canvasPosition.ref.current.x / scale.ref.current) % backgroundSettings.spacing);
+        const startY = startOffset + ((canvasPosition.ref.current.y / scale.ref.current) % backgroundSettings.spacing);
 
         for (let x = startX; x < width; x += backgroundSettings.lineSpacing) {
             g.moveTo(x, 0);
@@ -128,7 +137,7 @@ export default function Background() {
         onRightClick={handleRightClick}
         onPointerUp={handlePointerUp}
     >
-        <FastGraphics draw={draw} drawDependencies={[positionLastUpdated]} />
+        <FastGraphics draw={draw} drawDependencies={[canvasPosition.lastUpdated]} />
         <FastGraphics draw={drawSelection} drawDependencies={[selectionArea.lastUpdated]} />
     </pixiContainer>
 }
