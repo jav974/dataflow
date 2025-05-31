@@ -82,7 +82,7 @@ export default function AppContainer() {
             onClick={handleClick}
         >
             <Toolbar />
-            <div ref={parentRef}>
+            <div ref={parentRef} className="w-full h-full">
                 <Application
                     bezierSmoothness={1}
                     antialias={true}

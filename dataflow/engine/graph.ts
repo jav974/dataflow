@@ -72,20 +72,28 @@ export function nodeConfigToExecutionGraph(node: NodeConfig, graph: AppConfig): 
     const context = jsonToMap(node.context);
 
     context.set('_node_id', node.id);
+    context.set('_inputMap', new Map<string, string>());
+    context.set('_outputMap', new Map<string, string>());
 
     executionGraph = {
         nodeId: node.id,
         nodeType: node.type,
-        inputs: node.inputs?.map((input: InputConfig): ExecutionInput =>
-            inputConfigToExecutionInput(node.id, input, graph)
-        ) ?? [],
-        outputs: node.outputs?.map((output: OutputConfig): ExecutionOutput => ({
-            nodeId: node.id,
-            outputId: output.id,
-            outputType: output.type,
-            outputName: output.name,
-            value: undefined
-        })) ?? [],
+        inputs: node.inputs?.map((input: InputConfig): ExecutionInput => {
+            context.get('_inputMap').set(input.id, input.name);
+
+            return inputConfigToExecutionInput(node.id, input, graph)
+        }) ?? [],
+        outputs: node.outputs?.map((output: OutputConfig): ExecutionOutput => {
+            context.get('_outputMap').set(output.id, output.name);
+
+            return {
+                nodeId: node.id,
+                outputId: output.id,
+                outputType: output.type,
+                outputName: output.name,
+                value: undefined
+            };
+        }) ?? [],
         branches: node.branches?.map((branch: OutputBranchConfig): ExecutionBranch => ({
             nodeId: node.id,
             branchId: branch.id

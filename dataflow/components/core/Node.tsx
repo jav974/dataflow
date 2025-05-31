@@ -191,7 +191,7 @@ export default function Node({
                 className={`bg-gray-800 rounded-lg p-1 ${selected ? 'outline-4 rounded outline-blue-500' : ''} ${isFocused ? 'outline-2 rounded outline-orange-500' : ''}`}
                 style={{opacity: 0.9, minWidth: `${size?.width}px`}}
             >
-                <div className="flex w-full">
+                <div className="flex w-full border-b-1 border-b-gray-700 mb-2">
                     {hasExecute && <PinExecute id={node.id} onRef={onPinExecuteRef} /> || <div></div>}
                     <div className="w-full text-center text-white font-semibold mb-2">{node.name || 'Unnamed Node'}</div>
                     {hasContinue && <PinContinue id={node.id} onRef={onPinContinueRef} /> || <div></div>}
