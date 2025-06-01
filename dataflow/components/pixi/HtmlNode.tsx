@@ -12,7 +12,7 @@ interface HtmlNodeProps extends PixiReactElementProps<typeof DOMContainer> {
 export default function HtmlNode({ node, ...props }: HtmlNodeProps) {
     useExtend({DOMContainer});
 
-    const { position, handlers, lastUpdated: positionLastUpdated } = useDraggable(node.position);
+    const { position, positionSignal, handlers, lastUpdated: positionLastUpdated } = useDraggable(node.position, true, true);
     const [layout, setLayout] = useState<HTMLElement | undefined>(undefined);
     const { updateNodePosition, setRenderTarget, isSelected, selectedNodes, nodes } = useNodes();
     const [ selected, setSelected ] = useState<boolean>(false);
@@ -40,9 +40,9 @@ export default function HtmlNode({ node, ...props }: HtmlNodeProps) {
         setRenderTarget(node.id, layout);
     }, [layout, node.id, setRenderTarget]);
 
-    useEffect(() => {
-        updateNodePosition(node.id, position.x, position.y);
-    }, [updateNodePosition, node.id, positionLastUpdated]);
+    // useEffect(() => {
+    //     updateNodePosition(node.id, position.x, position.y);
+    // }, [updateNodePosition, node.id, positionLastUpdated]);
 
     useEffect(() => {
         setSelected(isSelected(node.id));
@@ -64,7 +64,9 @@ export default function HtmlNode({ node, ...props }: HtmlNodeProps) {
         <pixiDOMContainer
             element={layout}
             x={node.position.x}
+            // x={positionSignal.value.x}
             y={node.position.y}
+            // y={positionSignal.value.y}
             eventMode="none"
             {...props}
         />

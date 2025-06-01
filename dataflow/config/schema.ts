@@ -99,6 +99,7 @@ interface ConnectorConfig {
 }
 
 interface ConnectionConfig {
+    id: string;
     from: ConnectorConfig;
     to: ConnectorConfig;
 }

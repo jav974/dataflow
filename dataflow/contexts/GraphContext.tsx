@@ -2,8 +2,9 @@ import React, { createContext, useCallback, useContext, useEffect, useState } fr
 import { AppConfig, ConnectionConfig, ConnectorConfig, Coordinates, GraphType, InputConfig, NodeConfig, NodeType, OutputBranchConfig, OutputConfig, VariableConfig } from "@/dataflow/config/schema";
 import { RefState, useRefState } from "@/dataflow/hooks/useRefState";
 import { filterObject } from "@/dataflow/engine/utils";
+import GraphManager, { PartialInputConfig, PartialNodeConfig, PartialOutputConfig } from "../graph/GraphManager";
 
-interface GraphContextType {
+interface GraphContextType extends GraphManager {
     name: string;
     nodes: RefState<NodeConfig[]>;
     connections: RefState<ConnectionConfig[]>;
@@ -13,31 +14,6 @@ interface GraphContextType {
     variables: RefState<VariableConfig[]>;
     types: RefState<GraphType[]>;
     computedResult: RefState<Map<string, any>>;
-    addNode: (node: NodeConfig) => void;
-    updateNode: (node: NodeConfig) => void;
-    removeNode: (id: string) => void;
-    addNodeInput: (id: string, input: InputConfig) => void;
-    updateNodeInput: (id: string, input: Partial<InputConfig>) => void;
-    removeNodeInput: (nodeId: string, inputId: string) => void;
-    setNodeInputs: (id: string, inputs: InputConfig[]) => void;
-    setInputDefaultValue: (nodeId: string, inputId: string, value: any) => void;
-    addNodeOutput: (id: string, output: OutputConfig) => void;
-    updateNodeOutput: (id: string, output: Partial<OutputConfig>) => void;
-    removeNodeOutput: (nodeId: string, outputId: string) => void;
-    setNodeOutputs: (id: string, outputs: OutputConfig[]) => void;
-    addNodeBranch: (id: string, branch: OutputBranchConfig) => void;
-    removeNodeBranch: (id: string, branchId: string) => void;
-    setNodeBranches: (id: string, branches: OutputBranchConfig[]) => void;
-    addConnection: (connection: ConnectionConfig) => void;
-    removeConnections: (from?: ConnectorConfig, to?: ConnectorConfig) => void;
-    loadGraph: (graph: AppConfig) => void;
-    zoomIn: () => void;
-    zoomOut: () => void;
-    setVariable: (id: string, name: string, type: string, isCollection: boolean) => void;
-    removeVariable: (id: string) => void;
-    setNodeContext: (nodeId: string, context: Map<string, any>) => void;
-    setOutputName: (nodeId: string, outputId: string, name: string) => void;
-    setInputName: (nodeId: string, inputId: string, name: string) => void;
 }
 
 const GraphContext = createContext<GraphContextType | null>(null);
@@ -70,11 +46,11 @@ export function GraphProvider({children}: GraphProviderProps) {
         }
     }, []);
 
-    const updateNode = useCallback((node: NodeConfig) => {
+    const updateNode = useCallback((node: PartialNodeConfig) => {
         const index = nodes.ref.current.findIndex((n: NodeConfig) => n.id === node.id);
 
         if (index !== -1) {
-            nodes.ref.current[index] = node;
+            nodes.ref.current[index] = {...nodes.ref.current[index], ...node};
             nodes.setLastUpdated(Date.now());
         }
     }, []);
@@ -103,6 +79,12 @@ export function GraphProvider({children}: GraphProviderProps) {
         }
     }, []);
 
+    const removeNodes = useCallback((ids: string[]) => {
+        for (const id of ids) {
+            removeNode(id);
+        }
+    }, []);
+
     const addNodeInput = useCallback((id: string, input: InputConfig) => {
         const node = nodes.ref.current.find((n: NodeConfig) => n.id === id);
 
@@ -113,7 +95,7 @@ export function GraphProvider({children}: GraphProviderProps) {
         }
     }, [updateNode]);
 
-    const updateNodeInput = useCallback((id: string, input: Partial<InputConfig>) => {
+    const updateNodeInput = useCallback((id: string, input: PartialInputConfig) => {
         const node = nodes.ref.current.find((n: NodeConfig) => n.id === id);
 
         if (node) {
@@ -159,7 +141,7 @@ export function GraphProvider({children}: GraphProviderProps) {
         }
     }, [updateNode]);
 
-    const updateNodeOutput = useCallback((id: string, output: Partial<OutputConfig>) => {
+    const updateNodeOutput = useCallback((id: string, output: PartialOutputConfig) => {
         const node = nodes.ref.current.find((n: NodeConfig) => n.id === id);
 
         if (node) {
@@ -330,6 +312,7 @@ export function GraphProvider({children}: GraphProviderProps) {
         addNode,
         updateNode,
         removeNode,
+        removeNodes,
         addNodeInput,
         updateNodeInput,
         setNodeInputs,

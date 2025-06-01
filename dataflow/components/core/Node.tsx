@@ -178,6 +178,23 @@ export default function Node({
         stopSelection();
     }, [stopConnectionDrag, stopSelection]);
 
+    const handleCtrlClick = useCallback((e: React.MouseEvent) => {
+        if (e.ctrlKey || e.metaKey) {
+            e.preventDefault();
+            setSelected(node.id, !selected);
+        }
+    }, [node.id, selected, setSelected]);
+
+    const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
+        if (!isFocused && !selected) return;
+
+        // Deselect and unfocus node on Escape key
+        if (e.key === 'Escape') {
+            setSelected(node.id, false);
+            onPointerDown();
+        }
+    }, [isFocused, selected, node.id, setSelected, onPointerDown]);
+
     return (
         <div
             ref={containerRef}
@@ -186,6 +203,9 @@ export default function Node({
             onPointerUp={onPointerUp}
             onPointerDown={onPointerDown}
             onContextMenu={onContextMenu}
+            onClick={handleCtrlClick}
+            onKeyDownCapture={handleKeyDown}
+            tabIndex={0}
         >
             <div
                 className={`bg-gray-800 rounded-lg p-1 ${selected ? 'outline-4 rounded outline-blue-500' : ''} ${isFocused ? 'outline-2 rounded outline-orange-500' : ''}`}

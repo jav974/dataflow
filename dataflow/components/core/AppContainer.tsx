@@ -3,18 +3,16 @@ import ApplicationTemplates from "./ApplicationTemplates";
 import Background from "../pixi/Background";
 import ApplicationGraph from "./ApplicationGraph";
 import ContextMenu from "./ContextMenu";
-import React, { useCallback, useEffect, useRef } from "react";
+import React, { useCallback, useEffect } from "react";
 import { useNodes } from "@/dataflow/contexts/NodeContext";
 import Toolbar from "./Toolbar";
 import { useUserGraph } from "@/dataflow/contexts/UserGraphContext";
 import { useGraphContext } from "@/dataflow/contexts/GraphContext";
-import { Size } from "pixi.js";
-import { usePersistedState } from "@/dataflow/hooks/usePersistedState";
+import { useDashboardContext } from "@/dataflow/contexts/DashboardContext";
 
 export default function AppContainer() {
-    const parentRef = useRef<HTMLDivElement>(null);
-    const [size, setSize] = usePersistedState<Size>("dataflow-canvas-size", {width: 0, height: 0});
-    const { closeContextMenu } = useNodes();
+    const {viewPortRef: parentRef, viewPortSize} = useDashboardContext();
+    const { closeContextMenu, setAllSelected, removeSelected } = useNodes();
     const { loadGraph, zoomIn, zoomOut } = useGraphContext();
     const { graph } = useUserGraph();
 
@@ -41,27 +39,32 @@ export default function AppContainer() {
         }
     }, []);
 
+    const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
+        console.log("Key pressed:", e.key);
+
+        if (e.key === 'Delete') {
+            removeSelected();
+        } else if (e.key === 'Escape') {
+            setAllSelected(false);
+        } else if ((e.ctrlKey || e.metaKey) && e.key === '+') {
+            e.preventDefault();
+            zoomIn();
+        } else if ((e.ctrlKey || e.metaKey) && e.key === '-') {
+            e.preventDefault();
+            zoomOut();
+        } else if ((e.ctrlKey || e.metaKey) && e.key === 'a') {
+            e.preventDefault();
+            setAllSelected(true);
+        }
+    }, [setAllSelected, removeSelected, zoomIn, zoomOut]);
+
     useEffect(() => {
         if (!parentRef.current) return;
-
-        const resizeObserver = new ResizeObserver((entries) => {
-            for (const entry of entries) {
-                setSize({width: entry.contentRect.width, height: entry.contentRect.height});
-            }
-        });
-
-        // Initial measurement
-        const rect = parentRef.current.getBoundingClientRect();
-        setSize({width: rect.width, height: rect.height});
-        
-        // Add resize observer
-        resizeObserver.observe(parentRef.current);
 
         // Prevent zoom
         parentRef.current.addEventListener("wheel", handleWheel, { passive: false });
 
         return () => {
-            resizeObserver.disconnect();
             parentRef.current?.removeEventListener("wheel", handleWheel);
         };
     }, []);
@@ -80,6 +83,8 @@ export default function AppContainer() {
             style={{width: '100vw', height: '100vh', maxWidth: '100vw', maxHeight: '100vh'}}
             onContextMenu={handleContextMenu}
             onClick={handleClick}
+            onKeyDown={handleKeyDown}
+            tabIndex={0} // Make the div focusable to capture key events
         >
             <Toolbar />
             <div ref={parentRef} className="w-full h-full">
@@ -88,8 +93,8 @@ export default function AppContainer() {
                     antialias={true}
                     resizeTo={parentRef}
                     clearBeforeRender={true}
-                    width={size.width}
-                    height={size.height}
+                    width={viewPortSize.width}
+                    height={viewPortSize.height}
                     // preference="webgpu"
                     preference="webgl"
                     powerPreference="high-performance"

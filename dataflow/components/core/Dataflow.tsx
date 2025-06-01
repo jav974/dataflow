@@ -6,6 +6,7 @@ import { GraphProvider } from "@/dataflow/contexts/GraphContext";
 import { GraphExecutor } from "@/dataflow/engine/types";
 import { runGraph } from "@/dataflow/engine/graph";
 import { DataflowProvider } from "@/dataflow/contexts/DataflowContext";
+import { DashboardProvider } from "@/dataflow/contexts/DashboardContext";
 
 interface DataflowProps {
     // Function to execute the graph locally. If not provided, fallback to integrated execution logic.
@@ -26,7 +27,9 @@ export default function Dataflow({ localExecutor = runGraph, remoteExecutor }: D
                 <UserGraphProvider>
                     <GraphProvider>
                         <NodeProvider>
-                            <AppContainer />
+                            <DashboardProvider>
+                                <AppContainer />
+                            </DashboardProvider>
                         </NodeProvider>
                     </GraphProvider>
                 </UserGraphProvider>

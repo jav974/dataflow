@@ -70,6 +70,8 @@ interface NodeContextType {
     startSelection: (coord: Coordinates) => void;
     stopSelection: () => void;
     setGraphResult: (result: GraphResult | undefined) => void;
+    setAllSelected: (selected: boolean) => void;
+    removeSelected: () => void;
 }
 
 export enum PointerEventType {
@@ -93,7 +95,7 @@ export function NodeProvider({ children }: { children: React.ReactNode }) {
     const [rightClickPosition, setRightClickPosition] = useState<Coordinates | undefined>(undefined);
     const [selectionStart, setSelectionStart] = useState<Coordinates | undefined>();
     const [graphResult, setGraphResult] = useState<GraphResult | undefined>(undefined);
-    const {addConnection, removeConnections} = useGraphContext();
+    const {addConnection, removeConnections, removeNodes} = useGraphContext();
     const nodes = useRefState<Map<string, Node>>(new Map());
     const renderTargets = useRefState<Map<string, HTMLElement>>(new Map());
     const selectionArea = useRefState<(Coordinates & Size) | undefined>(undefined);
@@ -264,13 +266,38 @@ export function NodeProvider({ children }: { children: React.ReactNode }) {
         }
     },  []);
 
+    const setAllSelected = useCallback((selected: boolean) => {
+        if (selected) {
+            selectedNodes.ref.current = Array.from(nodes.ref.current.keys());
+        } else {
+            selectedNodes.ref.current = [];
+        }
+        selectedNodes.setLastUpdated(Date.now());
+    }, []);
+
     const startSelection = useCallback((coord: Coordinates) => {
         setSelectionStart(coord);
+        selectionArea.update({
+            x: coord.x,
+            y: coord.y,
+            width: 0,
+            height: 0
+        });
     }, []);
 
     const stopSelection = useCallback(() => {
         setSelectionStart(undefined);
         selectionArea.update(undefined);
+    }, []);
+
+    const removeSelected = useCallback(() => {
+        for (const id of selectedNodes.ref.current) {
+            nodes.ref.current.delete(id);
+        }
+
+        removeNodes(selectedNodes.ref.current);
+        selectedNodes.update([]);
+        nodes.setLastUpdated(Date.now());
     }, []);
 
     return (
@@ -293,9 +320,11 @@ export function NodeProvider({ children }: { children: React.ReactNode }) {
             setRenderTarget,
             setSelected,
             isSelected,
+            setAllSelected,
             startSelection,
             stopSelection,
-            setGraphResult
+            setGraphResult,
+            removeSelected
         }}>
             {children}
         </NodeContext.Provider>

@@ -5,18 +5,19 @@ import FastGraphics from './FastGraphics';
 import useDraggable from '@/dataflow/hooks/useDraggable';
 import { PointerEventType, useNodes } from '@/dataflow/contexts/NodeContext';
 import { useGraphContext } from '@/dataflow/contexts/GraphContext';
-import usePointerPosition from '@/dataflow/hooks/usePointerPosition';
 import { BACKGROUND_LINE_STYLE, COLOR_BLUE } from '../../config/style';
-import { useFetchPersistedState } from '@/dataflow/hooks/usePersistedState';
+import { useDashboardContext } from '@/dataflow/contexts/DashboardContext';
+import { useSignal, useSignalEffect } from '@preact/signals-react';
+import { Coordinates } from '@/dataflow/config/schema';
 
 export default function Background() {
     useExtend({Container});
 
-    const { width, height } = useFetchPersistedState<Size>("dataflow-canvas-size", { width: 0, height: 0 });
+    const { viewPortSize: {width, height}, viewPortRectRef, pointerPositionSignal } = useDashboardContext();
     const { scale, canvasPosition } = useGraphContext();
     const { position, lastUpdated: positionLastUpdated, handlers } = useDraggable(canvasPosition.ref.current);
-    const { position: pointerPosition, lastUpdated: pointerPositionLastUpdated } = usePointerPosition();
     const { onPointerUp, openContextMenu, selectionArea, selectionStart, startSelection, stopSelection } = useNodes();
+    const selectionStartSignal = useSignal<Coordinates | undefined>(undefined);
 
     const backgroundSettings = useMemo(() => ({
         spacing: 40,
@@ -48,15 +49,22 @@ export default function Background() {
 
     // Update selection area when selection is started and pointer position changes
     useEffect(() => {
-        if (selectionStart) {
+        selectionStartSignal.value = selectionStart;
+    }, [selectionStart]);
+
+    useSignalEffect(() => {
+        if (selectionStartSignal.value) {
+            const pointerPosition = pointerPositionSignal.value.viewport;
+            const {x, y} = selectionStartSignal.value;
+
             selectionArea.update({
-                x: Math.min(selectionStart.x, pointerPosition.x),
-                y: Math.min(selectionStart.y, pointerPosition.y),
-                width: Math.abs(pointerPosition.x - selectionStart.x),
-                height: Math.abs(pointerPosition.y - selectionStart.y)
+                x: Math.min(x, pointerPosition.x),
+                y: Math.min(y, pointerPosition.y),
+                width: Math.abs(pointerPosition.x - x),
+                height: Math.abs(pointerPosition.y - y)
             });
         }
-    }, [selectionStart, pointerPositionLastUpdated]);
+    });
 
     // PIXI callback to draw the background grid
     const draw = useCallback((g: Graphics) => {
@@ -108,8 +116,11 @@ export default function Background() {
     const handlePointerDown = useCallback((e: FederatedPointerEvent) => {
         if (e.ctrlKey) {    // Move canvas
             handlers.onPointerDown(e);
-        } else {            // Create selection rectangle
-            startSelection({x: e.clientX, y: e.clientY});
+        } else {            // Create selection rectangle (viewport coordinates)
+            startSelection({
+                x: e.clientX - (viewPortRectRef.current?.left ?? 0),
+                y: e.clientY - (viewPortRectRef.current?.top ?? 0)
+            });
         }
     }, [handlers.onPointerDown]);
 
@@ -117,7 +128,7 @@ export default function Background() {
     const drawSelection = useCallback((g: Graphics) => {
         g.clear();
 
-        if (!selectionArea.ref.current) {
+        if (!selectionStart || !selectionArea.ref.current) {
             return ;
         }
 
