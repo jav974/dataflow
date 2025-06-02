@@ -4,6 +4,7 @@ import { useGraphContext } from './GraphContext';
 import { RefState, useRefState } from '@/dataflow/hooks/useRefState';
 import { Size } from 'pixi.js';
 import { GraphResult } from '@/dataflow/engine/types';
+import { batch } from "@preact/signals-react";
 
 export interface Pin {
     id: string;
@@ -95,7 +96,7 @@ export function NodeProvider({ children }: { children: React.ReactNode }) {
     const [rightClickPosition, setRightClickPosition] = useState<Coordinates | undefined>(undefined);
     const [selectionStart, setSelectionStart] = useState<Coordinates | undefined>();
     const [graphResult, setGraphResult] = useState<GraphResult | undefined>(undefined);
-    const {addConnection, removeConnections, removeNodes} = useGraphContext();
+    const {addConnection, removeConnections, removeNodes, updateNode} = useGraphContext();
     const nodes = useRefState<Map<string, Node>>(new Map());
     const renderTargets = useRefState<Map<string, HTMLElement>>(new Map());
     const selectionArea = useRefState<(Coordinates & Size) | undefined>(undefined);
@@ -131,6 +132,34 @@ export function NodeProvider({ children }: { children: React.ReactNode }) {
             }
             
             nodes.setLastUpdated(Date.now());
+        }
+    }, []);
+
+    const updateNodePositionSignal = useCallback((id: string, x: number, y: number) => {
+        const node = nodes.ref.current.get(id);
+
+        if (node) {
+            batch(() => {
+                // Node is part of a selection, move the selection along
+                if (isSelected(id)) {
+                    const deltaX = x - node.mutableNodeConfig.position.x;
+                    const deltaY = y - node.mutableNodeConfig.position.y;
+
+                    for (const [_, n] of nodes.ref.current) {
+                        if (isSelected(n.mutableNodeConfig.id)) {
+                            n.mutableNodeConfig.position.x += deltaX;
+                            n.mutableNodeConfig.position.y += deltaY;
+                            updateNode(n.mutableNodeConfig);
+                        }
+                    }
+                } else { // Otherwise simply update its position
+                    node.mutableNodeConfig.position.x = x;
+                    node.mutableNodeConfig.position.y = y;
+                    updateNode(node.mutableNodeConfig);
+                }
+                
+                nodes.setLastUpdated(Date.now());
+            });
         }
     }, []);
 
@@ -236,7 +265,10 @@ export function NodeProvider({ children }: { children: React.ReactNode }) {
 
                 // Dst connectors can only be Input or Execute, so remove any existing connection they have
                 removeConnections(undefined, to.connector);
-                addConnection({from: from.connector, to: to.connector});
+                addConnection({
+                    from: from.connector,
+                    to: to.connector
+                });
             }
         }
 
@@ -311,7 +343,7 @@ export function NodeProvider({ children }: { children: React.ReactNode }) {
             selectionStart,
             graphResult,
             registerNode,
-            updateNodePosition,
+            updateNodePosition : updateNodePositionSignal,
             startConnectionDrag,
             stopConnectionDrag,
             onPointerUp,

@@ -48,16 +48,16 @@ export function DashboardProvider({children}: DashboardProviderProps) {
         pointerPositionSignal.value = {
             global: { x: event.clientX, y: event.clientY },
             globalScaled: {
-                x: event.clientX * scale.ref.current,
-                y: event.clientY * scale.ref.current
+                x: event.clientX * scale.value,
+                y: event.clientY * scale.value
             },
             viewport: {
                 x: event.clientX - (viewPortRectRef.current?.left ?? 0),
                 y: event.clientY - (viewPortRectRef.current?.top ?? 0)
             },
             canvasScaled: {
-                x: (event.clientX - (viewPortRectRef.current?.left ?? 0) - canvasPosition.ref.current.x) * scale.ref.current,
-                y: (event.clientY - (viewPortRectRef.current?.top ?? 0) - canvasPosition.ref.current.y) * scale.ref.current
+                x: (event.clientX - (viewPortRectRef.current?.left ?? 0) - canvasPosition.ref.current.x) * scale.value,
+                y: (event.clientY - (viewPortRectRef.current?.top ?? 0) - canvasPosition.ref.current.y) * scale.value
             }
         };
     }, []);

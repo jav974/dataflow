@@ -4,6 +4,7 @@ import { NodeConfig, NodeType } from "../../config/schema";
 import { v4 as uuidv4 } from 'uuid';
 import { useGraphContext } from "@/dataflow/contexts/GraphContext";
 import registry from "../nodes/registry";
+import { Signal } from "@preact/signals-react";
 
 interface MenuTree {
     name?: string;
@@ -44,8 +45,8 @@ export default function ContextMenu() {
                 ...config,
                 id: uuidv4(),
                 position: {
-                    x: (rightClickPosition.x - canvasPosition.ref.current.x) * scale.ref.current,
-                    y: (rightClickPosition.y - canvasPosition.ref.current.y) * scale.ref.current
+                    x: (rightClickPosition.x - canvasPosition.ref.current.x) * scale.value,
+                    y: (rightClickPosition.y - canvasPosition.ref.current.y) * scale.value
                 },
             });
         }
@@ -59,9 +60,9 @@ export default function ContextMenu() {
     }, [spawnNode]);
 
     const menu = useMemo((): MenuTree => {
-        const hasStartNode = nodes.ref.current.findIndex((n: NodeConfig) => n.type === NodeType.START) !== -1;
-        const hasReturnNode = nodes.ref.current.findIndex((n: NodeConfig) => n.type === NodeType.RETURN) !== -1;
-        const hasTriggerNode = nodes.ref.current.findIndex((n: NodeConfig) => n.type === NodeType.TRIGGER) !== -1;
+        const hasStartNode = nodes.value.findIndex((n: Signal<NodeConfig>) => n.value.type === NodeType.START) !== -1;
+        const hasReturnNode = nodes.value.findIndex((n: Signal<NodeConfig>) => n.value.type === NodeType.RETURN) !== -1;
+        const hasTriggerNode = nodes.value.findIndex((n: Signal<NodeConfig>) => n.value.type === NodeType.TRIGGER) !== -1;
         const specialEntries: MenuTree[] = [];
 
         if (!hasStartNode && !hasTriggerNode) {
@@ -126,7 +127,7 @@ export default function ContextMenu() {
                 createNodeMenuEntry("Type", NodeType.TYPEDEF),
             ]
         }
-    }, [createNodeMenuEntry, nodes.lastUpdated]);
+    }, [createNodeMenuEntry, nodes]);
 
     if (!rightClickPosition) {
         return null;

@@ -13,10 +13,11 @@ import { useDataflowContext } from "@/dataflow/contexts/DataflowContext";
 import { OptionProps } from "../forms/Select";
 import ResetViewButton from "../buttons/ResetViewButton";
 import ZoomResetButton from "../buttons/ZoomResetButton";
+import { useComputed, useSignalEffect } from "@preact/signals-react";
 
 export default function Toolbar() {
     const { graphs, loadGraph, graph, saveGraph, deleteGraph } = useUserGraph();
-    const { connections, nodes, zoom, variables, types, computedResult, canvasPosition } = useGraphContext();
+    const { graph: graphSignal, zoom, computedResult, canvasPosition } = useGraphContext();
     const [isNewModalOpen, setIsNewModalOpen] = useState(false);
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [isPlaying, setIsPlaying] = useState<boolean>(false);
@@ -32,6 +33,11 @@ export default function Toolbar() {
         }
         return modes;
     }, [localExecutor, remoteExecutor]);
+    const [zoomValue, setZoomValue] = useState<number>(zoom.value);
+
+    useSignalEffect(() => {
+        setZoomValue(zoom.value);
+    });
 
     const onGraphChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
         loadGraph(e.target.value);
@@ -43,15 +49,9 @@ export default function Toolbar() {
 
     const onSaveGraphClick = useCallback(() => {
         if (graph) {
-            const newConfig = { ...graph };
-            newConfig.connections = connections.ref.current;
-            newConfig.nodes = nodes.ref.current;
-            newConfig.zoom = zoom.ref.current;
-            newConfig.types = types.ref.current;
-            newConfig.variables = variables.ref.current;
-            saveGraph(graph.name, newConfig);
+            saveGraph(graph.name, graphSignal.toJSON());
         }
-    }, [graph, saveGraph]);
+    }, [graph, saveGraph, graphSignal]);
 
     const onDeleteGraphClick = useCallback(() => {
         setIsDeleteModalOpen(true);
@@ -92,13 +92,13 @@ export default function Toolbar() {
     }, []);
 
     const handleResetZoom = useCallback(() => {
-        zoom.update(100);
+        zoom.value = 100;
     }, []);
 
     const handleChangeZoom = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
         const newZoom = parseInt(e.target.value);
         if (!isNaN(newZoom) && newZoom >= 2 && newZoom <= 200) {
-            zoom.update(newZoom);
+            zoom.value = newZoom;
         }
     }, []);
 
@@ -125,7 +125,7 @@ export default function Toolbar() {
                         name="zoom"
                         min="2"
                         max="200"
-                        value={zoom.ref.current}
+                        value={zoomValue}
                         onChange={handleChangeZoom}
                         className="w-30"
                         step="2" />

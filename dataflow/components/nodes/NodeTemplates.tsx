@@ -5,7 +5,6 @@ import MathNode from "./math/MathNode";
 import SetVarNode from "./variables/SetVarNode";
 import IfNode from "./conditional/IfNode";
 import GetVarNode from "./variables/GetVarNode";
-import { jsonToMap } from "@/dataflow/engine/utils";
 import StartNode from "./special/StartNode";
 import ReturnNode from "./special/ReturnNode";
 import SequenceNode from "./sequence/SequenceNode";
@@ -14,9 +13,10 @@ import ForNode from "./loop/ForNode";
 import ForeachNode from "./loop/ForeachNode";
 import TypeDefNode from "./type/TypeDefNode";
 import StringNode from "./string/StringNode";
+import { Signal } from "@preact/signals-react";
 
 registry.set(NodeType.START, {
-    builder: (node: NodeConfig) => <StartNode node={node} />,
+    builder: (node: Signal<NodeConfig>) => <StartNode node={node} />,
     config: {
         type: NodeType.START,
         name: "Start",
@@ -26,7 +26,7 @@ registry.set(NodeType.START, {
 });
 
 registry.set(NodeType.RETURN, {
-    builder: (node: NodeConfig) => <ReturnNode node={node} />,
+    builder: (node: Signal<NodeConfig>) => <ReturnNode node={node} />,
     config: {
         type: NodeType.RETURN,
         name: "Return",
@@ -36,7 +36,7 @@ registry.set(NodeType.RETURN, {
 });
 
 registry.set(NodeType.FETCH, {
-    builder: (node: NodeConfig) => <FetchNode node={node} />,
+    builder: (node: Signal<NodeConfig>) => <FetchNode node={node} />,
     config: {
         type: NodeType.FETCH,
         name: "Fetch",
@@ -51,7 +51,7 @@ registry.set(NodeType.FETCH, {
 });
 
 registry.set(NodeType.MATH_ADD, {
-    builder: (node: NodeConfig) => <MathNode node={node} />,
+    builder: (node: Signal<NodeConfig>) => <MathNode node={node} />,
     config: {
         type: NodeType.MATH_ADD,
         name: "Add",
@@ -67,7 +67,7 @@ registry.set(NodeType.MATH_ADD, {
 });
 
 registry.set(NodeType.MATH_SUB, {
-    builder: (node: NodeConfig) => <MathNode node={node} />,
+    builder: (node: Signal<NodeConfig>) => <MathNode node={node} />,
     config: {
         type: NodeType.MATH_SUB,
         name: "Subtract",
@@ -83,7 +83,7 @@ registry.set(NodeType.MATH_SUB, {
 });
 
 registry.set(NodeType.MATH_MUL, {
-    builder: (node: NodeConfig) => <MathNode node={node} />,
+    builder: (node: Signal<NodeConfig>) => <MathNode node={node} />,
     config: {
         type: NodeType.MATH_MUL,
         name: "Multiply",
@@ -99,7 +99,7 @@ registry.set(NodeType.MATH_MUL, {
 });
 
 registry.set(NodeType.MATH_DIV, {
-    builder: (node: NodeConfig) => <MathNode node={node} />,
+    builder: (node: Signal<NodeConfig>) => <MathNode node={node} />,
     config: {
         type: NodeType.MATH_DIV,
         name: "Divide",
@@ -115,7 +115,7 @@ registry.set(NodeType.MATH_DIV, {
 });
 
 registry.set(NodeType.MATH_MOD, {
-    builder: (node: NodeConfig) => <MathNode node={node} />,
+    builder: (node: Signal<NodeConfig>) => <MathNode node={node} />,
     config: {
         type: NodeType.MATH_MOD,
         name: "Modulo",
@@ -131,7 +131,7 @@ registry.set(NodeType.MATH_MOD, {
 });
 
 registry.set(NodeType.MATH_POW, {
-    builder: (node: NodeConfig) => <MathNode node={node} inputMultiple={false} />,
+    builder: (node: Signal<NodeConfig>) => <MathNode node={node} inputMultiple={false} />,
     config: {
         type: NodeType.MATH_POW,
         name: "Power",
@@ -147,7 +147,7 @@ registry.set(NodeType.MATH_POW, {
 });
 
 registry.set(NodeType.MATH_SQRT, {
-    builder: (node: NodeConfig) => <MathNode node={node} inputMultiple={false} />,
+    builder: (node: Signal<NodeConfig>) => <MathNode node={node} inputMultiple={false} />,
     config: {
         type: NodeType.MATH_SQRT,
         name: "Square Root",
@@ -162,7 +162,7 @@ registry.set(NodeType.MATH_SQRT, {
 });
 
 registry.set(NodeType.SET, {
-    builder: (node: NodeConfig) => <SetVarNode node={node} />,
+    builder: (node: Signal<NodeConfig>) => <SetVarNode node={node} />,
     config: {
         type: NodeType.SET,
         name: "Set variable",
@@ -177,7 +177,7 @@ registry.set(NodeType.SET, {
 });
 
 registry.set(NodeType.GET, {
-    builder: (node: NodeConfig) => <GetVarNode node={node} context={jsonToMap<any>(node.context)} />,
+    builder: (node: Signal<NodeConfig>) => <GetVarNode node={node} />,
     config: {
         type: NodeType.GET,
         name: "Get variable",
@@ -189,7 +189,7 @@ registry.set(NodeType.GET, {
 });
 
 registry.set(NodeType.COMPARE, {
-    builder: (node: NodeConfig) => <CompareNode node={node} />,
+    builder: (node: Signal<NodeConfig>) => <CompareNode node={node} />,
     config: {
         type: NodeType.COMPARE,
         name: "Compare",
@@ -247,7 +247,7 @@ registry.set(NodeType.COMPARE, {
 });
 
 registry.set(NodeType.IF, {
-    builder: (node: NodeConfig) => <IfNode node={node} />,
+    builder: (node: Signal<NodeConfig>) => <IfNode node={node} />,
     config: {
         executable: true,
         name: "If",
@@ -263,7 +263,7 @@ registry.set(NodeType.IF, {
 });
 
 registry.set(NodeType.SEQUENCE, {
-    builder: (node: NodeConfig) => <SequenceNode node={node} />,
+    builder: (node: Signal<NodeConfig>) => <SequenceNode node={node} />,
     config: {
         executable: true,
         name: "Sequence",
@@ -276,7 +276,7 @@ registry.set(NodeType.SEQUENCE, {
 });
 
 registry.set(NodeType.FOR, {
-    builder: (node: NodeConfig) => <ForNode node={node} />,
+    builder: (node: Signal<NodeConfig>) => <ForNode node={node} />,
     config: {
         executable: true,
         name: "For",
@@ -296,7 +296,7 @@ registry.set(NodeType.FOR, {
 });
 
 registry.set(NodeType.FOREACH, {
-    builder: (node: NodeConfig) => <ForeachNode node={node} />,
+    builder: (node: Signal<NodeConfig>) => <ForeachNode node={node} />,
     config: {
         executable: true,
         name: "Foreach",
@@ -315,7 +315,7 @@ registry.set(NodeType.FOREACH, {
 });
 
 registry.set(NodeType.TYPEDEF, {
-    builder: (node: NodeConfig) => <TypeDefNode node={node} />,
+    builder: (node: Signal<NodeConfig>) => <TypeDefNode node={node} />,
     config: {
         executable: false,
         name: "Define Type",
@@ -324,7 +324,7 @@ registry.set(NodeType.TYPEDEF, {
 });
 
 registry.set(NodeType.STRING_TRIM, {
-    builder: (node: NodeConfig) => <StringNode node={node} />,
+    builder: (node: Signal<NodeConfig>) => <StringNode node={node} />,
     config: {
         type: NodeType.STRING_TRIM,
         name: "Trim",
@@ -341,7 +341,7 @@ registry.set(NodeType.STRING_TRIM, {
 });
 
 registry.set(NodeType.STRING_CONCAT, {
-    builder: (node: NodeConfig) => <StringNode node={node} inputMultiple={true} inputMultipleType={ParameterTypes.STRING} />,
+    builder: (node: Signal<NodeConfig>) => <StringNode node={node} inputMultiple={true} inputMultipleType={ParameterTypes.STRING} />,
     config: {
         type: NodeType.STRING_CONCAT,
         name: "Concatenate",
@@ -356,7 +356,7 @@ registry.set(NodeType.STRING_CONCAT, {
 });
 
 registry.set(NodeType.STRING_SPLIT, {
-    builder: (node: NodeConfig) => <StringNode node={node} />,
+    builder: (node: Signal<NodeConfig>) => <StringNode node={node} />,
     config: {
         type: NodeType.STRING_SPLIT,
         name: "Split",
@@ -372,7 +372,7 @@ registry.set(NodeType.STRING_SPLIT, {
 });
 
 registry.set(NodeType.STRING_REPLACE, {
-    builder: (node: NodeConfig) => <StringNode node={node} />,
+    builder: (node: Signal<NodeConfig>) => <StringNode node={node} />,
     config: {
         type: NodeType.STRING_REPLACE,
         name: "Replace",
@@ -391,7 +391,7 @@ registry.set(NodeType.STRING_REPLACE, {
 });
 
 registry.set(NodeType.STRING_LENGTH, {
-    builder: (node: NodeConfig) => <StringNode node={node} />,
+    builder: (node: Signal<NodeConfig>) => <StringNode node={node} />,
     config: {
         type: NodeType.STRING_LENGTH,
         name: "Length",
@@ -406,7 +406,7 @@ registry.set(NodeType.STRING_LENGTH, {
 });
 
 registry.set(NodeType.STRING_TO_UPPER, {
-    builder: (node: NodeConfig) => <StringNode node={node} />,
+    builder: (node: Signal<NodeConfig>) => <StringNode node={node} />,
     config: {
         type: NodeType.STRING_TO_UPPER,
         name: "To Upper Case",
@@ -421,7 +421,7 @@ registry.set(NodeType.STRING_TO_UPPER, {
 });
 
 registry.set(NodeType.STRING_TO_LOWER, {
-    builder: (node: NodeConfig) => <StringNode node={node} />,
+    builder: (node: Signal<NodeConfig>) => <StringNode node={node} />,
     config: {
         type: NodeType.STRING_TO_LOWER,
         name: "To Lower Case",

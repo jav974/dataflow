@@ -62,7 +62,7 @@ export default function useDraggable(initialPosition: Coordinates = { x: 0, y: 0
 
     const handlePointerDown = useCallback((event: PointerEvent) => {
         isDraggingRef.update(true);
-        lastPosRef.current = { x: event.clientX * scale.ref.current, y: event.clientY * scale.ref.current };
+        lastPosRef.current = { x: event.clientX * scale.value, y: event.clientY * scale.value };
     }, []);
 
     const handlers = useMemo(() => ({

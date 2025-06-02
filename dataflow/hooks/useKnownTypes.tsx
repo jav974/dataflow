@@ -1,7 +1,6 @@
-import { GraphType } from "@/dataflow/config/schema";
 import { OptionProps } from "@/dataflow/components/forms/Select";
 import { useGraphContext } from "@/dataflow/contexts/GraphContext";
-import { useMemo } from "react";
+import { useComputed } from "@preact/signals-react";
 
 interface UseKnownTypesReturn {
     options: OptionProps[]
@@ -9,21 +8,21 @@ interface UseKnownTypesReturn {
 
 export default function useKnownTypes(): UseKnownTypesReturn {
     const {types} = useGraphContext();
-    const options: OptionProps[] = useMemo((): OptionProps[] => {
+    const options = useComputed((): OptionProps[] => {
         const options: OptionProps[] = [
             {name: "boolean", value: "boolean"},
             {name: "number", value: "number"},
             {name: "string", value: "string"},
         ];
 
-        types.ref.current.forEach((type: GraphType) => {
-            options.push({name: type.name, value: type.id});
+        types.value.forEach((type) => {
+            options.push({name: type.value.name, value: type.value.id});
         });
 
         return options;
-    }, [types.lastUpdated]);
+    });
 
     return {
-        options
+        options: options.value
     };
 }

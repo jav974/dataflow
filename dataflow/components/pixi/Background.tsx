@@ -1,5 +1,5 @@
 import { useExtend } from '@pixi/react';
-import { Container, FederatedPointerEvent, Graphics, Size } from 'pixi.js';
+import { Container, FederatedPointerEvent, Graphics } from 'pixi.js';
 import React, { useCallback, useEffect, useMemo } from 'react';
 import FastGraphics from './FastGraphics';
 import useDraggable from '@/dataflow/hooks/useDraggable';
@@ -35,9 +35,9 @@ export default function Background() {
 
     // Update canvas position after background position or scale changes
     useEffect(() => {
-        canvasPosition.ref.current = { x: position.x / scale.ref.current, y: position.y / scale.ref.current };
+        canvasPosition.ref.current = { x: position.x / scale.value, y: position.y / scale.value };
         canvasPosition.setLastUpdated(positionLastUpdated);
-    }, [positionLastUpdated, scale.lastUpdated]);
+    }, [positionLastUpdated, scale.value]);
 
     // Reset background position according to canvas position external change
     useEffect(() => {
@@ -73,8 +73,8 @@ export default function Background() {
         g.fill(backgroundFillSettings);
 
         const startOffset = 0;
-        const startX = startOffset + ((canvasPosition.ref.current.x / scale.ref.current) % backgroundSettings.spacing);
-        const startY = startOffset + ((canvasPosition.ref.current.y / scale.ref.current) % backgroundSettings.spacing);
+        const startX = startOffset + ((canvasPosition.ref.current.x / scale.value) % backgroundSettings.spacing);
+        const startY = startOffset + ((canvasPosition.ref.current.y / scale.value) % backgroundSettings.spacing);
 
         for (let x = startX; x < width; x += backgroundSettings.lineSpacing) {
             g.moveTo(x, 0);

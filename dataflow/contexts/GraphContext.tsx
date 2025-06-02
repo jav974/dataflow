@@ -1,18 +1,20 @@
-import React, { createContext, useCallback, useContext, useEffect, useState } from "react";
+import React, { createContext, useCallback, useContext } from "react";
 import { AppConfig, ConnectionConfig, ConnectorConfig, Coordinates, GraphType, InputConfig, NodeConfig, NodeType, OutputBranchConfig, OutputConfig, VariableConfig } from "@/dataflow/config/schema";
 import { RefState, useRefState } from "@/dataflow/hooks/useRefState";
-import { filterObject } from "@/dataflow/engine/utils";
 import GraphManager, { PartialInputConfig, PartialNodeConfig, PartialOutputConfig } from "../graph/GraphManager";
+import Graph from "../graph/Graph";
+import {ReadonlySignal, Signal, computed} from "@preact/signals-react"
 
 interface GraphContextType extends GraphManager {
-    name: string;
-    nodes: RefState<NodeConfig[]>;
-    connections: RefState<ConnectionConfig[]>;
-    zoom: RefState<number>;
-    scale: RefState<number>;
+    graph: Graph;
+    name: Signal<string>;
+    nodes: Signal<Signal<NodeConfig>[]>;
+    connections: Signal<Signal<ConnectionConfig>[]>;
+    zoom: Signal<number>;
+    scale: ReadonlySignal<number>;
     canvasPosition: RefState<Coordinates>;
-    variables: RefState<VariableConfig[]>;
-    types: RefState<GraphType[]>;
+    variables: Signal<Signal<VariableConfig>[]>;
+    types: Signal<Signal<GraphType>[]>;
     computedResult: RefState<Map<string, any>>;
 }
 
@@ -23,291 +25,129 @@ interface GraphProviderProps {
 }
 
 export function GraphProvider({children}: GraphProviderProps) {
-    const [name, setName] = useState<string>("");
-    const nodes = useRefState<NodeConfig[]>([]);
-    const connections = useRefState<ConnectionConfig[]>([]);
     const canvasPosition = useRefState<Coordinates>({x: 0, y: 0});
-    const zoom = useRefState<number>(100);
-    const scale = useRefState<number>(zoom.ref.current != 0 ? 1 / (zoom.ref.current / 100) : 0);
-    const variables = useRefState<VariableConfig[]>([]);
-    const types = useRefState<GraphType[]>([]);
     const computedResult = useRefState<Map<string, any>>(new Map());
+    const graph = useRefState<Graph>(new Graph());
 
-    useEffect(() => {
-        scale.update(zoom.ref.current != 0 ? 1 / (zoom.ref.current / 100) : 0);
-    }, [zoom.lastUpdated]);
+    const scale = computed(() => {
+        const zoom = graph.ref.current.getZoom().value;
+        return zoom != 0 ? 1 / (zoom / 100) : 0;
+    });
 
     const addNode = useCallback((node: NodeConfig) => {
-        const index = nodes.ref.current.findIndex((n: NodeConfig) => n.id === node.id);
-
-        if (index === -1) {
-            nodes.ref.current.push(node);
-            nodes.setLastUpdated(Date.now());
-        }
+        graph.ref.current.addNode(node);
     }, []);
 
     const updateNode = useCallback((node: PartialNodeConfig) => {
-        const index = nodes.ref.current.findIndex((n: NodeConfig) => n.id === node.id);
-
-        if (index !== -1) {
-            nodes.ref.current[index] = {...nodes.ref.current[index], ...node};
-            nodes.setLastUpdated(Date.now());
-        }
-    }, []);
-
-    const removeConnectionsByPredicate = useCallback((predicate: (conn: ConnectionConfig) => boolean) => {
-        let index: number;
-
-        while ((index = connections.ref.current.findIndex(predicate)) !== -1) {
-            connections.ref.current.splice(index, 1);
-        }
-
-        connections.setLastUpdated(Date.now());
+        graph.ref.current.updateNode(node);
     }, []);
 
     const removeNode = useCallback((id: string) => {
-        const index = nodes.ref.current.findIndex((n: NodeConfig) => n.id === id);
-
-        if (index !== -1) {
-            if (nodes.ref.current.at(index)?.type === NodeType.SET) {
-                removeVariable(id);
-            }
-
-            nodes.ref.current.splice(index, 1);
-            removeConnectionsByPredicate(conn => (conn.from.id === id || conn.to.id === id));
-            nodes.setLastUpdated(Date.now());
-        }
+        graph.ref.current.removeNode(id);
     }, []);
 
     const removeNodes = useCallback((ids: string[]) => {
-        for (const id of ids) {
-            removeNode(id);
-        }
+        graph.ref.current.removeNodes(ids);
     }, []);
 
     const addNodeInput = useCallback((id: string, input: InputConfig) => {
-        const node = nodes.ref.current.find((n: NodeConfig) => n.id === id);
-
-        if (node) {
-            if ((node.inputs?.findIndex((i: InputConfig): boolean => i.id === input.id) ?? -1) === -1) {
-                updateNode({...node, inputs: [...(node.inputs || []), input]});
-            }
-        }
-    }, [updateNode]);
+        graph.ref.current.addNodeInput(id, input);
+    }, []);
 
     const updateNodeInput = useCallback((id: string, input: PartialInputConfig) => {
-        const node = nodes.ref.current.find((n: NodeConfig) => n.id === id);
-
-        if (node) {
-            const index = node.inputs?.findIndex((i: InputConfig): boolean => i.id === input.id);
-
-            if (index !== -1) {
-                updateNode({...node, inputs: node.inputs?.map((i) => i.id === input.id ? {...i, ...filterObject(input, undefined)} : i)});
-            }
-        }
-    }, [updateNode]);
+        graph.ref.current.updateNodeInput(id, input);
+    }, []);
 
     const setNodeInputs = useCallback((id: string, inputs: InputConfig[]) => {
-        const node = nodes.ref.current.find((n: NodeConfig) => n.id === id);
-
-        if (node) {
-            updateNode({...node, inputs});
-        }
-    }, [updateNode]);
+        graph.ref.current.setNodeInputs(id, inputs);
+    }, []);
 
     const removeNodeInput = useCallback((nodeId: string, inputId: string) => {
-        const node = nodes.ref.current.find((n: NodeConfig) => n.id === nodeId);
-
-        if (node) {
-            updateNode({...node, inputs: node.inputs?.filter((input: InputConfig) => input.id !== inputId)});
-        }
-    }, [updateNode]);
+        graph.ref.current.removeNodeInput(nodeId, inputId);
+    }, []);
 
     const setInputDefaultValue = useCallback((nodeId: string, inputId: string, value: any) => {
-        const node = nodes.ref.current.find((n: NodeConfig) => n.id === nodeId);
-
-        if (node) {
-            updateNode({...node, inputs: node.inputs?.map((i: InputConfig) => i.id === inputId ? {...i, defaultValue: value} : i)})
-        }
-    }, [updateNode]);
+        graph.ref.current.setInputDefaultValue(nodeId, inputId, value);
+    }, []);
 
     const addNodeOutput = useCallback((id: string, output: OutputConfig) => {
-        const node = nodes.ref.current.find((n: NodeConfig) => n.id === id);
-
-        if (node) {
-            if ((node.outputs?.findIndex((i: OutputConfig): boolean => i.id === output.id) ?? -1) === -1) {
-                updateNode({...node, outputs: [...(node.outputs || []), output]});
-            }
-        }
-    }, [updateNode]);
+        graph.ref.current.addNodeOutput(id, output);
+    }, []);
 
     const updateNodeOutput = useCallback((id: string, output: PartialOutputConfig) => {
-        const node = nodes.ref.current.find((n: NodeConfig) => n.id === id);
-
-        if (node) {
-            const index = node.outputs?.findIndex((o: OutputConfig): boolean => o.id === output.id);
-
-            if (index !== -1) {
-                updateNode({...node, outputs: node.outputs?.map((o) => o.id === output.id ? {...o, ...filterObject(output, undefined)} : o)});
-            }
-        }
-    }, [updateNode]);
+        graph.ref.current.updateNodeOutput(id, output);
+    }, []);
 
     const setNodeOutputs = useCallback((id: string, outputs: OutputConfig[]) => {
-        const node = nodes.ref.current.find((n: NodeConfig) => n.id === id);
-
-        if (node) {
-            updateNode({...node, outputs});
-        }
-    }, [updateNode]);
+        graph.ref.current.setNodeOutputs(id, outputs);
+    }, []);
 
     const removeNodeOutput = useCallback((nodeId: string, outputId: string) => {
-        const node = nodes.ref.current.find((n: NodeConfig) => n.id === nodeId);
-
-        if (node) {
-            updateNode({...node, outputs: node.outputs?.filter((output: OutputConfig) => output.id !== outputId)});
-        }
-    }, [updateNode]);
+        graph.ref.current.removeNodeOutput(nodeId, outputId);
+    }, []);
 
     const addNodeBranch = useCallback((id: string, branch: OutputBranchConfig) => {
-        const node = nodes.ref.current.find((n: NodeConfig) => n.id === id);
-
-        if (node) {
-            if ((node.branches?.findIndex((b: OutputBranchConfig): boolean => b.id === branch.id) ?? -1) === -1) {
-                updateNode({...node, branches: [...(node.branches || []), branch]});
-            }
-        }
+        graph.ref.current.addNodeBranch(id, branch);
     }, []);
 
     const removeNodeBranch = useCallback((nodeId: string, branchId: string) => {
-        const node = nodes.ref.current.find((n: NodeConfig) => n.id === nodeId);
-
-        if (node) {
-            updateNode({...node, branches: node.branches?.filter((b: OutputBranchConfig) => b.id !== branchId)});
-        }
+        graph.ref.current.removeNodeBranch(nodeId, branchId);
     }, []);
 
     const setNodeBranches = useCallback((id: string, branches: OutputBranchConfig[]) => {
-        const node = nodes.ref.current.find((n: NodeConfig) => n.id === id);
-
-        if (node) {
-            updateNode({...node, branches: branches});
-        }
-    }, [updateNode]);
+        graph.ref.current.setNodeBranches(id, branches);
+    }, []);
 
     const setOutputName = useCallback((nodeId: string, outputId: string, name: string) => {
-        const node = nodes.ref.current.find((n: NodeConfig) => n.id === nodeId);
-
-        if (node) {
-            const output = node.outputs?.find((o: OutputConfig) => o.id === outputId);
-
-            if (output) {
-                output.name = name;
-                updateNode({...node, outputs: node.outputs?.map((o: OutputConfig) => o.id === outputId ? output : o)});
-            }
-        }
-    }, [updateNode]);
+        graph.ref.current.setOutputName(nodeId, outputId, name);
+    }, []);
 
     const setInputName = useCallback((nodeId: string, inputId: string, name: string) => {
-        const node = nodes.ref.current.find((n: NodeConfig) => n.id === nodeId);
-
-        if (node) {
-            const input = node.inputs?.find((i: InputConfig) => i.id === inputId);
-
-            if (input) {
-                input.name = name;
-                updateNode({...node, inputs: node.inputs?.map((i: InputConfig) => i.id === inputId ? input : i)});
-            }
-        }
-    }, [updateNode]);
+        graph.ref.current.setInputName(nodeId, inputId, name);
+    }, []);
 
     const addConnection = useCallback((connection: ConnectionConfig) => {
-        const index = connections.ref.current.findIndex((c: ConnectionConfig) => {
-            return c.from.id === connection.from.id && c.from.pin === connection.from.pin && 
-                c.to.id === connection.to.id && c.to.pin === connection.to.pin;
-        });
-        
-        if (index === -1) {
-            connections.ref.current.push(connection);
-            connections.setLastUpdated(Date.now());
-        }
+        graph.ref.current.addConnection(connection);
     }, []);
 
     const removeConnections = useCallback((from?: ConnectorConfig, to?: ConnectorConfig) => {
-        let predicate: (conn: ConnectionConfig) => boolean;
+        graph.ref.current.removeConnections(from, to);
+    }, []);
 
-        if (from && to) {
-            predicate = (conn: ConnectionConfig): boolean => (conn.from.id === from.id && conn.from.pin === from.pin && conn.to.id === to.id && conn.to.pin === to.pin);
-        } else if (from) {
-            predicate = (conn: ConnectionConfig): boolean => (conn.from.id === from.id && conn.from.pin === from.pin);
-        } else if (to) {
-            predicate = (conn: ConnectionConfig) => (conn.to.id === to.id && conn.to.pin === to.pin);
-        } else {
-            return ;
-        }
-
-        removeConnectionsByPredicate(predicate);
-    }, [removeConnectionsByPredicate]);
-
-    const loadGraph = useCallback((graph: AppConfig) => {
-        setName(graph.name);
-        nodes.update(graph.nodes);
-        connections.update(graph.connections ?? []);
-        zoom.update(graph.zoom ?? 100);
-        types.update(graph.types ?? []);
-        variables.update(Array.isArray(graph.variables) ? graph.variables : []);
+    const loadGraph = useCallback((config: AppConfig) => {
+        graph.ref.current.loadGraph(config);
     }, []);
 
     const zoomIn = useCallback(() => {
-        if (zoom.ref.current >= 200) return; // Prevent zooming in too far
-        zoom.update(zoom.ref.current + 2);
+        graph.ref.current.zoomIn();
     }, []);
 
     const zoomOut = useCallback(() => {
-        if (zoom.ref.current <= 2) return; // Prevent zooming out too far
-        zoom.update(zoom.ref.current - 2);
+        graph.ref.current.zoomOut();
     }, []);
 
     const setVariable = useCallback((id: string, name: string, type: string, isCollection: boolean) => {
-        const variable = variables.ref.current.find(v => v.id === id);
-
-        if (variable) {
-            variable.name = name;
-            variable.type = type;
-            variable.isCollection = isCollection;
-        } else {
-            variables.ref.current.push({id, name, type, isCollection});
-        }
-
-        variables.setLastUpdated(Date.now());
+        graph.ref.current.setVariable(id, name, type, isCollection);
     }, []);
 
     const removeVariable = useCallback((id: string) => {
-        const index = variables.ref.current.findIndex(v => v.id === id);
-
-        if (index !== -1) {
-            variables.ref.current.splice(index, 1);
-            variables.setLastUpdated(Date.now());
-        }
+        graph.ref.current.removeVariable(id);
     }, []);
 
     const setNodeContext = useCallback((nodeId: string, context: Map<string, any>) => {
-        const node = nodes.ref.current.find((n: NodeConfig) => n.id === nodeId);
-
-        if (node) {
-            updateNode({...node, context: JSON.stringify(Object.fromEntries(context))});
-        }
-    }, [updateNode]);
+        graph.ref.current.setNodeContext(nodeId, context);
+    }, []);
 
     return <GraphContext.Provider value={{
-        name,
-        nodes,
-        connections,
-        zoom,
+        graph: graph.ref.current,
+        name: graph.ref.current.getName(),
+        nodes: graph.ref.current.getNodes(),
+        connections: graph.ref.current.getConnections(),
+        zoom: graph.ref.current.getZoom(),
         scale,
         canvasPosition,
-        variables,
-        types,
+        variables: graph.ref.current.getVariables(),
+        types: graph.ref.current.getTypes(),
         computedResult,
         addNode,
         updateNode,

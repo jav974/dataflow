@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { InputPin, OutputBranchPin, OutputPin, Pin as PinType, useNodes } from "@/dataflow/contexts/NodeContext";
 import PinExecute from "./pin/PinExecute";
 import PinContinue from "./pin/PinContinue";
@@ -11,9 +11,11 @@ import NodeOutputs from "./NodeOutputs";
 import useHoverable from "@/dataflow/hooks/useHoverable";
 import { isOverlapping } from "../pixi/functions";
 import useFocusable from "@/dataflow/hooks/useFocusable";
+import { Signal, useComputed, useSignalEffect } from "@preact/signals-react";
+import useResizeObserver from "@/dataflow/hooks/useResizeObserver";
 
 export interface NodeProps {
-    node: NodeConfig;
+    node: Signal<NodeConfig>;
     children?: React.ReactNode;
     size?: { width: number; height: number };
     hasExecute?: boolean;
@@ -28,10 +30,11 @@ export interface NodeProps {
 }
 
 export default function Node({
-    node, children, size, hasExecute = true, hasContinue = true,
+    node: nodeSignal, children, size, hasExecute = true, hasContinue = true,
     inputMultiple = false, minInputParams = 0, inputMultipleType,
     outputMultiple = false, branchMultiple = false, minBranches = 0
  }: NodeProps) {
+    const [node, setNode] = useState<NodeConfig>(nodeSignal.value);
     const inputPinsRef = useRef<Map<string, HTMLDivElement | null>>(new Map());
     const outputPinsRef = useRef<Map<string, HTMLDivElement | null>>(new Map());
     const outputBranchPinsRef = useRef<Map<string, HTMLDivElement | null>>(new Map());
@@ -44,24 +47,28 @@ export default function Node({
     const selected = isSelected(node.id);
     const {isFocused, handlers: { onPointerDown, onContextMenu }} = useFocusable(containerRef);
 
-    const getScaledRelativePosition = useCallback((outerRect: DOMRect, innerRect: DOMRect, adjustments?: Coordinates): Coordinates => {
-        return {
-            x: (innerRect.left - outerRect.left) * scale.ref.current + (adjustments?.x ?? 0),
-            y: (innerRect.top - outerRect.top) * scale.ref.current + (adjustments?.y ?? 0),
-        }
-    }, []);
+    useSignalEffect(() => {
+        setNode(nodeSignal.value);
+    });
 
-    const getPin = useCallback((pinId: string, element: HTMLDivElement, containerRect: DOMRect, adjustments?: Coordinates): PinType => {
+    const getScaledRelativePosition = useComputed(() => (outerRect: DOMRect, innerRect: DOMRect, adjustments?: Coordinates): Coordinates => {
+        return {
+            x: (innerRect.left - outerRect.left) * scale.value + (adjustments?.x ?? 0),
+            y: (innerRect.top - outerRect.top) * scale.value + (adjustments?.y ?? 0),
+        }
+    });
+
+    const getPin = useComputed(() => (pinId: string, element: HTMLDivElement, containerRect: DOMRect, adjustments?: Coordinates): PinType => {
         const pinRect = element.getBoundingClientRect();
-        const position = getScaledRelativePosition(containerRect, pinRect, adjustments);
+        const position = getScaledRelativePosition.value(containerRect, pinRect, adjustments);
 
         return {
             id: pinId,
             position
         }
-    }, [getScaledRelativePosition]);
+    });
 
-    const measurePositions = useCallback(() => {
+    const measurePositions = useComputed(() => () => {
         const containerRect = containerRef.current?.getBoundingClientRect();
         if (!containerRect) return;
         
@@ -72,11 +79,11 @@ export default function Node({
         let continuePin: PinType | undefined = undefined;
 
         if (executeRef.current) {
-            executePin = getPin("execute", executeRef.current, containerRect, {x: 8, y: 12});
+            executePin = getPin.value("execute", executeRef.current, containerRect, {x: 8, y: 12});
         }
 
         if (continueRef.current) {
-            continuePin = getPin("continue", continueRef.current, containerRect, {x: 16, y: 12});
+            continuePin = getPin.value("continue", continueRef.current, containerRect, {x: 16, y: 12});
         }
 
         // Get input pin positions
@@ -84,7 +91,7 @@ export default function Node({
             const pinData = node.inputs?.find(input => input.id === key);
             
             if (pin && pinData) {
-                let data: InputPin = { ...getPin(key, pin, containerRect, {x: 4, y: 6}), ...pinData };
+                let data: InputPin = { ...getPin.value(key, pin, containerRect, {x: 4, y: 6}), ...pinData };
                 inputPins.push(data);
             }
         }
@@ -94,7 +101,7 @@ export default function Node({
             const pinData = node.outputs?.find(output => output.id === key);
 
             if (pin && pinData) {
-                let data: OutputPin = { ...getPin(key, pin, containerRect, {x: 4, y: 6}), ...pinData };
+                let data: OutputPin = { ...getPin.value(key, pin, containerRect, {x: 4, y: 6}), ...pinData };
                 outputPins.push(data);
             }
         }
@@ -104,37 +111,15 @@ export default function Node({
             const pinData = node.branches?.find(branch => branch.id === key);
 
             if (pin && pinData) {
-                let data: OutputBranchPin = { ...getPin(key, pin, containerRect, {x: 14, y: 10}), ...pinData };
+                let data: OutputBranchPin = { ...getPin.value(key, pin, containerRect, {x: 14, y: 10}), ...pinData };
                 outputBranchPins.push(data);
             }
         }
 
         registerNode(node, inputPins, outputPins, outputBranchPins, executePin, continuePin);
-    }, [node, registerNode, getPin]);
+    });
 
-    useEffect(() => {
-        if (!containerRef.current) return;
-
-        // Create ResizeObserver to track position changes
-        const resizeObserver = new ResizeObserver(() => {
-            setTimeout(measurePositions, 100);
-        });
-
-        resizeObserver.observe(containerRef.current);
-
-        return () => {
-            resizeObserver.disconnect();
-        };
-    }, [measurePositions]);
-
-    useEffect(() => {
-        // Initial measurement with delay
-        const timeout = setTimeout(measurePositions, 100);
-
-        return () => {
-            clearTimeout(timeout);
-        };
-    }, [measurePositions]);
+    useResizeObserver(containerRef, measurePositions.value);
 
     useEffect(() => {
         if (!containerRef.current || !selectionArea.ref.current) return;

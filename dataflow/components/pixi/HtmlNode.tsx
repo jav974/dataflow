@@ -4,19 +4,48 @@ import useDraggable from '@/dataflow/hooks/useDraggable';
 import { useEffect, useState } from 'react';
 import { useNodes } from '@/dataflow/contexts/NodeContext';
 import { NodeConfig } from '../../config/schema';
+import { Signal, useSignalEffect } from "@preact/signals-react";
 
 interface HtmlNodeProps extends PixiReactElementProps<typeof DOMContainer> {
-    node: NodeConfig;
+    node: Signal<NodeConfig>;
 }
 
-export default function HtmlNode({ node, ...props }: HtmlNodeProps) {
+export default function HtmlNode({ node: nodeSignal, ...props }: HtmlNodeProps) {
     useExtend({DOMContainer});
 
-    const { position, positionSignal, handlers, lastUpdated: positionLastUpdated } = useDraggable(node.position, true, true);
+    const [node, setNode] = useState<NodeConfig>(nodeSignal.value);
     const [layout, setLayout] = useState<HTMLElement | undefined>(undefined);
-    const { updateNodePosition, setRenderTarget, isSelected, selectedNodes, nodes } = useNodes();
-    const [ selected, setSelected ] = useState<boolean>(false);
+    const { position, positionSignal, handlers } = useDraggable(node.position, false, false);
+    const { updateNodePosition, setRenderTarget } = useNodes();
     
+    // Update node when node signal changes
+    useSignalEffect(() => {
+        if (node !== nodeSignal.value) {
+            position.x = nodeSignal.value.position.x;
+            position.y = nodeSignal.value.position.y;
+            
+            // Update draggable position according to new node data
+            if (
+                positionSignal.value.x !== nodeSignal.value.position.x ||
+                positionSignal.value.y !== nodeSignal.value.position.y
+            ) {
+                positionSignal.value = {...nodeSignal.value.position};
+            }
+
+            setNode(nodeSignal.value);
+        }
+    });
+
+    // Update node position (as well as other selected nodes position)
+    useSignalEffect(() => {
+        if (
+            positionSignal.value.x !== nodeSignal.value.position.x ||
+            positionSignal.value.y !== nodeSignal.value.position.y
+        ) {
+            updateNodePosition(nodeSignal.value.id, positionSignal.value.x, positionSignal.value.y);
+        }
+    });
+
     useEffect(() => {
         const _layout = document.createElement('div');
         _layout.id = node.id;
@@ -40,33 +69,13 @@ export default function HtmlNode({ node, ...props }: HtmlNodeProps) {
         setRenderTarget(node.id, layout);
     }, [layout, node.id, setRenderTarget]);
 
-    // useEffect(() => {
-    //     updateNodePosition(node.id, position.x, position.y);
-    // }, [updateNodePosition, node.id, positionLastUpdated]);
-
-    useEffect(() => {
-        setSelected(isSelected(node.id));
-    }, [node.id, selectedNodes.lastUpdated]);
-
-    // Update the current position of useDraggable upon group selection drag
-    // This is to ensure that next time we move a node that was part of a selection, we get it's current position
-    // Otherwise the node would be briefly teleported to its former location (before selection move)
-    useEffect(() => {
-        if (selected) {
-            position.x = node.position.x;
-            position.y = node.position.y;
-        }
-    }, [node.id, selected, nodes.lastUpdated]);
-
     if (!layout) return null;
 
     return (
         <pixiDOMContainer
             element={layout}
             x={node.position.x}
-            // x={positionSignal.value.x}
             y={node.position.y}
-            // y={positionSignal.value.y}
             eventMode="none"
             {...props}
         />

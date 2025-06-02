@@ -14,6 +14,7 @@ import Checkbox from "@/dataflow/components/forms/Checkbox";
 import Tooltip from "@/dataflow/components/ui/Tooltip";
 import { v4 as uuidv4 } from "uuid";
 import useKnownTypes from "@/dataflow/hooks/useKnownTypes";
+import { useComputed } from "@preact/signals-react";
 
 interface TypeDefNodeProps extends NodeProps {
 }
@@ -34,16 +35,15 @@ export default function TypeDefNode({node}: TypeDefNodeProps) {
             })).required()
         });
     }, []);
-    const type = useMemo((): GraphType | undefined => {
-        return types.ref.current.find((type: GraphType) => type.id === node.id);
-    }, [node.id, types.lastUpdated]);
+
+    const type = useComputed(() => types.value.find((type) => type.value.id === node.value.id)?.value);
 
     const methods = useForm({
         resolver: yupResolver(schema),
         defaultValues: {
-            id: node.id,
-            name: type?.name ?? '',
-            properties: type?.properties ?? [
+            id: node.value.id,
+            name: type.value?.name ?? '',
+            properties: type.value?.properties ?? [
                 {
                     id: uuidv4(),
                     name: "",
@@ -60,16 +60,14 @@ export default function TypeDefNode({node}: TypeDefNodeProps) {
     });
 
     const onSubmit = useCallback((data: TypeDefinition) => {
-        const type = types.ref.current.find((type: GraphType) => type.id === data.id);
+        const type = types.value.find((type) => type.value.id === data.id);
 
-        if (!type) {
-            types.ref.current.push(data);
-        } else {
-            type.name = data.name;
-            type.properties = data.properties;
-        }
-
-        types.setLastUpdated(Date.now());
+        // if (!type) {
+        //     types.ref.current.push(data);
+        // } else {
+        //     type.name = data.name;
+        //     type.properties = data.properties;
+        // }
     }, []);
 
     const onBlur = useCallback(() => {
