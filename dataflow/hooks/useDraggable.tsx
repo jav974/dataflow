@@ -14,7 +14,10 @@ interface UseDraggableReturn {
     }
 }
 
-export default function useDraggable(initialPosition: Coordinates = { x: 0, y: 0 }): UseDraggableReturn {
+export default function useDraggable(
+    initialPosition: Coordinates = { x: 0, y: 0 },
+    onPositionUpdated?: (position: Coordinates) => void
+): UseDraggableReturn {
     const {scale} = useGraphContext();
     const isDraggingRef = useRef<boolean>(false);
     const lastPosRef = useRef<Coordinates | undefined>(undefined);
@@ -31,7 +34,11 @@ export default function useDraggable(initialPosition: Coordinates = { x: 0, y: 0
             position.ref.current.x += dx;
             position.ref.current.y += dy;
 
-            position.setLastUpdated(Date.now());
+            if (onPositionUpdated) {
+                onPositionUpdated(position.ref.current);
+            } else {
+                position.setLastUpdated(Date.now());
+            }
         }
     }, []);
 

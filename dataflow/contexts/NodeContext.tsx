@@ -4,6 +4,7 @@ import { useGraphContext } from './GraphContext';
 import { RefState, useRefState } from '@/dataflow/hooks/useRefState';
 import { Size } from 'pixi.js';
 import { GraphResult } from '@/dataflow/engine/types';
+import { emitNodePositionUpdated, emitNodeUpdated } from '../events/events';
 
 export interface Pin {
     id: string;
@@ -121,14 +122,15 @@ export function NodeProvider({ children }: { children: React.ReactNode }) {
                     if (isSelected(n.mutableNodeConfig.id)) {
                         n.mutableNodeConfig.position.x += deltaX;
                         n.mutableNodeConfig.position.y += deltaY;
+                        emitNodeUpdated(n.mutableNodeConfig.id);
+                        emitNodePositionUpdated(n.mutableNodeConfig.id);
                     }
                 }
             } else { // Otherwise simply update its position
                 node.mutableNodeConfig.position.x = x;
                 node.mutableNodeConfig.position.y = y;
+                emitNodeUpdated(node.mutableNodeConfig.id);
             }
-            
-            nodes.setLastUpdated(Date.now());
         }
     }, []);
 

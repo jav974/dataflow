@@ -2,14 +2,15 @@ import React, { createContext, useCallback, useContext, useEffect, useState } fr
 import { AppConfig, ConnectionConfig, ConnectorConfig, Coordinates, GraphType, InputConfig, NodeConfig, NodeType, OutputBranchConfig, OutputConfig, VariableConfig } from "@/dataflow/config/schema";
 import { RefState, useRefState } from "@/dataflow/hooks/useRefState";
 import { filterObject } from "@/dataflow/engine/utils";
+import { useRefSignal, useRefSignalEffect, UseRefSignalReturn } from "../hooks/useRefSignal";
 
 interface GraphContextType {
     name: string;
     nodes: RefState<NodeConfig[]>;
     connections: RefState<ConnectionConfig[]>;
-    zoom: RefState<number>;
-    scale: RefState<number>;
-    canvasPosition: RefState<Coordinates>;
+    zoom: UseRefSignalReturn<number>;
+    scale: UseRefSignalReturn<number>;
+    canvasPosition: UseRefSignalReturn<Coordinates>;
     variables: RefState<VariableConfig[]>;
     types: RefState<GraphType[]>;
     computedResult: RefState<Map<string, any>>;
@@ -50,16 +51,16 @@ export function GraphProvider({children}: GraphProviderProps) {
     const [name, setName] = useState<string>("");
     const nodes = useRefState<NodeConfig[]>([]);
     const connections = useRefState<ConnectionConfig[]>([]);
-    const canvasPosition = useRefState<Coordinates>({x: 0, y: 0});
-    const zoom = useRefState<number>(100);
-    const scale = useRefState<number>(zoom.ref.current != 0 ? 1 / (zoom.ref.current / 100) : 0);
+    const canvasPosition = useRefSignal<Coordinates>({x: 0, y: 0});
+    const zoom = useRefSignal<number>(100);
+    const scale = useRefSignal<number>(zoom.ref.current != 0 ? 1 / (zoom.ref.current / 100) : 0);
     const variables = useRefState<VariableConfig[]>([]);
     const types = useRefState<GraphType[]>([]);
     const computedResult = useRefState<Map<string, any>>(new Map());
 
-    useEffect(() => {
+    useRefSignalEffect(() => {
         scale.update(zoom.ref.current != 0 ? 1 / (zoom.ref.current / 100) : 0);
-    }, [zoom.lastUpdated]);
+    }, [zoom]);
 
     const addNode = useCallback((node: NodeConfig) => {
         const index = nodes.ref.current.findIndex((n: NodeConfig) => n.id === node.id);

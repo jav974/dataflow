@@ -8,6 +8,7 @@ import { useGraphContext } from '@/dataflow/contexts/GraphContext';
 import usePointerPosition from '@/dataflow/hooks/usePointerPosition';
 import { BACKGROUND_LINE_STYLE, COLOR_BLUE } from '../../config/style';
 import { useFetchPersistedState } from '@/dataflow/hooks/usePersistedState';
+import { useRefSignalEffect } from '@/dataflow/hooks/useRefSignal';
 
 export default function Background() {
     useExtend({Container});
@@ -33,18 +34,17 @@ export default function Background() {
     }), []);
 
     // Update canvas position after background position or scale changes
-    useEffect(() => {
-        canvasPosition.ref.current = { x: position.x / scale.ref.current, y: position.y / scale.ref.current };
-        canvasPosition.setLastUpdated(positionLastUpdated);
-    }, [positionLastUpdated, scale.lastUpdated]);
+    useRefSignalEffect(() => {
+        canvasPosition.update({ x: position.x / scale.ref.current, y: position.y / scale.ref.current });
+    }, [positionLastUpdated, scale]);
 
     // Reset background position according to canvas position external change
-    useEffect(() => {
-        if (canvasPosition.lastUpdated > positionLastUpdated) {
-            position.x = canvasPosition.ref.current.x;
-            position.y = canvasPosition.ref.current.y;
-        }
-    }, [canvasPosition.lastUpdated, positionLastUpdated]);
+    // useEffect(() => {
+    //     if (canvasPosition.lastUpdated > positionLastUpdated) {
+    //         position.x = canvasPosition.ref.current.x;
+    //         position.y = canvasPosition.ref.current.y;
+    //     }
+    // }, [canvasPosition.lastUpdated, positionLastUpdated]);
 
     // Update selection area when selection is started and pointer position changes
     useEffect(() => {
@@ -137,7 +137,7 @@ export default function Background() {
         onRightClick={handleRightClick}
         onPointerUp={handlePointerUp}
     >
-        <FastGraphics draw={draw} drawDependencies={[canvasPosition.lastUpdated]} />
+        <FastGraphics draw={draw} drawDependencies={[canvasPosition]} />
         <FastGraphics draw={drawSelection} drawDependencies={[selectionArea.lastUpdated]} />
     </pixiContainer>
 }

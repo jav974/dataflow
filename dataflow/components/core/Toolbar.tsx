@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import PlayButton from "../buttons/PlayButton";
 import { useUserGraph } from "@/dataflow/contexts/UserGraphContext";
 import NewGraphButton from "../buttons/NewGraphButton";
@@ -13,6 +13,7 @@ import { useDataflowContext } from "@/dataflow/contexts/DataflowContext";
 import { OptionProps } from "../forms/Select";
 import ResetViewButton from "../buttons/ResetViewButton";
 import ZoomResetButton from "../buttons/ZoomResetButton";
+import { useRefSignalRender } from "@/dataflow/hooks/useRefSignal";
 
 export default function Toolbar() {
     const { graphs, loadGraph, graph, saveGraph, deleteGraph } = useUserGraph();
@@ -101,6 +102,8 @@ export default function Toolbar() {
             zoom.update(newZoom);
         }
     }, []);
+
+    useRefSignalRender([zoom]);
 
     return (
         <>

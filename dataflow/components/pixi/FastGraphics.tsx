@@ -1,6 +1,7 @@
+import { useRefSignalEffect } from "@/dataflow/hooks/useRefSignal";
 import { PixiReactElementProps, useExtend } from "@pixi/react";
 import { Graphics } from "pixi.js";
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useRef } from "react";
 
 interface FastGraphicsProps extends PixiReactElementProps<typeof Graphics> {
     drawDependencies?: any[];
@@ -12,7 +13,7 @@ export default function FastGraphics({draw, drawDependencies, ...props}: FastGra
     const graphicsRef = useRef<Graphics>(null);
     const emptyDraw = useCallback(() => {}, []);
     
-    useEffect(() => {
+    useRefSignalEffect(() => {
         const g = graphicsRef.current;
         
         if (g) {

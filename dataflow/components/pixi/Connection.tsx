@@ -1,9 +1,10 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Texture } from "pixi.js";
 import { ConnectorConfig, Coordinates } from "../../config/schema";
 import { Node, Pin, useNodes } from "@/dataflow/contexts/NodeContext";
 import { LineTextures } from "./textures";
 import BezierCurve from "./BezierCurve";
+import { useNodeLastUpdated } from "@/dataflow/hooks/useLastUpdated";
 
 interface ConnectionProps {
     from: ConnectorConfig;
@@ -19,6 +20,25 @@ export default function Connection({from, to}: ConnectionProps) {
     const fromPos = useRef<Coordinates | undefined>(undefined);
     const toPos = useRef<Coordinates | undefined>(undefined);
     const [texture, setTexture] = useState<Texture | null>(null);
+    const fromNodeUpdatedAt = useNodeLastUpdated(from.id);
+    const toNodeUpdatedAt = useNodeLastUpdated(to.id);
+
+    const computePositions = useCallback(() => {
+        if (fromNode.current && fromPin.current && toNode.current && toPin.current) {
+            const tmpFrom: Coordinates = { x: fromNode.current.mutableNodeConfig.position.x + fromPin.current.position.x, y: fromNode.current.mutableNodeConfig.position.y + fromPin.current.position.y };
+            const tmpTo: Coordinates = { x: toNode.current.mutableNodeConfig.position.x + toPin.current.position.x, y: toNode.current.mutableNodeConfig.position.y + toPin.current.position.y };
+
+            if (fromPos.current?.x !== tmpFrom.x || fromPos.current?.y !== tmpFrom.y
+                || toPos.current?.x !== tmpTo.x || toPos.current?.y !== tmpTo.y
+            ) {
+                fromPos.current = tmpFrom;
+                toPos.current = tmpTo;
+            }
+        } else {
+            fromPos.current = undefined;
+            toPos.current = undefined;
+        }
+    }, []);
 
     useEffect(() => {
         // Initialize nodes
@@ -59,22 +79,7 @@ export default function Connection({from, to}: ConnectionProps) {
             }
         }
 
-        // Compute position
-        if (fromNode.current && fromPin.current && toNode.current && toPin.current) {
-            const tmpFrom: Coordinates = { x: fromNode.current.mutableNodeConfig.position.x + fromPin.current.position.x, y: fromNode.current.mutableNodeConfig.position.y + fromPin.current.position.y };
-            const tmpTo: Coordinates = { x: toNode.current.mutableNodeConfig.position.x + toPin.current.position.x, y: toNode.current.mutableNodeConfig.position.y + toPin.current.position.y };
-            
-            // Trigger redraw if position has changed
-            if (fromPos.current?.x !== tmpFrom.x || fromPos.current?.y !== tmpFrom.y
-                || toPos.current?.x !== tmpTo.x || toPos.current?.y !== tmpTo.y
-            ) {
-                fromPos.current = tmpFrom;
-                toPos.current = tmpTo;
-            }
-        } else {
-            fromPos.current = undefined;
-            toPos.current = undefined;
-        }
+        computePositions();
 
         return () => {
             fromNode.current = undefined;
@@ -82,7 +87,11 @@ export default function Connection({from, to}: ConnectionProps) {
             fromPos.current = undefined;
             toPos.current = undefined;
         };
-    }, [from, to, nodes.lastUpdated]);
+    }, [from, to, computePositions, nodes.lastUpdated]);
+
+    useEffect(() => {
+        computePositions();
+    }, [fromNodeUpdatedAt, toNodeUpdatedAt]);
 
     if (!fromPos.current || !toPos.current) {
         return null;
