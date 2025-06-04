@@ -1,6 +1,6 @@
 import { useExtend } from '@pixi/react';
 import { Container, FederatedPointerEvent, Graphics } from 'pixi.js';
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback, useMemo, useRef } from 'react';
 import FastGraphics from './FastGraphics';
 import useDraggable from '@/dataflow/hooks/useDraggable';
 import { PointerEventType, useNodes } from '@/dataflow/contexts/NodeContext';
@@ -16,6 +16,7 @@ export default function Background() {
     const { scale, canvasPosition } = useGraphContext();
     const { position, handlers } = useDraggable(canvasPosition.ref.current);
     const { onPointerUp, openContextMenu, selectionArea, selectionStart, startSelection, stopSelection } = useNodes();
+    const prevScale = useRef<number>(scale.ref.current);
 
     const backgroundSettings = useMemo(() => ({
         spacing: 40,
@@ -35,10 +36,15 @@ export default function Background() {
     // This is to avoid a brief teleport to former location before scale apply
     useRefSignalEffect(() => {
         if (scale.lastUpdated.current > position.lastUpdated.current) {
-            position.update({
-                x: position.ref.current.x * scale.ref.current,
-                y: position.ref.current.y * scale.ref.current,
-            })
+            const scaleDelta = scale.ref.current / prevScale.current;
+
+            prevScale.current = scale.ref.current;
+            position.ref.current = {
+                x: position.ref.current.x * scaleDelta,
+                y: position.ref.current.y * scaleDelta,
+            };
+            
+            position.notify();
         }
     }, [scale]);
 
