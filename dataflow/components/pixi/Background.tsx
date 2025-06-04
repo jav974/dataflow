@@ -1,22 +1,20 @@
 import { useExtend } from '@pixi/react';
-import { Container, FederatedPointerEvent, Graphics, Size } from 'pixi.js';
-import React, { useCallback, useEffect, useMemo } from 'react';
+import { Container, FederatedPointerEvent, Graphics } from 'pixi.js';
+import React, { useCallback, useMemo } from 'react';
 import FastGraphics from './FastGraphics';
 import useDraggable from '@/dataflow/hooks/useDraggable';
 import { PointerEventType, useNodes } from '@/dataflow/contexts/NodeContext';
 import { useGraphContext } from '@/dataflow/contexts/GraphContext';
-import usePointerPosition from '@/dataflow/hooks/usePointerPosition';
 import { BACKGROUND_LINE_STYLE, COLOR_BLUE } from '../../config/style';
-import { useFetchPersistedState } from '@/dataflow/hooks/usePersistedState';
 import { useRefSignalEffect } from '@/dataflow/hooks/useRefSignal';
+import { useDashboardContext } from '@/dataflow/contexts/DashboardContext';
 
 export default function Background() {
     useExtend({Container});
 
-    const { width, height } = useFetchPersistedState<Size>("dataflow-canvas-size", { width: 0, height: 0 });
+    const { canvasRect, pointerPosition } = useDashboardContext();
     const { scale, canvasPosition } = useGraphContext();
-    const { position, lastUpdated: positionLastUpdated, handlers } = useDraggable(canvasPosition.ref.current);
-    const { position: pointerPosition, lastUpdated: pointerPositionLastUpdated } = usePointerPosition();
+    const { position, handlers } = useDraggable(canvasPosition.ref.current);
     const { onPointerUp, openContextMenu, selectionArea, selectionStart, startSelection, stopSelection } = useNodes();
 
     const backgroundSettings = useMemo(() => ({
@@ -33,40 +31,67 @@ export default function Background() {
         alpha: 0.5,
     }), []);
 
-    // Update canvas position after background position or scale changes
+    // Update position after scale changes
+    // This is to avoid a brief teleport to former location before scale apply
     useRefSignalEffect(() => {
-        canvasPosition.update({ x: position.x / scale.ref.current, y: position.y / scale.ref.current });
-    }, [positionLastUpdated, scale]);
+        if (scale.lastUpdated.current > position.lastUpdated.current) {
+            position.update({
+                x: position.ref.current.x * scale.ref.current,
+                y: position.ref.current.y * scale.ref.current,
+            })
+        }
+    }, [scale]);
+
+    // Update canvas position after background position changes
+    useRefSignalEffect(() => {
+        if (canvasPosition.lastUpdated.current !== position.lastUpdated.current) {
+            canvasPosition.ref.current = {
+                x: position.ref.current.x / scale.ref.current,
+                y: position.ref.current.y / scale.ref.current
+            };
+            canvasPosition.lastUpdated.current = position.lastUpdated.current;
+            canvasPosition.notify();
+        }
+    }, [position]);
 
     // Reset background position according to canvas position external change
-    // useEffect(() => {
-    //     if (canvasPosition.lastUpdated > positionLastUpdated) {
-    //         position.x = canvasPosition.ref.current.x;
-    //         position.y = canvasPosition.ref.current.y;
-    //     }
-    // }, [canvasPosition.lastUpdated, positionLastUpdated]);
+    useRefSignalEffect(() => {
+        if (canvasPosition.lastUpdated.current !== position.lastUpdated.current) {
+            position.ref.current.x = canvasPosition.ref.current.x;
+            position.ref.current.y = canvasPosition.ref.current.y;
+            position.lastUpdated.current = canvasPosition.lastUpdated.current;
+        }
+    }, [canvasPosition]);
 
     // Update selection area when selection is started and pointer position changes
-    useEffect(() => {
-        if (selectionStart) {
+    useRefSignalEffect(() => {
+        if (selectionStart.ref.current) {
+            const pX = pointerPosition.ref.current.global.x;
+            const pY = pointerPosition.ref.current.global.y;
+            const sX = selectionStart.ref.current.x;
+            const sY = selectionStart.ref.current.y;
+
             selectionArea.update({
-                x: Math.min(selectionStart.x, pointerPosition.x),
-                y: Math.min(selectionStart.y, pointerPosition.y),
-                width: Math.abs(pointerPosition.x - selectionStart.x),
-                height: Math.abs(pointerPosition.y - selectionStart.y)
+                x: Math.min(sX, pX),
+                y: Math.min(sY, pY),
+                width: Math.abs(pX - sX),
+                height: Math.abs(pY - sY)
             });
         }
-    }, [selectionStart, pointerPositionLastUpdated]);
+    }, [selectionStart, pointerPosition]);
 
     // PIXI callback to draw the background grid
     const draw = useCallback((g: Graphics) => {
+        const width = canvasRect.ref.current?.width ?? 0;
+        const height = canvasRect.ref.current?.height ?? 0;
+
         g.clear();
         g.rect(0, 0, width, height);
         g.fill(backgroundFillSettings);
 
         const startOffset = 0;
-        const startX = startOffset + ((canvasPosition.ref.current.x / scale.ref.current) % backgroundSettings.spacing);
-        const startY = startOffset + ((canvasPosition.ref.current.y / scale.ref.current) % backgroundSettings.spacing);
+        const startX = startOffset + (canvasPosition.ref.current.x % backgroundSettings.spacing);
+        const startY = startOffset + (canvasPosition.ref.current.y % backgroundSettings.spacing);
 
         for (let x = startX; x < width; x += backgroundSettings.lineSpacing) {
             g.moveTo(x, 0);
@@ -79,7 +104,7 @@ export default function Background() {
         }
 
         g.stroke(BACKGROUND_LINE_STYLE);
-    }, [backgroundFillSettings, backgroundSettings, width, height]);
+    }, [backgroundFillSettings, backgroundSettings]);
 
     // Open context menu on right click
     const handleRightClick = useCallback((e: FederatedPointerEvent) => {
@@ -109,7 +134,7 @@ export default function Background() {
         if (e.ctrlKey) {    // Move canvas
             handlers.onPointerDown(e);
         } else {            // Create selection rectangle
-            startSelection({x: e.clientX, y: e.clientY});
+            startSelection({...pointerPosition.ref.current.global});
         }
     }, [handlers.onPointerDown]);
 
@@ -122,8 +147,8 @@ export default function Background() {
         }
 
         g.rect(
-            selectionArea.ref.current.x,
-            selectionArea.ref.current.y,
+            selectionArea.ref.current.x - (canvasRect.ref.current?.left ?? 0),
+            selectionArea.ref.current.y - (canvasRect.ref.current?.top ?? 0),
             selectionArea.ref.current.width,
             selectionArea.ref.current.height,
         );
@@ -137,7 +162,7 @@ export default function Background() {
         onRightClick={handleRightClick}
         onPointerUp={handlePointerUp}
     >
-        <FastGraphics draw={draw} drawDependencies={[canvasPosition]} />
-        <FastGraphics draw={drawSelection} drawDependencies={[selectionArea.lastUpdated]} />
+        <FastGraphics draw={draw} drawDependencies={[canvasPosition, canvasRect]} />
+        <FastGraphics draw={drawSelection} drawDependencies={[selectionArea]} />
     </pixiContainer>
 }

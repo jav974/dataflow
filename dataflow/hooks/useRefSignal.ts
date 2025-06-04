@@ -3,15 +3,16 @@ import React, { useCallback, useEffect, useReducer, useRef } from "react";
 type Listener<T> = (value: T) => void;
 const listenersMap = new WeakMap<object, Set<Listener<any>>>();
 
-export interface UseRefSignalReturn<T = unknown> {
+export interface RefSignal<T = unknown> {
     readonly ref: React.RefObject<T>;
+    readonly lastUpdated: React.RefObject<number>;
     readonly subscribe: (listener: Listener<T>) => void;
     readonly unsubscribe: (listener: Listener<T>) => void;
     readonly update: (value: T) => void;
     readonly notify: () => void;
 }
 
-function isUseRefSignalReturn<T>(obj: any): obj is UseRefSignalReturn<T> {
+function isUseRefSignalReturn<T>(obj: any): obj is RefSignal<T> {
     return (
         obj &&
         typeof obj.ref === "object" &&
@@ -29,11 +30,12 @@ function isUseRefSignalReturn<T>(obj: any): obj is UseRefSignalReturn<T> {
  * Call notify() after modifying ref.current directly
  * @param value 
  */
-export function useRefSignal<T>(value: T): UseRefSignalReturn<T>;
-export function useRefSignal<T>(value: T | null): UseRefSignalReturn<T | null>;
-export function useRefSignal<T>(value: T | undefined): UseRefSignalReturn<T | undefined>;
-export function useRefSignal<T>(value: T | null | undefined): UseRefSignalReturn<T | null | undefined> {
+export function useRefSignal<T>(value: T): RefSignal<T>;
+export function useRefSignal<T>(value: T | null): RefSignal<T | null>;
+export function useRefSignal<T>(value: T | undefined): RefSignal<T | undefined>;
+export function useRefSignal<T>(value: T | null | undefined): RefSignal<T | null | undefined> {
     const ref = useRef<T | null | undefined>(value);
+    const lastUpdated = useRef<number>(Date.now());
 
     const subscribe = useCallback((listener: Listener<T | null | undefined>) => {
         if (!listenersMap.has(ref)) {
@@ -61,6 +63,7 @@ export function useRefSignal<T>(value: T | null | undefined): UseRefSignalReturn
     const update = useCallback((value: T | null | undefined) => {
         if (ref.current !== value) {
             ref.current = value;
+            lastUpdated.current = Date.now();
             notify();
         }
     }, [ref, notify]);
@@ -73,6 +76,7 @@ export function useRefSignal<T>(value: T | null | undefined): UseRefSignalReturn
 
     return {
         ref,
+        lastUpdated,
         subscribe,
         unsubscribe,
         update,
@@ -107,7 +111,7 @@ export function useRefSignalEffect(callback: React.EffectCallback, dependencies:
  * Triggers re-render in component upon refSignal update
  * @param dependencies
  */
-export function useRefSignalRender<T = unknown>(dependencies: UseRefSignalReturn<T>[]): void {
+export function useRefSignalRender<T = unknown>(dependencies: RefSignal<T>[]): void {
     const [, forceUpdate] = useReducer((x) => x + 1, 0);
 
     useRefSignalEffect(forceUpdate, dependencies);

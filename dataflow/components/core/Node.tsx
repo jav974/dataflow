@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { InputPin, OutputBranchPin, OutputPin, Pin as PinType, useNodes } from "@/dataflow/contexts/NodeContext";
 import PinExecute from "./pin/PinExecute";
 import PinContinue from "./pin/PinContinue";
@@ -11,6 +11,8 @@ import NodeOutputs from "./NodeOutputs";
 import useHoverable from "@/dataflow/hooks/useHoverable";
 import { isOverlapping } from "../pixi/functions";
 import useFocusable from "@/dataflow/hooks/useFocusable";
+import { useRefSignalEffect } from "@/dataflow/hooks/useRefSignal";
+import useResizeObserver from "@/dataflow/hooks/useResizeObserver";
 
 export interface NodeProps {
     node: NodeConfig;
@@ -38,10 +40,10 @@ export default function Node({
     const containerRef = useRef<HTMLDivElement | null>(null);
     const executeRef = useRef<HTMLDivElement | null>(null);
     const continueRef = useRef<HTMLDivElement | null>(null);
-    const { registerNode, stopConnectionDrag, selectionArea, setSelected, isSelected, stopSelection } = useNodes();
+    const { registerNode, stopConnectionDrag, selectionArea, setSelected, isSelected, stopSelection, selectedNodes } = useNodes();
     const { removeNode, scale } = useGraphContext();
     const { isHovered, handleMouseEnter, handleMouseLeave } = useHoverable();
-    const selected = isSelected(node.id);
+    const [selected, setSelectedState] = useState<boolean>(false);
     const {isFocused, handlers: { onPointerDown, onContextMenu }} = useFocusable(containerRef);
 
     const getScaledRelativePosition = useCallback((outerRect: DOMRect, innerRect: DOMRect, adjustments?: Coordinates): Coordinates => {
@@ -112,20 +114,7 @@ export default function Node({
         registerNode(node, inputPins, outputPins, outputBranchPins, executePin, continuePin);
     }, [node, registerNode, getPin]);
 
-    useEffect(() => {
-        if (!containerRef.current) return;
-
-        // Create ResizeObserver to track position changes
-        const resizeObserver = new ResizeObserver(() => {
-            setTimeout(measurePositions, 100);
-        });
-
-        resizeObserver.observe(containerRef.current);
-
-        return () => {
-            resizeObserver.disconnect();
-        };
-    }, [measurePositions]);
+    useResizeObserver(containerRef, measurePositions);
 
     useEffect(() => {
         // Initial measurement with delay
@@ -136,7 +125,13 @@ export default function Node({
         };
     }, [measurePositions]);
 
-    useEffect(() => {
+    useRefSignalEffect(() => {
+        if (isSelected(node.id) !== selected) {
+            setSelectedState(!selected);
+        }
+    }, [node.id, selectedNodes, selected, isSelected]);
+
+    useRefSignalEffect(() => {
         if (!containerRef.current || !selectionArea.ref.current) return;
 
         const overlapping = isOverlapping(
@@ -147,7 +142,7 @@ export default function Node({
         if (overlapping !== selected) {
             setSelected(node.id, overlapping);
         }
-    }, [node.id, selectionArea.lastUpdated, isSelected, selected]);
+    }, [node.id, selectionArea, selected]);
 
     const handleDeleteNode = useCallback(() => {
         removeNode(node.id);

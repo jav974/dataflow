@@ -16,14 +16,14 @@ export default function ApplicationGraph() {
     useRefSignalEffect(() => {
         if (pixiRef.current) {
             pixiRef.current.scale = zoom.ref.current / 100;
-            pixiRef.current.position = canvasPosition.ref.current;
+            pixiRef.current.position = {...canvasPosition.ref.current};
         }
     }, [zoom, canvasPosition]);
 
     return (
         <pixiContainer
             ref={pixiRef}
-            position={canvasPosition.ref.current}
+            position={{...canvasPosition.ref.current}}
             scale={zoom.ref.current / 100}
             roundPixels={true}
         >

@@ -2,15 +2,15 @@ import React, { createContext, useCallback, useContext, useEffect, useState } fr
 import { AppConfig, ConnectionConfig, ConnectorConfig, Coordinates, GraphType, InputConfig, NodeConfig, NodeType, OutputBranchConfig, OutputConfig, VariableConfig } from "@/dataflow/config/schema";
 import { RefState, useRefState } from "@/dataflow/hooks/useRefState";
 import { filterObject } from "@/dataflow/engine/utils";
-import { useRefSignal, useRefSignalEffect, UseRefSignalReturn } from "../hooks/useRefSignal";
+import { useRefSignal, useRefSignalEffect, RefSignal } from "../hooks/useRefSignal";
 
 interface GraphContextType {
     name: string;
     nodes: RefState<NodeConfig[]>;
     connections: RefState<ConnectionConfig[]>;
-    zoom: UseRefSignalReturn<number>;
-    scale: UseRefSignalReturn<number>;
-    canvasPosition: UseRefSignalReturn<Coordinates>;
+    zoom: RefSignal<number>;
+    scale: RefSignal<number>;
+    canvasPosition: RefSignal<Coordinates>;
     variables: RefState<VariableConfig[]>;
     types: RefState<GraphType[]>;
     computedResult: RefState<Map<string, any>>;

@@ -3,17 +3,16 @@ import ApplicationTemplates from "./ApplicationTemplates";
 import Background from "../pixi/Background";
 import ApplicationGraph from "./ApplicationGraph";
 import ContextMenu from "./ContextMenu";
-import React, { useCallback, useEffect, useRef } from "react";
+import React, { useCallback, useEffect } from "react";
 import { useNodes } from "@/dataflow/contexts/NodeContext";
 import Toolbar from "./Toolbar";
 import { useUserGraph } from "@/dataflow/contexts/UserGraphContext";
 import { useGraphContext } from "@/dataflow/contexts/GraphContext";
-import { Size } from "pixi.js";
-import { usePersistedState } from "@/dataflow/hooks/usePersistedState";
+import { useDashboardContext } from "@/dataflow/contexts/DashboardContext";
+import { useRefSignalRender } from "@/dataflow/hooks/useRefSignal";
 
 export default function AppContainer() {
-    const parentRef = useRef<HTMLDivElement>(null);
-    const [size, setSize] = usePersistedState<Size>("dataflow-canvas-size", {width: 0, height: 0});
+    const {canvasRef, canvasRect} = useDashboardContext();
     const { closeContextMenu } = useNodes();
     const { loadGraph, zoomIn, zoomOut } = useGraphContext();
     const { graph } = useUserGraph();
@@ -42,27 +41,13 @@ export default function AppContainer() {
     }, []);
 
     useEffect(() => {
-        if (!parentRef.current) return;
-
-        const resizeObserver = new ResizeObserver((entries) => {
-            for (const entry of entries) {
-                setSize({width: entry.contentRect.width, height: entry.contentRect.height});
-            }
-        });
-
-        // Initial measurement
-        const rect = parentRef.current.getBoundingClientRect();
-        setSize({width: rect.width, height: rect.height});
-        
-        // Add resize observer
-        resizeObserver.observe(parentRef.current);
+        if (!canvasRef.current) return;
 
         // Prevent zoom
-        parentRef.current.addEventListener("wheel", handleWheel, { passive: false });
+        canvasRef.current.addEventListener("wheel", handleWheel, { passive: false });
 
         return () => {
-            resizeObserver.disconnect();
-            parentRef.current?.removeEventListener("wheel", handleWheel);
+            canvasRef.current?.removeEventListener("wheel", handleWheel);
         };
     }, []);
 
@@ -73,6 +58,8 @@ export default function AppContainer() {
         }
     }, [graph, loadGraph]);
 
+    useRefSignalRender([canvasRect]);
+
     return (
         <div
             id="pixi-container"
@@ -82,14 +69,14 @@ export default function AppContainer() {
             onClick={handleClick}
         >
             <Toolbar />
-            <div ref={parentRef} className="w-full h-full">
+            <div ref={canvasRef} className="w-full h-full">
                 <Application
                     bezierSmoothness={1}
                     antialias={true}
-                    resizeTo={parentRef}
+                    resizeTo={canvasRef}
                     clearBeforeRender={true}
-                    width={size.width}
-                    height={size.height}
+                    width={canvasRect.ref.current?.width ?? 0}
+                    height={canvasRect.ref.current?.height ?? 0}
                     // preference="webgpu"
                     preference="webgl"
                     powerPreference="high-performance"

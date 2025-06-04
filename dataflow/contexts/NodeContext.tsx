@@ -5,6 +5,7 @@ import { RefState, useRefState } from '@/dataflow/hooks/useRefState';
 import { Size } from 'pixi.js';
 import { GraphResult } from '@/dataflow/engine/types';
 import { emitNodePositionUpdated, emitNodeUpdated } from '../events/events';
+import { RefSignal, useRefSignal } from '../hooks/useRefSignal';
 
 export interface Pin {
     id: string;
@@ -54,9 +55,9 @@ interface NodeContextType {
     connectionDrag?: ConnectionDrag;
     rightClickPosition?: Coordinates;
     renderTargets: RefState<Map<string, HTMLElement>>;
-    selectionArea: RefState<(Coordinates & Size) | undefined>;
-    selectedNodes: RefState<string[]>;
-    selectionStart: Coordinates | undefined;
+    selectionArea: RefSignal<(Coordinates & Size) | undefined>;
+    selectedNodes: RefSignal<string[]>;
+    selectionStart: RefSignal<Coordinates | undefined>;
     graphResult: GraphResult | undefined;
     registerNode: (node: NodeConfig, inputs: InputPin[], outputs: OutputPin[], branches: OutputBranchPin[], executePin?: Pin, continuePin?: Pin) => void;
     updateNodePosition: (id: string, x: number, y: number) => void;
@@ -92,13 +93,13 @@ const NodeContext = createContext<NodeContextType | null>(null);
 export function NodeProvider({ children }: { children: React.ReactNode }) {
     const [connectionDrag, setConnectionDrag] = useState<ConnectionDrag | undefined>(undefined);
     const [rightClickPosition, setRightClickPosition] = useState<Coordinates | undefined>(undefined);
-    const [selectionStart, setSelectionStart] = useState<Coordinates | undefined>();
+    const selectionStart = useRefSignal<Coordinates | undefined>(undefined);
     const [graphResult, setGraphResult] = useState<GraphResult | undefined>(undefined);
     const {addConnection, removeConnections} = useGraphContext();
     const nodes = useRefState<Map<string, Node>>(new Map());
     const renderTargets = useRefState<Map<string, HTMLElement>>(new Map());
-    const selectionArea = useRefState<(Coordinates & Size) | undefined>(undefined);
-    const selectedNodes = useRefState<string[]>([]);
+    const selectionArea = useRefSignal<(Coordinates & Size) | undefined>(undefined);
+    const selectedNodes = useRefSignal<string[]>([]);
 
     const registerNode = useCallback((node: NodeConfig, inputs: InputPin[], outputs: OutputPin[], branches: OutputBranchPin[], executePin?: Pin, continuePin?: Pin) => {
         nodes.ref.current.set(node.id, { mutableNodeConfig: node, inputs, outputs, branches, executePin, continuePin });
@@ -254,24 +255,18 @@ export function NodeProvider({ children }: { children: React.ReactNode }) {
 
     const setSelected = useCallback((id: string, selected: boolean) => {
         if (selected && !selectedNodes.ref.current.includes(id)) {
-            selectedNodes.ref.current.push(id);
-            selectedNodes.setLastUpdated(Date.now());
+            selectedNodes.update([...selectedNodes.ref.current, id]);
         } else if (!selected) {
-            const index = selectedNodes.ref.current.findIndex((nodeId: string) => nodeId === id);
-
-            if (index !== -1) {
-                selectedNodes.ref.current.splice(index, 1);
-                selectedNodes.setLastUpdated(Date.now());
-            }
+            selectedNodes.update(selectedNodes.ref.current.filter((v) => v !== id));
         }
     },  []);
 
     const startSelection = useCallback((coord: Coordinates) => {
-        setSelectionStart(coord);
+        selectionStart.update(coord);
     }, []);
 
     const stopSelection = useCallback(() => {
-        setSelectionStart(undefined);
+        selectionStart.update(undefined);
         selectionArea.update(undefined);
     }, []);
 

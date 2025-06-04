@@ -1,14 +1,12 @@
 import { Coordinates } from '@/dataflow/config/schema';
-import { useGraphContext } from '@/dataflow/contexts/GraphContext';
 import { useCallback, useRef, useEffect, useMemo } from 'react';
-import { useRefState } from './useRefState';
+import { useDashboardContext } from '../contexts/DashboardContext';
+import { useRefSignal, useRefSignalEffect, RefSignal } from './useRefSignal';
 
 interface UseDraggableReturn {
-    readonly position: Coordinates;
-    readonly lastUpdated: number;
+    readonly position: RefSignal<Coordinates>;
     readonly handlers: {
         readonly onPointerDown: (event: PointerEvent) => void;
-        readonly onPointerMove: (event: PointerEvent) => void;
         readonly onPointerUp: () => void;
         readonly onPointerUpOutside: () => void;
     }
@@ -18,62 +16,57 @@ export default function useDraggable(
     initialPosition: Coordinates = { x: 0, y: 0 },
     onPositionUpdated?: (position: Coordinates) => void
 ): UseDraggableReturn {
-    const {scale} = useGraphContext();
+    const {pointerPosition} = useDashboardContext();
     const isDraggingRef = useRef<boolean>(false);
     const lastPosRef = useRef<Coordinates | undefined>(undefined);
     // Make a copy of the initial position to avoid mutating the original
-    const position = useRefState<Coordinates>({...initialPosition});
+    const position = useRefSignal<Coordinates>({...initialPosition});
     
-    const handlePointerMove = useCallback((event: PointerEvent) => {
+    useRefSignalEffect(() => {
         if (isDraggingRef.current && lastPosRef.current) {
-            const dx = event.clientX * scale.ref.current - lastPosRef.current.x;
-            const dy = event.clientY * scale.ref.current - lastPosRef.current.y;
+            const dx = pointerPosition.ref.current.globalScaled.x - lastPosRef.current.x;
+            const dy = pointerPosition.ref.current.globalScaled.y - lastPosRef.current.y;
             
-            lastPosRef.current.x = event.clientX * scale.ref.current;
-            lastPosRef.current.y = event.clientY * scale.ref.current;
+            lastPosRef.current.x = pointerPosition.ref.current.globalScaled.x;
+            lastPosRef.current.y = pointerPosition.ref.current.globalScaled.y;
             position.ref.current.x += dx;
             position.ref.current.y += dy;
 
+            position.lastUpdated.current = Date.now();
+            position.notify();
+
             if (onPositionUpdated) {
                 onPositionUpdated(position.ref.current);
-            } else {
-                position.setLastUpdated(Date.now());
             }
         }
-    }, []);
+    }, [pointerPosition]);
 
     const handlePointerUp = useCallback(() => {
         isDraggingRef.current = false;
-        window.removeEventListener('pointermove', handlePointerMove);
         window.removeEventListener('pointerup', handlePointerUp);
-    }, [handlePointerMove]);
+    }, []);
 
-    const handlePointerDown = useCallback((event: PointerEvent) => {
-        lastPosRef.current = { x: event.clientX * scale.ref.current, y: event.clientY * scale.ref.current };
+    const handlePointerDown = useCallback(() => {
+        lastPosRef.current = {...pointerPosition.ref.current.globalScaled};
         isDraggingRef.current = true;
-        
-        window.addEventListener('pointermove', handlePointerMove);
         window.addEventListener('pointerup', handlePointerUp);
-    }, [handlePointerMove, handlePointerUp]);
+    }, [handlePointerUp]);
 
     const handlers = useMemo(() => ({
         onPointerDown: handlePointerDown,
-        onPointerMove: handlePointerMove,
         onPointerUp: handlePointerUp,
         onPointerUpOutside: handlePointerUp,
-    }), [handlePointerDown, handlePointerMove, handlePointerUp]);
+    }), [handlePointerDown, handlePointerUp]);
 
     // Cleanup on unmount
     useEffect(() => {
         return () => {
-            window.removeEventListener('pointermove', handlePointerMove);
             window.removeEventListener('pointerup', handlePointerUp);
         };
-    }, [handlePointerMove, handlePointerUp]);
+    }, [handlePointerUp]);
 
     return {
-        position: position.ref.current,
-        lastUpdated: position.lastUpdated,
+        position,
         handlers,
     };
 }
