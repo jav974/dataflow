@@ -4,6 +4,7 @@ import { NodeConfig, NodeType } from "../../config/schema";
 import { v4 as uuidv4 } from 'uuid';
 import { useGraphContext } from "@/dataflow/contexts/GraphContext";
 import registry from "../nodes/registry";
+import { useRefSignalRender } from "@/dataflow/hooks/useRefSignal";
 
 interface MenuTree {
     name?: string;
@@ -35,7 +36,7 @@ export default function ContextMenu() {
     const { addNode, scale, canvasPosition, nodes } = useGraphContext();
 
     const spawnNode = useCallback((type: NodeType) => {
-        if (!rightClickPosition) return ;
+        if (!rightClickPosition.ref.current) return ;
 
         const config = registry.get(type)?.config;
 
@@ -44,12 +45,12 @@ export default function ContextMenu() {
                 ...config,
                 id: uuidv4(),
                 position: {
-                    x: (rightClickPosition.x - canvasPosition.ref.current.x) * scale.ref.current,
-                    y: (rightClickPosition.y - canvasPosition.ref.current.y) * scale.ref.current
+                    x: (rightClickPosition.ref.current.x - canvasPosition.ref.current.x) * scale.ref.current,
+                    y: (rightClickPosition.ref.current.y - canvasPosition.ref.current.y) * scale.ref.current
                 },
             });
         }
-    }, [addNode, rightClickPosition]);
+    }, [addNode]);
 
     const createNodeMenuEntry = useCallback((name: string, type: NodeType): MenuTree => {
         return {
@@ -128,14 +129,16 @@ export default function ContextMenu() {
         }
     }, [createNodeMenuEntry, nodes.lastUpdated]);
 
-    if (!rightClickPosition) {
+    useRefSignalRender([rightClickPosition]);
+
+    if (!rightClickPosition.ref.current) {
         return null;
     }
 
     return (
         <div
             className="absolute bg-black/50 p-1 shadow-lg z-100000 text-white"
-            style={{top: rightClickPosition.y, left: rightClickPosition.x}}
+            style={{top: rightClickPosition.ref.current.y, left: rightClickPosition.ref.current.x}}
         >
             <HorizontalMenu menu={menu} />
         </div>

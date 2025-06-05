@@ -48,12 +48,12 @@ export default function NodeInputs({nodeId, nodeType, inputs, onRef, multiple = 
     }, [addNodeInput, nodeId, inputs, multipleType, multiple, nodeType]);
 
     const handlePointerUp = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
-        if (!isHovered || !multiple || !connectionDrag) return ;
+        if (!isHovered || !multiple || !connectionDrag.ref.current) return ;
         
-        const node = nodes.ref.current.get(connectionDrag.connector.id);
+        const node = nodes.ref.current.get(connectionDrag.ref.current.connector.id);
         if (!node) return;
 
-        const output = node.outputs.find((pin: OutputPin) => pin.id === connectionDrag.connector.pin);
+        const output = node.outputs.find((pin: OutputPin) => pin.id === connectionDrag.ref.current?.connector.pin);
         if (!output) return;
 
         if (output.type !== multipleType && multipleType !== ParameterTypes.ANY) {
@@ -80,7 +80,7 @@ export default function NodeInputs({nodeId, nodeType, inputs, onRef, multiple = 
         });
 
         stopConnectionDrag();
-    }, [nodeId, connectionDrag, multipleType, isHovered, multiple, addNodeInput, addConnection, stopConnectionDrag]);
+    }, [nodeId, multipleType, isHovered, multiple, addNodeInput, addConnection, stopConnectionDrag]);
 
     if (!inputs?.length && !multiple) {
         return null;

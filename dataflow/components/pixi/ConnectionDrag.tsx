@@ -7,7 +7,7 @@ import { LineTextures } from "./textures";
 import { useExtend } from "@pixi/react";
 import BezierCurve from "./BezierCurve";
 import { useDashboardContext } from "@/dataflow/contexts/DashboardContext";
-import { useRefSignalEffect } from "@/dataflow/hooks/useRefSignal";
+import { useRefSignalEffect, useRefSignalRender } from "@/dataflow/hooks/useRefSignal";
 
 interface ConnectionOrigin {
     node: Node;
@@ -24,33 +24,33 @@ export default function ConnectionDrag() {
     const { pointerPosition } = useDashboardContext();
     const position = useRefState<Coordinates>({x: NaN, y: NaN});
     const origin = useMemo((): ConnectionOrigin | undefined => {
-        if (!connectionDrag) {
+        if (!connectionDrag.ref.current) {
             position.ref.current.x = NaN;
             position.ref.current.y = NaN;
             return undefined;
         }
 
-        const node = nodes.ref.current.get(connectionDrag.connector.id);
+        const node = nodes.ref.current.get(connectionDrag.ref.current.connector.id);
         if (!node) return undefined;
 
         let pin: Pin | undefined = undefined;
         let isDst = true;
         let texture: Texture | null = LineTextures.flow;
 
-        if (connectionDrag.connector.pin === "execute") {
+        if (connectionDrag.ref.current.connector.pin === "execute") {
             pin = node.executePin;
-        } else if (connectionDrag.connector.pin === "continue") {
+        } else if (connectionDrag.ref.current.connector.pin === "continue") {
             pin = node.continuePin;
             isDst = false;
         } else {
-            pin = node.inputs.find((pin) => pin.id === connectionDrag.connector.pin);
+            pin = node.inputs.find((pin) => pin.id === connectionDrag.ref.current?.connector.pin);
             
             if (!pin) {
                 isDst = false;
-                pin = node.outputs.find((pin) => pin.id === connectionDrag.connector.pin);
+                pin = node.outputs.find((pin) => pin.id === connectionDrag.ref.current?.connector.pin);
 
                 if (!pin) {
-                    pin = node.branches.find((pin) => pin.id === connectionDrag.connector.pin);
+                    pin = node.branches.find((pin) => pin.id === connectionDrag.ref.current?.connector.pin);
                 } else {
                     const output = node.mutableNodeConfig.outputs?.find((output) => output.id === pin?.id);
                     if (output) {
@@ -79,7 +79,7 @@ export default function ConnectionDrag() {
             },
             texture
         };
-    }, [connectionDrag]);
+    }, [connectionDrag.lastUpdated.current]);
 
     const handlePointerUp = useCallback((e: PointerEvent) => {
         onPointerUp({ element: 'connection', x: e.clientX, y: e.clientY, type: PointerEventType.POINTER_UP });
@@ -94,6 +94,8 @@ export default function ConnectionDrag() {
             requestAnimationFrame(updatePosition);
         }
     }, [pointerPosition, origin]);
+
+    useRefSignalRender([connectionDrag]);
 
     if (!origin) {
         return null;

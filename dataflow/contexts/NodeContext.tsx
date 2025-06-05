@@ -5,7 +5,7 @@ import { RefState, useRefState } from '@/dataflow/hooks/useRefState';
 import { Size } from 'pixi.js';
 import { GraphResult } from '@/dataflow/engine/types';
 import { emitNodePositionUpdated, emitNodeUpdated } from '../events/events';
-import { RefSignal, useRefSignal } from '../hooks/useRefSignal';
+import { batch, RefSignal, useRefSignal } from '../hooks/useRefSignal';
 
 export interface Pin {
     id: string;
@@ -52,8 +52,8 @@ interface ConnectionDrag {
 
 interface NodeContextType {
     nodes: RefState<Map<string, Node>>;
-    connectionDrag?: ConnectionDrag;
-    rightClickPosition?: Coordinates;
+    connectionDrag: RefSignal<ConnectionDrag | undefined>;
+    rightClickPosition: RefSignal<Coordinates | undefined>;
     renderTargets: RefSignal<Map<string, HTMLElement>>;
     selectionArea: RefSignal<(Coordinates & Size) | undefined>;
     selectedNodes: RefSignal<string[]>;
@@ -91,8 +91,8 @@ export interface PointerEvent {
 const NodeContext = createContext<NodeContextType | null>(null);
 
 export function NodeProvider({ children }: { children: React.ReactNode }) {
-    const [connectionDrag, setConnectionDrag] = useState<ConnectionDrag | undefined>(undefined);
-    const [rightClickPosition, setRightClickPosition] = useState<Coordinates | undefined>(undefined);
+    const connectionDrag = useRefSignal<ConnectionDrag | undefined>(undefined);
+    const rightClickPosition = useRefSignal<Coordinates | undefined>(undefined);
     const selectionStart = useRefSignal<Coordinates | undefined>(undefined);
     const [graphResult, setGraphResult] = useState<GraphResult | undefined>(undefined);
     const {addConnection, removeConnections} = useGraphContext();
@@ -211,24 +211,24 @@ export function NodeProvider({ children }: { children: React.ReactNode }) {
         //     );
         // }
 
-        setConnectionDrag(drag);
+        connectionDrag.update(drag);
     }, [removeConnections]);
 
     const stopConnectionDrag = useCallback(() => {
-        setConnectionDrag(undefined);
+        connectionDrag.update(undefined);
     }, []);
 
     const openContextMenu = useCallback((position: Coordinates) => {
-        setRightClickPosition(position);
+        rightClickPosition.update(position);
     }, []);
 
     const onPointerUp = useCallback((e: PointerEvent) => {
-        if (connectionDrag && e.id && connectionDrag.connector.id !== e.id) {
+        if (connectionDrag && e.id && connectionDrag.ref.current && connectionDrag.ref.current.connector.id !== e.id) {
             const dst = buildConnectionDrag({id: e.id, pin: e.element});
 
-            if (dst && validateConnection(connectionDrag, dst, true)) {
-                const from = connectionDrag.info.isSrc ? connectionDrag : dst;
-                const to = !connectionDrag.info.isSrc ? connectionDrag : dst;
+            if (dst && validateConnection(connectionDrag.ref.current, dst, true)) {
+                const from = connectionDrag.ref.current.info.isSrc ? connectionDrag.ref.current : dst;
+                const to = !connectionDrag.ref.current.info.isSrc ? connectionDrag.ref.current : dst;
 
                 // Only Output connectors can be connected to multiple other connectors
                 if (!from.info.isOutput) {
@@ -245,7 +245,7 @@ export function NodeProvider({ children }: { children: React.ReactNode }) {
     }, [connectionDrag, addConnection, stopConnectionDrag, removeConnections, openContextMenu]);
 
     const closeContextMenu = useCallback(() => {
-        setRightClickPosition(undefined);
+        rightClickPosition.update(undefined);
     }, []);
 
     const setRenderTarget = useCallback((id: string, target: HTMLElement) => {
@@ -266,8 +266,10 @@ export function NodeProvider({ children }: { children: React.ReactNode }) {
     }, []);
 
     const stopSelection = useCallback(() => {
-        selectionStart.update(undefined);
-        selectionArea.update(undefined);
+        batch(() => {
+            selectionStart.update(undefined);
+            selectionArea.update(undefined);
+        }, [selectionArea, selectionStart]);
     }, []);
 
     return (
