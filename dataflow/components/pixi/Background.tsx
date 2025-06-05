@@ -43,7 +43,7 @@ export default function Background() {
                 x: position.ref.current.x * scaleDelta,
                 y: position.ref.current.y * scaleDelta,
             };
-            
+
             position.notify();
         }
     }, [scale]);
@@ -96,8 +96,8 @@ export default function Background() {
         g.fill(backgroundFillSettings);
 
         const startOffset = 0;
-        const startX = startOffset + (canvasPosition.ref.current.x % backgroundSettings.spacing);
-        const startY = startOffset + (canvasPosition.ref.current.y % backgroundSettings.spacing);
+        const startX = startOffset + (Math.round(canvasPosition.ref.current.x ) % backgroundSettings.lineSpacing);
+        const startY = startOffset + (Math.round(canvasPosition.ref.current.y ) % backgroundSettings.lineSpacing);
 
         for (let x = startX; x < width; x += backgroundSettings.lineSpacing) {
             g.moveTo(x, 0);

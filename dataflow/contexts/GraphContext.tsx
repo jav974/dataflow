@@ -2,7 +2,7 @@ import React, { createContext, useCallback, useContext, useEffect, useState } fr
 import { AppConfig, ConnectionConfig, ConnectorConfig, Coordinates, GraphType, InputConfig, NodeConfig, NodeType, OutputBranchConfig, OutputConfig, VariableConfig } from "@/dataflow/config/schema";
 import { RefState, useRefState } from "@/dataflow/hooks/useRefState";
 import { filterObject } from "@/dataflow/engine/utils";
-import { useRefSignal, useRefSignalEffect, RefSignal } from "../hooks/useRefSignal";
+import { useRefSignal, useRefSignalEffect, RefSignal, batch } from "../hooks/useRefSignal";
 
 interface GraphContextType {
     name: string;
@@ -269,10 +269,14 @@ export function GraphProvider({children}: GraphProviderProps) {
     }, [removeConnectionsByPredicate]);
 
     const loadGraph = useCallback((graph: AppConfig) => {
+        batch(() => {
+            canvasPosition.update({x: 0, y: 0});
+            zoom.update(graph.zoom ?? 100);
+        }, [canvasPosition, zoom]);
+        
         setName(graph.name);
         nodes.update(graph.nodes);
         connections.update(graph.connections ?? []);
-        zoom.update(graph.zoom ?? 100);
         types.update(graph.types ?? []);
         variables.update(Array.isArray(graph.variables) ? graph.variables : []);
     }, []);

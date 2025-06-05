@@ -58,6 +58,7 @@ export default function AppContainer() {
         }
     }, [graph, loadGraph]);
 
+    // Force re-render when canvasRect changes
     useRefSignalRender([canvasRect]);
 
     return (
@@ -68,8 +69,10 @@ export default function AppContainer() {
             onContextMenu={handleContextMenu}
             onClick={handleClick}
         >
-            <Toolbar />
-            <div ref={canvasRef} className="w-full h-full">
+            <div className="absolute min-w-full z-10000 max-h-[50px]">
+                <Toolbar />
+            </div>
+            <div ref={canvasRef} className="w-full h-full mt-[50px]">
                 <Application
                     bezierSmoothness={1}
                     antialias={true}

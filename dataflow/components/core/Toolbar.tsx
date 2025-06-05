@@ -103,11 +103,12 @@ export default function Toolbar() {
         }
     }, []);
 
+    // Force re-render when zoom changes
     useRefSignalRender([zoom]);
 
     return (
         <>
-            <div className="grid grid-cols-3 bg-black min-h-[50px] min-w-full z-10000">
+            <div className="grid grid-cols-3 bg-black min-h-[50px] min-w-full">
                 <div className="flex justify-start items-center gap-4">
                     {graphs && graphs.length > 0 &&
                     <select 
@@ -130,7 +131,7 @@ export default function Toolbar() {
                         max="200"
                         value={zoom.ref.current}
                         onChange={handleChangeZoom}
-                        className="w-30"
+                        className="w-40"
                         step="2" />
                 </div>
                 <div className="flex justify-center items-center">

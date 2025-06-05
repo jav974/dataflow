@@ -1,7 +1,9 @@
 import React, { useCallback, useEffect, useReducer, useRef } from "react";
+import { Stack } from "../engine/utils";
 
 type Listener<T> = (value: T) => void;
 const listenersMap = new WeakMap<object, Set<Listener<any>>>();
+const batchStack = new Stack<React.RefObject<unknown>[]>();
 
 export interface RefSignal<T = unknown> {
     readonly ref: React.RefObject<T>;
@@ -57,7 +59,9 @@ export function useRefSignal<T>(value: T | null | undefined): RefSignal<T | null
     }, [ref]);
 
     const notify = useCallback(() => {
-        listenersMap.get(ref)?.forEach((listener) => listener(ref.current));
+        if (!batchStack.peek()?.includes(ref)) {
+            listenersMap.get(ref)?.forEach((listener) => listener(ref.current));
+        }
     }, [ref]);
 
     const update = useCallback((value: T | null | undefined) => {
@@ -111,8 +115,22 @@ export function useRefSignalEffect(callback: React.EffectCallback, dependencies:
  * Triggers re-render in component upon refSignal update
  * @param dependencies
  */
-export function useRefSignalRender<T = unknown>(dependencies: RefSignal<T>[]): void {
+export function useRefSignalRender(dependencies: RefSignal<any>[]): void {
     const [, forceUpdate] = useReducer((x) => x + 1, 0);
 
     useRefSignalEffect(forceUpdate, dependencies);
+}
+
+/**
+ * Defer notifications of refSignals update to the end of callback function
+ * @param dependencies 
+ */
+export function batch(callback: React.EffectCallback, dependencies: RefSignal<any>[]): void {
+    batchStack.push(dependencies.map((dep) => dep.ref));
+    callback();
+    batchStack.pop();
+
+    dependencies.forEach((dep) => {
+        dep.notify();
+    });
 }

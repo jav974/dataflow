@@ -1,6 +1,7 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { createPortal } from "react-dom";
 import { useNodes } from "@/dataflow/contexts/NodeContext";
+import { useRefSignalEffect } from "@/dataflow/hooks/useRefSignal";
 
 interface NodeWrapperProps {
     nodeId: string;
@@ -11,13 +12,13 @@ export default function NodeWrapper({ nodeId, children }: NodeWrapperProps) {
     const { renderTargets } = useNodes();
     const [layout, setLayout] = useState<HTMLElement | null>(null);
 
-    useEffect(() => {
+    useRefSignalEffect(() => {
         const el = renderTargets.ref.current.get(nodeId);
 
         if (el) {
             setLayout(el);
         }
-    }, [renderTargets.lastUpdated]);
+    }, [renderTargets]);
 
     if (!layout) {
         return null;

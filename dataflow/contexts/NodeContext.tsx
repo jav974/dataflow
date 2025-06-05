@@ -54,7 +54,7 @@ interface NodeContextType {
     nodes: RefState<Map<string, Node>>;
     connectionDrag?: ConnectionDrag;
     rightClickPosition?: Coordinates;
-    renderTargets: RefState<Map<string, HTMLElement>>;
+    renderTargets: RefSignal<Map<string, HTMLElement>>;
     selectionArea: RefSignal<(Coordinates & Size) | undefined>;
     selectedNodes: RefSignal<string[]>;
     selectionStart: RefSignal<Coordinates | undefined>;
@@ -97,7 +97,7 @@ export function NodeProvider({ children }: { children: React.ReactNode }) {
     const [graphResult, setGraphResult] = useState<GraphResult | undefined>(undefined);
     const {addConnection, removeConnections} = useGraphContext();
     const nodes = useRefState<Map<string, Node>>(new Map());
-    const renderTargets = useRefState<Map<string, HTMLElement>>(new Map());
+    const renderTargets = useRefSignal<Map<string, HTMLElement>>(new Map());
     const selectionArea = useRefSignal<(Coordinates & Size) | undefined>(undefined);
     const selectedNodes = useRefSignal<string[]>([]);
 
@@ -250,7 +250,7 @@ export function NodeProvider({ children }: { children: React.ReactNode }) {
 
     const setRenderTarget = useCallback((id: string, target: HTMLElement) => {
         renderTargets.ref.current.set(id, target);
-        renderTargets.setLastUpdated(Date.now());
+        renderTargets.notify();
     }, []);
 
     const setSelected = useCallback((id: string, selected: boolean) => {
