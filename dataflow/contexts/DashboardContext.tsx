@@ -47,8 +47,7 @@ export function DashboardProvider({children}: DashboardProviderProps) {
         pointerPosition.ref.current.viewport.y = event.clientY - (canvasRect.ref.current?.top ?? 0);
         pointerPosition.ref.current.canvasScaled.x = (pointerPosition.ref.current.viewport.x - canvasPosition.ref.current.x) * scale.ref.current;
         pointerPosition.ref.current.canvasScaled.y = (pointerPosition.ref.current.viewport.y - canvasPosition.ref.current.y) * scale.ref.current;
-        pointerPosition.lastUpdated.current = Date.now();
-        pointerPosition.notify();
+        pointerPosition.notifyUpdate();
     }, []);
 
     // Update pointer position on pointer move

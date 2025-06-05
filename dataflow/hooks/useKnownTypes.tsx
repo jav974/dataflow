@@ -21,7 +21,7 @@ export default function useKnownTypes(): UseKnownTypesReturn {
         });
 
         return options;
-    }, [types.lastUpdated]);
+    }, [types.lastUpdated.current]);
 
     return {
         options

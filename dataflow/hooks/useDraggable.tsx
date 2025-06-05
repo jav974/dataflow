@@ -32,8 +32,7 @@ export default function useDraggable(
             position.ref.current.x += dx;
             position.ref.current.y += dy;
 
-            position.lastUpdated.current = Date.now();
-            position.notify();
+            position.notifyUpdate();
 
             if (onPositionUpdated) {
                 onPositionUpdated(position.ref.current);

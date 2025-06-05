@@ -9,6 +9,7 @@ import useKnownTypes from "@/dataflow/hooks/useKnownTypes";
 import Select from "@/dataflow/components/forms/Select";
 import Tooltip from "@/dataflow/components/ui/Tooltip";
 import Checkbox from "@/dataflow/components/forms/Checkbox";
+import { useRefSignalRender } from "@/dataflow/hooks/useRefSignal";
 
 interface SetVarNodeProps extends NodeProps {
 }
@@ -24,7 +25,7 @@ export default function SetVarNode({node}: SetVarNodeProps) {
     }), []);
     const variable = useMemo(
         () => variables.ref.current.find(v => v.id === node.id),
-        [node.id, variables.lastUpdated]
+        [node.id, variables.lastUpdated.current]
     );
     const methods = useForm({
         resolver: yupResolver(schema),
@@ -55,6 +56,8 @@ export default function SetVarNode({node}: SetVarNodeProps) {
     const inputClassName = methods.formState.errors["name"]
         ? "p-1 outline outline-red-500/50 focus:outline-red-500 max-h-[30px] grow text-center"
         : "p-1 outline outline-blue-500/50 focus:outline-blue-500 max-h-[30px] grow text-center";
+
+    useRefSignalRender([variables]);
 
     return (
         <Node

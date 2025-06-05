@@ -14,6 +14,7 @@ import Checkbox from "@/dataflow/components/forms/Checkbox";
 import Tooltip from "@/dataflow/components/ui/Tooltip";
 import { v4 as uuidv4 } from "uuid";
 import useKnownTypes from "@/dataflow/hooks/useKnownTypes";
+import { useRefSignalRender } from "@/dataflow/hooks/useRefSignal";
 
 interface TypeDefNodeProps extends NodeProps {
 }
@@ -36,7 +37,7 @@ export default function TypeDefNode({node}: TypeDefNodeProps) {
     }, []);
     const type = useMemo((): GraphType | undefined => {
         return types.ref.current.find((type: GraphType) => type.id === node.id);
-    }, [node.id, types.lastUpdated]);
+    }, [node.id, types.lastUpdated.current]);
 
     const methods = useForm({
         resolver: yupResolver(schema),
@@ -69,7 +70,7 @@ export default function TypeDefNode({node}: TypeDefNodeProps) {
             type.properties = data.properties;
         }
 
-        types.setLastUpdated(Date.now());
+        types.notifyUpdate();
     }, []);
 
     const onBlur = useCallback(() => {
@@ -90,6 +91,8 @@ export default function TypeDefNode({node}: TypeDefNodeProps) {
         remove(propertyIndex);
         onBlur();
     }, [remove, onBlur]);
+
+    useRefSignalRender([types]);
 
     return (
         <Node

@@ -250,7 +250,7 @@ export function NodeProvider({ children }: { children: React.ReactNode }) {
 
     const setRenderTarget = useCallback((id: string, target: HTMLElement) => {
         renderTargets.ref.current.set(id, target);
-        renderTargets.notify();
+        renderTargets.notifyUpdate();
     }, []);
 
     const setSelected = useCallback((id: string, selected: boolean) => {

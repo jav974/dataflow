@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useReducer, useRef } from "react";
+import React, { useCallback, useEffect, useMemo, useReducer, useRef, useState } from "react";
 import { Stack } from "../engine/utils";
 
 type Listener<T> = (value: T) => void;
@@ -12,6 +12,7 @@ export interface RefSignal<T = unknown> {
     readonly unsubscribe: (listener: Listener<T>) => void;
     readonly update: (value: T) => void;
     readonly notify: () => void;
+    readonly notifyUpdate: () => void;
 }
 
 function isUseRefSignalReturn<T>(obj: any): obj is RefSignal<T> {
@@ -64,13 +65,17 @@ export function useRefSignal<T>(value: T | null | undefined): RefSignal<T | null
         }
     }, [ref]);
 
+    const notifyUpdate = useCallback(() => {
+        lastUpdated.current = Date.now();
+        notify();
+    }, [notify]);
+
     const update = useCallback((value: T | null | undefined) => {
         if (ref.current !== value) {
             ref.current = value;
-            lastUpdated.current = Date.now();
-            notify();
+            notifyUpdate();
         }
-    }, [ref, notify]);
+    }, [ref, notifyUpdate]);
 
     useEffect(() => {
         return () => {
@@ -84,7 +89,8 @@ export function useRefSignal<T>(value: T | null | undefined): RefSignal<T | null
         subscribe,
         unsubscribe,
         update,
-        notify
+        notify,
+        notifyUpdate
     }
 }
 
@@ -95,20 +101,34 @@ export function useRefSignal<T>(value: T | null | undefined): RefSignal<T | null
  * @param refSignal 
  * @param callback 
  */
-export function useRefSignalEffect(callback: React.EffectCallback, dependencies: React.DependencyList) {
+export function useRefSignalEffect(callback: React.EffectCallback, deps: React.DependencyList) {
+    const lastCalled = useRef<number>(0);
+
+    const handleCallback = useCallback(() => {
+        const now = Date.now();
+        
+        // Avoid calling the same callback at same time
+        // Happens when multiple refSignals among deps fire a notify at same time
+        if (lastCalled.current != now) {
+            callback();
+            lastCalled.current = now;
+        }
+    }, [...deps]);
+
     useEffect(() => {
-        dependencies.forEach((dep) => {
-            if (isUseRefSignalReturn(dep)) dep.subscribe(callback);
+        deps.forEach((dep) => {
+            if (isUseRefSignalReturn(dep)) dep.subscribe(handleCallback);
         });
 
-        callback();
+        handleCallback();
 
         return () => {
-            dependencies.forEach((dep) => {
-                if (isUseRefSignalReturn(dep)) dep.unsubscribe(callback);
+            deps.forEach((dep) => {
+                if (isUseRefSignalReturn(dep)) dep.unsubscribe(handleCallback);
             });
+            lastCalled.current = 0;
         };
-    }, [...dependencies, callback]);
+    }, [handleCallback]);
 }
 
 /**
@@ -121,6 +141,20 @@ export function useRefSignalRender(dependencies: RefSignal<any>[]): void {
     useRefSignalEffect(forceUpdate, dependencies);
 }
 
+export function useRefSignalMemo<T>(factory: () => T, deps: React.DependencyList): RefSignal<T>;
+export function useRefSignalMemo<T>(factory: () => T | null, deps: React.DependencyList): RefSignal<T | null>;
+export function useRefSignalMemo<T>(factory: () => T | undefined, deps: React.DependencyList): RefSignal<T | undefined>;
+export function useRefSignalMemo<T>(factory: () => T | null | undefined, deps: React.DependencyList): RefSignal<T | null | undefined> {
+    const memo = useMemo<T | null | undefined>(factory, deps);
+    const value = useRefSignal<T | null | undefined>(memo);
+
+    useRefSignalEffect(() => {
+        value.update(factory());
+    }, deps);
+
+    return value;
+}
+
 /**
  * Defer notifications of refSignals update to the end of callback function
  * @param dependencies 
@@ -130,7 +164,10 @@ export function batch(callback: React.EffectCallback, dependencies: RefSignal<an
     callback();
     batchStack.pop();
 
+    const lastUpdated = Date.now();
+
     dependencies.forEach((dep) => {
+        dep.lastUpdated.current = lastUpdated;
         dep.notify();
     });
 }

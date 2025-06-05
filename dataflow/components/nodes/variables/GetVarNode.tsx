@@ -1,21 +1,25 @@
 import Node, { NodeProps } from "@/dataflow/components/core/Node";
 import { useGraphContext } from "@/dataflow/contexts/GraphContext";
+import { jsonToMap } from "@/dataflow/engine/utils";
+import { useRefSignalRender } from "@/dataflow/hooks/useRefSignal";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 
 interface GetVarNodeProps extends NodeProps {
 }
 
-export default function GetVarNode({node, context}: GetVarNodeProps) {
+export default function GetVarNode({node}: GetVarNodeProps) {
     const {variables, setNodeContext, updateNodeOutput} = useGraphContext();
     const [hasError, setHasError] = useState<boolean>(false);
+    const context = useMemo(() => jsonToMap(node.context), [node.context]);
     const contextVar = useMemo(() => {
         return context?.get('var');
     }, [context]);
+
     const variable = useMemo(() => {
         if (!contextVar) return undefined;
         const v = variables.ref.current.find(v => v.id === contextVar);
         return v ? {...v} : undefined;
-    }, [variables.lastUpdated, contextVar]);
+    }, [variables.lastUpdated.current, contextVar]);
 
     const options = useMemo((): React.ReactElement[] => {
         const result: React.ReactElement[] = [];
@@ -37,7 +41,7 @@ export default function GetVarNode({node, context}: GetVarNodeProps) {
         }
 
         return result;
-    }, [variables.lastUpdated, contextVar]);
+    }, [variables.lastUpdated.current, contextVar]);
 
     useEffect(() => {
         if (!context?.get('var')) {
@@ -54,6 +58,8 @@ export default function GetVarNode({node, context}: GetVarNodeProps) {
     const onChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
         setNodeContext(node.id, (new Map(context)).set('var', e.target.value));
     }, [node.id, context, setNodeContext]);
+
+    useRefSignalRender([variables]);
 
     return (
         <Node

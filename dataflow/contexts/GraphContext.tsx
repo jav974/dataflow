@@ -11,8 +11,8 @@ interface GraphContextType {
     zoom: RefSignal<number>;
     scale: RefSignal<number>;
     canvasPosition: RefSignal<Coordinates>;
-    variables: RefState<VariableConfig[]>;
-    types: RefState<GraphType[]>;
+    variables: RefSignal<VariableConfig[]>;
+    types: RefSignal<GraphType[]>;
     computedResult: RefState<Map<string, any>>;
     addNode: (node: NodeConfig) => void;
     updateNode: (node: NodeConfig) => void;
@@ -54,8 +54,8 @@ export function GraphProvider({children}: GraphProviderProps) {
     const canvasPosition = useRefSignal<Coordinates>({x: 0, y: 0});
     const zoom = useRefSignal<number>(100);
     const scale = useRefSignal<number>(zoom.ref.current != 0 ? 1 / (zoom.ref.current / 100) : 0);
-    const variables = useRefState<VariableConfig[]>([]);
-    const types = useRefState<GraphType[]>([]);
+    const variables = useRefSignal<VariableConfig[]>([]);
+    const types = useRefSignal<GraphType[]>([]);
     const computedResult = useRefState<Map<string, any>>(new Map());
 
     useRefSignalEffect(() => {
@@ -164,10 +164,21 @@ export function GraphProvider({children}: GraphProviderProps) {
         const node = nodes.ref.current.find((n: NodeConfig) => n.id === id);
 
         if (node) {
-            const index = node.outputs?.findIndex((o: OutputConfig): boolean => o.id === output.id);
+            const _output = node.outputs?.find((o: OutputConfig): boolean => o.id === output.id);
 
-            if (index !== -1) {
-                updateNode({...node, outputs: node.outputs?.map((o) => o.id === output.id ? {...o, ...filterObject(output, undefined)} : o)});
+            if (_output) {
+                let changed = false;
+
+                for (const [key, value] of Object.entries(output)) {
+                    if (_output[key as keyof OutputConfig] !== value) {
+                        changed = true;
+                        break ;
+                    }
+                }
+
+                if (changed) {
+                    updateNode({...node, outputs: node.outputs?.map((o) => o.id === output.id ? {...o, ...filterObject(output, undefined)} : o)});
+                }
             }
         }
     }, [updateNode]);
@@ -273,7 +284,7 @@ export function GraphProvider({children}: GraphProviderProps) {
             canvasPosition.update({x: 0, y: 0});
             zoom.update(graph.zoom ?? 100);
         }, [canvasPosition, zoom]);
-        
+
         setName(graph.name);
         nodes.update(graph.nodes);
         connections.update(graph.connections ?? []);
@@ -294,15 +305,15 @@ export function GraphProvider({children}: GraphProviderProps) {
     const setVariable = useCallback((id: string, name: string, type: string, isCollection: boolean) => {
         const variable = variables.ref.current.find(v => v.id === id);
 
-        if (variable) {
+        if (variable && (variable.name !== name || variable.type !== type || variable.isCollection !== isCollection)) {
             variable.name = name;
             variable.type = type;
             variable.isCollection = isCollection;
-        } else {
+            variables.notifyUpdate();
+        } else if (!variable) {
             variables.ref.current.push({id, name, type, isCollection});
+            variables.notifyUpdate();
         }
-
-        variables.setLastUpdated(Date.now());
     }, []);
 
     const removeVariable = useCallback((id: string) => {
@@ -310,7 +321,7 @@ export function GraphProvider({children}: GraphProviderProps) {
 
         if (index !== -1) {
             variables.ref.current.splice(index, 1);
-            variables.setLastUpdated(Date.now());
+            variables.notifyUpdate();
         }
     }, []);
 
