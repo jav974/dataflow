@@ -5,6 +5,7 @@ import { Node, Pin, useNodes } from "@/dataflow/contexts/NodeContext";
 import { LineTextures } from "./textures";
 import BezierCurve from "./BezierCurve";
 import { useNodeLastUpdated } from "@/dataflow/hooks/useLastUpdated";
+import { batch, RefSignal, useRefSignal, useRefSignalEffect, useRefSignalRender } from "@/dataflow/hooks/useRefSignal";
 
 interface ConnectionProps {
     from: ConnectorConfig;
@@ -13,8 +14,10 @@ interface ConnectionProps {
 
 export default function Connection({from, to}: ConnectionProps) {
     const { nodes } = useNodes();
-    const fromNode = useRef<Node | undefined>(undefined);
-    const toNode = useRef<Node | undefined>(undefined);
+    const fromNode = useRef<RefSignal<Node> | undefined>(undefined);
+    const toNode = useRef<RefSignal<Node> | undefined>(undefined);
+    const trackedFrom = useRefSignal<Node | undefined>(undefined);
+    const trackedTo = useRefSignal<Node | undefined>(undefined);
     const fromPin = useRef<Pin | undefined>(undefined);
     const toPin = useRef<Pin | undefined>(undefined);
     const fromPos = useRef<Coordinates | undefined>(undefined);
@@ -25,8 +28,8 @@ export default function Connection({from, to}: ConnectionProps) {
 
     const computePositions = useCallback(() => {
         if (fromNode.current && fromPin.current && toNode.current && toPin.current) {
-            const tmpFrom: Coordinates = { x: fromNode.current.mutableNodeConfig.position.x + fromPin.current.position.x, y: fromNode.current.mutableNodeConfig.position.y + fromPin.current.position.y };
-            const tmpTo: Coordinates = { x: toNode.current.mutableNodeConfig.position.x + toPin.current.position.x, y: toNode.current.mutableNodeConfig.position.y + toPin.current.position.y };
+            const tmpFrom: Coordinates = { x: fromNode.current.ref.current.mutableNodeConfig.position.x + fromPin.current.position.x, y: fromNode.current.ref.current.mutableNodeConfig.position.y + fromPin.current.position.y };
+            const tmpTo: Coordinates = { x: toNode.current.ref.current.mutableNodeConfig.position.x + toPin.current.position.x, y: toNode.current.ref.current.mutableNodeConfig.position.y + toPin.current.position.y };
 
             if (fromPos.current?.x !== tmpFrom.x || fromPos.current?.y !== tmpFrom.y
                 || toPos.current?.x !== tmpTo.x || toPos.current?.y !== tmpTo.y
@@ -40,45 +43,51 @@ export default function Connection({from, to}: ConnectionProps) {
         }
     }, []);
 
-    useEffect(() => {
-        // Initialize nodes
-        if (from.id !== fromNode.current?.mutableNodeConfig.id || to.id !== toNode.current?.mutableNodeConfig.id) {
-            fromNode.current = nodes.ref.current.get(from.id);
-            toNode.current = nodes.ref.current.get(to.id);
+    // Initialize fromNode and toNode after nodes update
+    useRefSignalEffect(() => {
+        fromNode.current = nodes.ref.current.get(from.id);
+        toNode.current = nodes.ref.current.get(to.id);
 
-            // Initialize pins
-            if (fromNode.current && toNode.current) {
-                // Output (value) to Input
-                if (from.pin !== 'continue' && to.pin !== 'execute') {
-                    fromPin.current = fromNode.current.outputs.find(output => output.id === from.pin);
-                    toPin.current = toNode.current.inputs.find(input => input.id === to.pin);
+        batch(() => {
+            trackedFrom.update(fromNode.current?.ref.current);
+            trackedTo.update(toNode.current?.ref.current);
+        }, [trackedFrom, trackedTo]);
+    }, [nodes]);
 
-                    const outputConfig = fromNode.current.mutableNodeConfig.outputs?.find(output => output.id === from.pin);
-                    const inputConfig = toNode.current.mutableNodeConfig.inputs?.find(input => input.id === to.pin);
+    // Initialize pins after fromNode and toNode update
+    useRefSignalEffect(() => {
+        if (fromNode.current && toNode.current) {
+            // Output (value) to Input
+            if (from.pin !== 'continue' && to.pin !== 'execute') {
+                fromPin.current = fromNode.current.ref.current.outputs.find(output => output.id === from.pin);
+                toPin.current = toNode.current.ref.current.inputs.find(input => input.id === to.pin);
 
-                    if (outputConfig && inputConfig) {
-                        const key = outputConfig.type !== inputConfig.type
-                            ? `${outputConfig.type}_${inputConfig.type}`
-                            : outputConfig.type
-                        ;
-                        setTexture(LineTextures[key] ?? LineTextures.error);
-                    }
+                const outputConfig = fromNode.current.ref.current.mutableNodeConfig.outputs?.find(output => output.id === from.pin);
+                const inputConfig = toNode.current.ref.current.mutableNodeConfig.inputs?.find(input => input.id === to.pin);
+
+                if (outputConfig && inputConfig) {
+                    const key = outputConfig.type !== inputConfig.type
+                        ? `${outputConfig.type}_${inputConfig.type}`
+                        : outputConfig.type
+                    ;
+                    setTexture(LineTextures[key] ?? LineTextures.error);
                 }
-                // Output (branch) to Execute
-                else if (from.pin !== 'continue' && to.pin === 'execute') {
-                    fromPin.current = fromNode.current.branches.find(branch => branch.id === from.pin);
-                    toPin.current = toNode.current.executePin;
-                    setTexture(LineTextures.flow);
-                }
-                // Continue to Execute
-                else if (from.pin === 'continue' && to.pin === 'execute') {
-                    fromPin.current = fromNode.current.continuePin;
-                    toPin.current = toNode.current.executePin;
-                    setTexture(LineTextures.flow);
-                }
+            }
+            // Output (branch) to Execute
+            else if (from.pin !== 'continue' && to.pin === 'execute') {
+                fromPin.current = fromNode.current.ref.current.branches.find(branch => branch.id === from.pin);
+                toPin.current = toNode.current.ref.current.executePin;
+                setTexture(LineTextures.flow);
+            }
+            // Continue to Execute
+            else if (from.pin === 'continue' && to.pin === 'execute') {
+                fromPin.current = fromNode.current.ref.current.continuePin;
+                toPin.current = toNode.current.ref.current.executePin;
+                setTexture(LineTextures.flow);
             }
         }
 
+        // Initial position compute
         computePositions();
 
         return () => {
@@ -87,11 +96,15 @@ export default function Connection({from, to}: ConnectionProps) {
             fromPos.current = undefined;
             toPos.current = undefined;
         };
-    }, [from, to, computePositions, nodes.lastUpdated]);
+    }, [fromNode.current, toNode.current, computePositions]);
 
+    // Recompute position after node movement
     useEffect(() => {
         computePositions();
     }, [fromNodeUpdatedAt, toNodeUpdatedAt]);
+
+    // Re-render component when fromNode or toNode update
+    useRefSignalRender([trackedFrom, trackedTo]);
 
     if (!fromPos.current || !toPos.current) {
         return null;

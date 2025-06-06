@@ -1,11 +1,10 @@
 import { Coordinates, InputConfig, NodeConfig, NodeType, OutputBranchConfig, OutputConfig } from '@/dataflow/config/schema';
 import { createContext, useContext, useState, useCallback } from 'react';
 import { useGraphContext } from './GraphContext';
-import { RefState, useRefState } from '@/dataflow/hooks/useRefState';
 import { Size } from 'pixi.js';
 import { GraphResult } from '@/dataflow/engine/types';
 import { emitNodePositionUpdated, emitNodeUpdated } from '../events/events';
-import { batch, RefSignal, useRefSignal } from '../hooks/useRefSignal';
+import { batch, createRefSignal, RefSignal, useRefSignal } from '../hooks/useRefSignal';
 
 export interface Pin {
     id: string;
@@ -51,7 +50,7 @@ interface ConnectionDrag {
 }
 
 interface NodeContextType {
-    nodes: RefState<Map<string, Node>>;
+    nodes: RefSignal<Map<string, RefSignal<Node>>>;
     connectionDrag: RefSignal<ConnectionDrag | undefined>;
     rightClickPosition: RefSignal<Coordinates | undefined>;
     renderTargets: RefSignal<Map<string, HTMLElement>>;
@@ -96,14 +95,21 @@ export function NodeProvider({ children }: { children: React.ReactNode }) {
     const selectionStart = useRefSignal<Coordinates | undefined>(undefined);
     const [graphResult, setGraphResult] = useState<GraphResult | undefined>(undefined);
     const {addConnection, removeConnections} = useGraphContext();
-    const nodes = useRefState<Map<string, Node>>(new Map());
+    const nodes = useRefSignal<Map<string, RefSignal<Node>>>(new Map());
     const renderTargets = useRefSignal<Map<string, HTMLElement>>(new Map());
     const selectionArea = useRefSignal<(Coordinates & Size) | undefined>(undefined);
     const selectedNodes = useRefSignal<string[]>([]);
 
     const registerNode = useCallback((node: NodeConfig, inputs: InputPin[], outputs: OutputPin[], branches: OutputBranchPin[], executePin?: Pin, continuePin?: Pin) => {
-        nodes.ref.current.set(node.id, { mutableNodeConfig: node, inputs, outputs, branches, executePin, continuePin });
-        nodes.setLastUpdated(Date.now());
+        const nodeSignal = nodes.ref.current.get(node.id);
+        const nodeData = { mutableNodeConfig: node, inputs, outputs, branches, executePin, continuePin };
+
+        if (nodeSignal) {
+            nodeSignal.update(nodeData);
+        } else {
+            nodes.ref.current.set(node.id, createRefSignal<Node>(nodeData));
+            nodes.notifyUpdate();
+        }
     }, []);
 
     const isSelected = useCallback((id: string): boolean => {
@@ -111,7 +117,8 @@ export function NodeProvider({ children }: { children: React.ReactNode }) {
     }, []);
 
     const updateNodePosition = useCallback((id: string, x: number, y: number) => {
-        const node = nodes.ref.current.get(id);
+        const nodeSignal = nodes.ref.current.get(id);
+        const node = nodeSignal?.ref.current;
 
         if (node) {
             // Node is part of a selection, move the selection along
@@ -120,11 +127,11 @@ export function NodeProvider({ children }: { children: React.ReactNode }) {
                 const deltaY = y - node.mutableNodeConfig.position.y;
 
                 for (const [_, n] of nodes.ref.current) {
-                    if (isSelected(n.mutableNodeConfig.id)) {
-                        n.mutableNodeConfig.position.x += deltaX;
-                        n.mutableNodeConfig.position.y += deltaY;
-                        emitNodeUpdated(n.mutableNodeConfig.id);
-                        emitNodePositionUpdated(n.mutableNodeConfig.id);
+                    if (isSelected(n.ref.current.mutableNodeConfig.id)) {
+                        n.ref.current.mutableNodeConfig.position.x += deltaX;
+                        n.ref.current.mutableNodeConfig.position.y += deltaY;
+                        emitNodeUpdated(n.ref.current.mutableNodeConfig.id);
+                        emitNodePositionUpdated(n.ref.current.mutableNodeConfig.id);
                     }
                 }
             } else { // Otherwise simply update its position
@@ -189,7 +196,7 @@ export function NodeProvider({ children }: { children: React.ReactNode }) {
     }, []);
 
     const buildConnectionDrag = useCallback((connector: Connector): ConnectionDrag | undefined => {
-        const node = nodes.ref.current.get(connector.id);
+        const node = nodes.ref.current.get(connector.id)?.ref.current;
         if (!node) return undefined;
 
         return {

@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useReducer, useRef, useState } from "react";
+import React, { createRef, useCallback, useEffect, useMemo, useReducer, useRef, useState } from "react";
 import { Stack } from "../engine/utils";
 
 type Listener<T> = (value: T) => void;
@@ -19,11 +19,68 @@ function isUseRefSignalReturn<T>(obj: any): obj is RefSignal<T> {
     return (
         obj &&
         typeof obj.ref === "object" &&
+        typeof obj.lastUpdated === "object" &&
         typeof obj.subscribe === "function" &&
         typeof obj.unsubscribe === "function" &&
         typeof obj.update === "function" &&
-        typeof obj.notify === "function"
+        typeof obj.notify === "function" &&
+        typeof obj.notifyUpdate === "function"
     );
+}
+
+function subscribe(ref: React.RefObject<unknown>, listener: Listener<any>): void{
+    if (!listenersMap.has(ref)) {
+        listenersMap.set(ref, new Set());
+    }   
+    listenersMap.get(ref)?.add(listener);
+}
+
+function unsubscribe(ref: React.RefObject<unknown>, listener: Listener<any>): void {
+    const listeners = listenersMap.get(ref);
+        
+    if (listeners) {
+        listeners.delete(listener);
+
+        if (listeners.size === 0) {
+            listenersMap.delete(ref); // Cleanup if no listeners remain
+        }
+    }
+}
+
+function notify(ref: React.RefObject<unknown>): void {
+    if (!batchStack.peek()?.includes(ref)) {
+        listenersMap.get(ref)?.forEach((listener) => listener(ref.current));
+    }
+}
+
+function notifyUpdate(ref: React.RefObject<unknown>, lastUpdated: React.RefObject<number>): void {
+    lastUpdated.current = Date.now();
+    notify(ref);
+}
+
+function update(ref: React.RefObject<unknown>, value: unknown, lastUpdated: React.RefObject<number>) {
+    if (ref.current !== value) {
+        ref.current = value;
+        notifyUpdate(ref, lastUpdated);
+    }
+}
+
+export function createRefSignal<T = unknown>(initialValue: T): RefSignal<T> {
+    const ref = createRef<T>() as React.RefObject<T>;
+    const lastUpdated = createRef<number>() as React.RefObject<number>;
+
+    ref.current = initialValue;
+    lastUpdated.current = Date.now();
+
+    return {
+        ref,
+        lastUpdated,
+        subscribe: (listener: Listener<any>) => subscribe(ref, listener),
+        unsubscribe: (listener: Listener<any>) => unsubscribe(ref, listener),
+        notify: () => notify(ref),
+        notifyUpdate: () => notifyUpdate(ref, lastUpdated),
+        update: (value: T) => update(ref, value, lastUpdated)
+    };
 }
 
 /**
@@ -37,61 +94,15 @@ export function useRefSignal<T>(value: T): RefSignal<T>;
 export function useRefSignal<T>(value: T | null): RefSignal<T | null>;
 export function useRefSignal<T>(value: T | undefined): RefSignal<T | undefined>;
 export function useRefSignal<T>(value: T | null | undefined): RefSignal<T | null | undefined> {
-    const ref = useRef<T | null | undefined>(value);
-    const lastUpdated = useRef<number>(Date.now());
-
-    const subscribe = useCallback((listener: Listener<T | null | undefined>) => {
-        if (!listenersMap.has(ref)) {
-            listenersMap.set(ref, new Set());
-        }
-        listenersMap.get(ref)?.add(listener);
-    }, [ref]);
-
-    const unsubscribe = useCallback((listener: Listener<T | null | undefined>) => {
-        const listeners = listenersMap.get(ref);
-        
-        if (listeners) {
-            listeners.delete(listener);
-
-            if (listeners.size === 0) {
-                listenersMap.delete(ref); // Cleanup if no listeners remain
-            }
-        }
-    }, [ref]);
-
-    const notify = useCallback(() => {
-        if (!batchStack.peek()?.includes(ref)) {
-            listenersMap.get(ref)?.forEach((listener) => listener(ref.current));
-        }
-    }, [ref]);
-
-    const notifyUpdate = useCallback(() => {
-        lastUpdated.current = Date.now();
-        notify();
-    }, [notify]);
-
-    const update = useCallback((value: T | null | undefined) => {
-        if (ref.current !== value) {
-            ref.current = value;
-            notifyUpdate();
-        }
-    }, [ref, notifyUpdate]);
+    const refSignal = useMemo(() => createRefSignal(value), []);
 
     useEffect(() => {
         return () => {
-            listenersMap.delete(ref);
+            listenersMap.delete(refSignal.ref);
         };
-    }, [ref]);
+    }, [refSignal.ref]);
 
-    return {
-        ref,
-        lastUpdated,
-        subscribe,
-        unsubscribe,
-        update,
-        notify,
-        notifyUpdate
-    }
+    return refSignal;
 }
 
 /**
@@ -102,18 +113,9 @@ export function useRefSignal<T>(value: T | null | undefined): RefSignal<T | null
  * @param callback 
  */
 export function useRefSignalEffect(callback: React.EffectCallback, deps: React.DependencyList) {
-    const lastCalled = useRef<number>(0);
-
     const handleCallback = useCallback(() => {
-        const now = Date.now();
-        
-        // Avoid calling the same callback at same time
-        // Happens when multiple refSignals among deps fire a notify at same time
-        if (lastCalled.current != now) {
-            callback();
-            lastCalled.current = now;
-        }
-    }, [...deps]);
+        callback();
+    }, deps);
 
     useEffect(() => {
         deps.forEach((dep) => {
@@ -126,7 +128,6 @@ export function useRefSignalEffect(callback: React.EffectCallback, deps: React.D
             deps.forEach((dep) => {
                 if (isUseRefSignalReturn(dep)) dep.unsubscribe(handleCallback);
             });
-            lastCalled.current = 0;
         };
     }, [handleCallback]);
 }

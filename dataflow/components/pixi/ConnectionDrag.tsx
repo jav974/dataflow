@@ -30,7 +30,7 @@ export default function ConnectionDrag() {
             return undefined;
         }
 
-        const node = nodes.ref.current.get(connectionDrag.ref.current.connector.id);
+        const node = nodes.ref.current.get(connectionDrag.ref.current.connector.id)?.ref.current;
         if (!node) return undefined;
 
         let pin: Pin | undefined = undefined;
