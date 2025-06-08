@@ -2,7 +2,7 @@ import React, { createContext, useCallback, useContext, useEffect, useState } fr
 import { AppConfig, ConnectionConfig, ConnectorConfig, Coordinates, GraphType, InputConfig, NodeConfig, NodeType, OutputBranchConfig, OutputConfig, VariableConfig } from "@/dataflow/config/schema";
 import { RefState, useRefState } from "@/dataflow/hooks/useRefState";
 import { filterObject } from "@/dataflow/engine/utils";
-import { useRefSignal, useRefSignalEffect, RefSignal, batch } from "../hooks/useRefSignal";
+import { useRefSignal, useRefSignalEffect, RefSignal, batch } from "react-refsignal";
 
 interface GraphContextType {
     name: string;

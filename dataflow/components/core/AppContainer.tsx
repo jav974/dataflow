@@ -9,7 +9,7 @@ import Toolbar from "./Toolbar";
 import { useUserGraph } from "@/dataflow/contexts/UserGraphContext";
 import { useGraphContext } from "@/dataflow/contexts/GraphContext";
 import { useDashboardContext } from "@/dataflow/contexts/DashboardContext";
-import { useRefSignalRender } from "@/dataflow/hooks/useRefSignal";
+import { useRefSignalRender } from "react-refsignal";
 
 export default function AppContainer() {
     const {canvasRef, canvasRect} = useDashboardContext();

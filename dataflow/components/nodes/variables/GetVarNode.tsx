@@ -1,7 +1,7 @@
 import Node, { NodeProps } from "@/dataflow/components/core/Node";
 import { useGraphContext } from "@/dataflow/contexts/GraphContext";
 import { jsonToMap } from "@/dataflow/engine/utils";
-import { useRefSignalRender } from "@/dataflow/hooks/useRefSignal";
+import { useRefSignalRender } from "react-refsignal";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 
 interface GetVarNodeProps extends NodeProps {

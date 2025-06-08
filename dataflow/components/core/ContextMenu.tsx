@@ -4,7 +4,7 @@ import { NodeConfig, NodeType } from "../../config/schema";
 import { v4 as uuidv4 } from 'uuid';
 import { useGraphContext } from "@/dataflow/contexts/GraphContext";
 import registry from "../nodes/registry";
-import { useRefSignalRender } from "@/dataflow/hooks/useRefSignal";
+import { useRefSignalRender } from "react-refsignal";
 
 interface MenuTree {
     name?: string;

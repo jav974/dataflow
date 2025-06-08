@@ -7,7 +7,7 @@ import { LineTextures } from "./textures";
 import { useExtend } from "@pixi/react";
 import BezierCurve from "./BezierCurve";
 import { useDashboardContext } from "@/dataflow/contexts/DashboardContext";
-import { useRefSignalEffect, useRefSignalRender } from "@/dataflow/hooks/useRefSignal";
+import { useRefSignalEffect, useRefSignalRender } from "react-refsignal";
 
 interface ConnectionOrigin {
     node: Node;

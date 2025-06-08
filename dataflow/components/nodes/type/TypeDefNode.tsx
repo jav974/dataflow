@@ -14,7 +14,7 @@ import Checkbox from "@/dataflow/components/forms/Checkbox";
 import Tooltip from "@/dataflow/components/ui/Tooltip";
 import { v4 as uuidv4 } from "uuid";
 import useKnownTypes from "@/dataflow/hooks/useKnownTypes";
-import { useRefSignalRender } from "@/dataflow/hooks/useRefSignal";
+import { useRefSignalRender } from "react-refsignal";
 
 interface TypeDefNodeProps extends NodeProps {
 }

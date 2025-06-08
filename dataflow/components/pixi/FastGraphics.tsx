@@ -1,4 +1,4 @@
-import { useRefSignalEffect } from "@/dataflow/hooks/useRefSignal";
+import { useRefSignalEffect } from "react-refsignal";
 import { PixiReactElementProps, useExtend } from "@pixi/react";
 import { Graphics } from "pixi.js";
 import { useCallback, useRef } from "react";

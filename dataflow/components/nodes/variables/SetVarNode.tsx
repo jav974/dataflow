@@ -9,7 +9,7 @@ import useKnownTypes from "@/dataflow/hooks/useKnownTypes";
 import Select from "@/dataflow/components/forms/Select";
 import Tooltip from "@/dataflow/components/ui/Tooltip";
 import Checkbox from "@/dataflow/components/forms/Checkbox";
-import { useRefSignalRender } from "@/dataflow/hooks/useRefSignal";
+import { useRefSignalRender } from "react-refsignal";
 
 interface SetVarNodeProps extends NodeProps {
 }

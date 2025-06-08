@@ -4,7 +4,7 @@ import { useGraphContext } from './GraphContext';
 import { Size } from 'pixi.js';
 import { GraphResult } from '@/dataflow/engine/types';
 import { emitNodePositionUpdated, emitNodeUpdated } from '../events/events';
-import { batch, createRefSignal, RefSignal, useRefSignal } from '../hooks/useRefSignal';
+import { batch, createRefSignal, RefSignal, useRefSignal } from 'react-refsignal';
 
 export interface Pin {
     id: string;

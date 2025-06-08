@@ -5,7 +5,7 @@ import HtmlNode from "../pixi/HtmlNode";
 import ConnectionDrag from "../pixi/ConnectionDrag";
 import { useGraphContext } from "@/dataflow/contexts/GraphContext";
 import { useRef } from "react";
-import { useRefSignalEffect } from "@/dataflow/hooks/useRefSignal";
+import { useRefSignalEffect } from "react-refsignal";
 
 export default function ApplicationGraph() {
     useExtend({Container});

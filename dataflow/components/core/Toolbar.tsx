@@ -13,7 +13,7 @@ import { useDataflowContext } from "@/dataflow/contexts/DataflowContext";
 import { OptionProps } from "../forms/Select";
 import ResetViewButton from "../buttons/ResetViewButton";
 import ZoomResetButton from "../buttons/ZoomResetButton";
-import { useRefSignalRender } from "@/dataflow/hooks/useRefSignal";
+import { useRefSignalRender } from "react-refsignal";
 
 export default function Toolbar() {
     const { graphs, loadGraph, graph, saveGraph, deleteGraph } = useUserGraph();

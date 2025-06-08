@@ -1,7 +1,7 @@
 import { Coordinates } from '@/dataflow/config/schema';
 import { useCallback, useRef, useEffect, useMemo } from 'react';
 import { useDashboardContext } from '../contexts/DashboardContext';
-import { useRefSignal, useRefSignalEffect, RefSignal } from './useRefSignal';
+import { useRefSignal, useRefSignalEffect, RefSignal } from 'react-refsignal';
 
 interface UseDraggableReturn {
     readonly position: RefSignal<Coordinates>;

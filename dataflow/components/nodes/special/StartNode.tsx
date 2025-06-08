@@ -2,7 +2,7 @@ import { OutputConfig } from "@/dataflow/config/schema";
 import Node, { NodeProps } from "@/dataflow/components/core/Node";
 import { useGraphContext } from "@/dataflow/contexts/GraphContext";
 import { useEffect, useRef } from "react";
-import { batch } from "@/dataflow/hooks/useRefSignal";
+import { batch } from "react-refsignal";
 
 interface StartNodeProps extends NodeProps {
 }

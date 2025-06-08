@@ -5,7 +5,7 @@ import { Node, Pin, useNodes } from "@/dataflow/contexts/NodeContext";
 import { LineTextures } from "./textures";
 import BezierCurve from "./BezierCurve";
 import { useNodeLastUpdated } from "@/dataflow/hooks/useLastUpdated";
-import { batch, RefSignal, useRefSignal, useRefSignalEffect, useRefSignalRender } from "@/dataflow/hooks/useRefSignal";
+import { batch, RefSignal, useRefSignal, useRefSignalEffect, useRefSignalRender } from "react-refsignal";
 
 interface ConnectionProps {
     from: ConnectorConfig;
@@ -42,6 +42,9 @@ export default function Connection({from, to}: ConnectionProps) {
             toPos.current = undefined;
         }
     }, []);
+
+    // Re-render component when fromNode or toNode update
+    useRefSignalRender([trackedFrom, trackedTo]);
 
     // Initialize fromNode and toNode after nodes update
     useRefSignalEffect(() => {
@@ -89,22 +92,12 @@ export default function Connection({from, to}: ConnectionProps) {
 
         // Initial position compute
         computePositions();
-
-        return () => {
-            fromNode.current = undefined;
-            toNode.current = undefined;
-            fromPos.current = undefined;
-            toPos.current = undefined;
-        };
     }, [fromNode.current, toNode.current, computePositions]);
 
     // Recompute position after node movement
     useEffect(() => {
         computePositions();
     }, [fromNodeUpdatedAt, toNodeUpdatedAt]);
-
-    // Re-render component when fromNode or toNode update
-    useRefSignalRender([trackedFrom, trackedTo]);
 
     if (!fromPos.current || !toPos.current) {
         return null;

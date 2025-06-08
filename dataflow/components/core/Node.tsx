@@ -11,7 +11,7 @@ import NodeOutputs from "./NodeOutputs";
 import useHoverable from "@/dataflow/hooks/useHoverable";
 import { isOverlapping } from "../pixi/functions";
 import useFocusable from "@/dataflow/hooks/useFocusable";
-import { useRefSignalEffect } from "@/dataflow/hooks/useRefSignal";
+import { useRefSignalEffect } from "react-refsignal";
 import useResizeObserver from "@/dataflow/hooks/useResizeObserver";
 
 export interface NodeProps {

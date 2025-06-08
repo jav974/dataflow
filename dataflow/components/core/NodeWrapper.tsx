@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { createPortal } from "react-dom";
 import { useNodes } from "@/dataflow/contexts/NodeContext";
-import { useRefSignalEffect } from "@/dataflow/hooks/useRefSignal";
+import { useRefSignalEffect } from "react-refsignal";
 
 interface NodeWrapperProps {
     nodeId: string;

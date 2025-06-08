@@ -6,7 +6,7 @@ import { useNodes } from '@/dataflow/contexts/NodeContext';
 import { Coordinates, NodeConfig } from '../../config/schema';
 import { NodePositionUpdateEvent } from '@/dataflow/events/events';
 import { useEvent } from '@/dataflow/hooks/useEvent';
-import { useRefSignalEffect } from '@/dataflow/hooks/useRefSignal';
+import { useRefSignalEffect } from 'react-refsignal';
 
 interface HtmlNodeProps extends PixiReactElementProps<typeof DOMContainer> {
     node: NodeConfig;

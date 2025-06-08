@@ -1,6 +1,6 @@
 import React, { createContext, useCallback, useContext, useEffect, useRef } from "react";
 import { Coordinates } from "../config/schema";
-import { useRefSignal, RefSignal } from "../hooks/useRefSignal";
+import { useRefSignal, RefSignal } from "react-refsignal";
 import { useGraphContext } from "./GraphContext";
 import useResizeObserver from "../hooks/useResizeObserver";
 

@@ -6,7 +6,7 @@ import useDraggable from '@/dataflow/hooks/useDraggable';
 import { PointerEventType, useNodes } from '@/dataflow/contexts/NodeContext';
 import { useGraphContext } from '@/dataflow/contexts/GraphContext';
 import { BACKGROUND_LINE_STYLE, COLOR_BLUE } from '../../config/style';
-import { useRefSignalEffect } from '@/dataflow/hooks/useRefSignal';
+import { useRefSignalEffect } from 'react-refsignal';
 import { useDashboardContext } from '@/dataflow/contexts/DashboardContext';
 
 export default function Background() {
