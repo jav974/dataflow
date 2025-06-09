@@ -5,6 +5,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { useGraphContext } from "@/dataflow/contexts/GraphContext";
 import registry from "../nodes/registry";
 import { useRefSignalRender } from "react-refsignal";
+import { useDashboardContext } from "@/dataflow/contexts/DashboardContext";
 
 interface MenuTree {
     name?: string;
@@ -33,6 +34,7 @@ function HorizontalMenu({menu}: {menu: MenuTree}) {
 
 export default function ContextMenu() {
     const { rightClickPosition } = useNodes();
+    const {canvasRect } = useDashboardContext();
     const { addNode, scale, canvasPosition, nodes } = useGraphContext();
 
     const spawnNode = useCallback((type: NodeType) => {
@@ -45,8 +47,8 @@ export default function ContextMenu() {
                 ...config,
                 id: uuidv4(),
                 position: {
-                    x: (rightClickPosition.ref.current.x - canvasPosition.ref.current.x) * scale.ref.current,
-                    y: (rightClickPosition.ref.current.y - canvasPosition.ref.current.y) * scale.ref.current
+                    x: (rightClickPosition.ref.current.x - canvasPosition.ref.current.x - (canvasRect.ref.current?.left ?? 0)) * scale.ref.current,
+                    y: (rightClickPosition.ref.current.y - canvasPosition.ref.current.y - (canvasRect.ref.current?.top ?? 0)) * scale.ref.current
                 },
             });
         }
