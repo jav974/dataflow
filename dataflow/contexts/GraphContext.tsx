@@ -1,4 +1,4 @@
-import React, { createContext, useCallback, useContext, useEffect, useState } from "react";
+import React, { createContext, useCallback, useContext, useState } from "react";
 import { AppConfig, ConnectionConfig, ConnectorConfig, Coordinates, GraphType, InputConfig, NodeConfig, NodeType, OutputBranchConfig, OutputConfig, VariableConfig } from "@/dataflow/config/schema";
 import { RefState, useRefState } from "@/dataflow/hooks/useRefState";
 import { filterObject } from "@/dataflow/engine/utils";
@@ -67,7 +67,7 @@ export function GraphProvider({children}: GraphProviderProps) {
         const index = nodes.ref.current.findIndex((n: RefSignal<NodeConfig>) => n.ref.current.id === node.id);
 
         if (index === -1) {
-            nodes.ref.current.push(createRefSignal<NodeConfig>(node));
+            nodes.ref.current.push(createRefSignal(node));
             nodes.notifyUpdate();
         }
     }, []);
@@ -101,7 +101,6 @@ export function GraphProvider({children}: GraphProviderProps) {
 
                 nodes.ref.current.splice(index, 1);
                 removeConnectionsByPredicate(conn => (conn.from.id === id || conn.to.id === id));
-                nodes.notifyUpdate();
             }, [nodes, connections, variables]);
         }
     }, []);

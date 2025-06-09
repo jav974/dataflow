@@ -50,7 +50,7 @@ export default function NodeInputs({nodeId, nodeType, inputs, onRef, multiple = 
     const handlePointerUp = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
         if (!isHovered || !multiple || !connectionDrag.ref.current) return ;
         
-        const node = nodes.ref.current.get(connectionDrag.ref.current.connector.id);
+        const node = nodes.ref.current.get(connectionDrag.ref.current.connector.id)?.ref.current;
         if (!node) return;
 
         const output = node.outputs.find((pin: OutputPin) => pin.id === connectionDrag.ref.current?.connector.pin);

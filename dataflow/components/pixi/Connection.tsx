@@ -43,7 +43,7 @@ export default function Connection({from, to}: ConnectionProps) {
         }
     }, []);
 
-    // Re-render component when fromNode or toNode update
+    // Re-render component when fromNode or toNode has been set
     useRefSignalRender([trackedFrom, trackedTo]);
 
     // Initialize fromNode and toNode after nodes update
