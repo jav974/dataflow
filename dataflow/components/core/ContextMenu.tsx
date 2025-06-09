@@ -37,6 +37,8 @@ export default function ContextMenu() {
     const {canvasRect } = useDashboardContext();
     const { addNode, scale, canvasPosition, nodes } = useGraphContext();
 
+    useRefSignalRender([nodes]);
+
     const spawnNode = useCallback((type: NodeType) => {
         if (!rightClickPosition.ref.current) return ;
 
@@ -129,7 +131,7 @@ export default function ContextMenu() {
                 createNodeMenuEntry("Type", NodeType.TYPEDEF),
             ]
         }
-    }, [createNodeMenuEntry, nodes.lastUpdated]);
+    }, [createNodeMenuEntry, nodes.lastUpdated.current]);
 
     useRefSignalRender([rightClickPosition]);
 

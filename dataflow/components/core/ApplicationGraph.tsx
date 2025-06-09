@@ -5,7 +5,7 @@ import HtmlNode from "../pixi/HtmlNode";
 import ConnectionDrag from "../pixi/ConnectionDrag";
 import { useGraphContext } from "@/dataflow/contexts/GraphContext";
 import { useRef } from "react";
-import { useRefSignalEffect } from "react-refsignal";
+import { useRefSignalEffect, useRefSignalRender } from "react-refsignal";
 
 export default function ApplicationGraph() {
     useExtend({Container});
@@ -19,6 +19,8 @@ export default function ApplicationGraph() {
             pixiRef.current.position = {...canvasPosition.ref.current};
         }
     }, [zoom, canvasPosition]);
+
+    useRefSignalRender([nodes]);
 
     return (
         <pixiContainer

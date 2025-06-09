@@ -6,7 +6,7 @@ import { useRefSignal, useRefSignalEffect, RefSignal, batch } from "react-refsig
 
 interface GraphContextType {
     name: string;
-    nodes: RefState<NodeConfig[]>;
+    nodes: RefSignal<NodeConfig[]>;
     connections: RefSignal<ConnectionConfig[]>;
     zoom: RefSignal<number>;
     scale: RefSignal<number>;
@@ -49,7 +49,7 @@ interface GraphProviderProps {
 
 export function GraphProvider({children}: GraphProviderProps) {
     const [name, setName] = useState<string>("");
-    const nodes = useRefState<NodeConfig[]>([]);
+    const nodes = useRefSignal<NodeConfig[]>([]);
     const connections = useRefSignal<ConnectionConfig[]>([]);
     const canvasPosition = useRefSignal<Coordinates>({x: 0, y: 0});
     const zoom = useRefSignal<number>(100);
@@ -67,7 +67,7 @@ export function GraphProvider({children}: GraphProviderProps) {
 
         if (index === -1) {
             nodes.ref.current.push(node);
-            nodes.setLastUpdated(Date.now());
+            nodes.notifyUpdate();
         }
     }, []);
 
@@ -76,7 +76,7 @@ export function GraphProvider({children}: GraphProviderProps) {
 
         if (index !== -1) {
             nodes.ref.current[index] = node;
-            nodes.setLastUpdated(Date.now());
+            nodes.notifyUpdate();
         }
     }, []);
 
@@ -94,13 +94,15 @@ export function GraphProvider({children}: GraphProviderProps) {
         const index = nodes.ref.current.findIndex((n: NodeConfig) => n.id === id);
 
         if (index !== -1) {
-            if (nodes.ref.current.at(index)?.type === NodeType.SET) {
-                removeVariable(id);
-            }
+            batch(() => {
+                if (nodes.ref.current.at(index)?.type === NodeType.SET) {
+                    removeVariable(id);
+                }
 
-            nodes.ref.current.splice(index, 1);
-            removeConnectionsByPredicate(conn => (conn.from.id === id || conn.to.id === id));
-            nodes.setLastUpdated(Date.now());
+                nodes.ref.current.splice(index, 1);
+                removeConnectionsByPredicate(conn => (conn.from.id === id || conn.to.id === id));
+                nodes.notifyUpdate();
+            }, [nodes, connections, variables]);
         }
     }, []);
 
@@ -283,13 +285,13 @@ export function GraphProvider({children}: GraphProviderProps) {
         batch(() => {
             canvasPosition.update({x: 0, y: 0});
             zoom.update(graph.zoom ?? 100);
+            nodes.update(graph.nodes);
             connections.update(graph.connections ?? []);
             types.update(graph.types ?? []);
             variables.update(Array.isArray(graph.variables) ? graph.variables : []);
-        }, [canvasPosition, zoom, connections, types, variables]);
+        }, [canvasPosition, zoom, connections, types, variables, nodes]);
 
         setName(graph.name);
-        nodes.update(graph.nodes);
     }, []);
 
     const zoomIn = useCallback(() => {

@@ -32,6 +32,8 @@ export default function NewGraphModal({ isOpen, onClose }: NewGraphModalProps) {
             nodes,
             connections: [],
             variables: [],
+            types: [],
+            zoom: 100
         };
 
         saveGraph(graphName, newGraph);

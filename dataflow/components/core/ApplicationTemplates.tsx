@@ -1,16 +1,17 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { NodeConfig } from "../../config/schema";
 import ErrorBoundary from "./ErrorBoundary";
 import { useGraphContext } from "@/dataflow/contexts/GraphContext";
 import NodeWrapper from "./NodeWrapper";
 import registry from "../nodes/registry";
 import "../nodes/NodeTemplates"
+import { useRefSignalEffect } from "react-refsignal";
 
 export default function ApplicationTemplates() {
     const { nodes } = useGraphContext();
     const [templates, setTemplates] = useState<React.ReactElement[]>([]);
 
-    useEffect(() => {
+    useRefSignalEffect(() => {
         const _templates = nodes.ref.current.map((node: NodeConfig): React.ReactElement => {
             const reactElementBuilder = registry.get(node.type)?.builder;
 
@@ -34,7 +35,7 @@ export default function ApplicationTemplates() {
         }) ?? [];
 
         setTemplates(_templates);
-    }, [nodes.lastUpdated]);
+    }, [nodes]);
 
     return (
         <ErrorBoundary>
