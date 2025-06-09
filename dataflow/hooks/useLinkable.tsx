@@ -1,6 +1,7 @@
-import { useCallback, useMemo } from "react";
+import { useCallback, useState } from "react";
 import { useGraphContext } from "@/dataflow/contexts/GraphContext";
 import { PointerEventType, useNodes } from "@/dataflow/contexts/NodeContext";
+import { useRefSignalEffect } from "react-refsignal";
 
 interface UseLinkableReturn {
     readonly isConnected: boolean;
@@ -12,7 +13,8 @@ interface UseLinkableReturn {
 export default function useLinkable(id: string, pin: string, isInput: boolean = false, isOutput: boolean = false): UseLinkableReturn {
     const { startConnectionDrag, onPointerUp } = useNodes();
     const { removeConnections, connections } = useGraphContext();
-    const isConnected = useMemo(() => {
+    const [isConnected, setIsConnected] = useState<boolean>(false);
+    const getIsConnected = useCallback(() => {
         return connections.ref.current.find((connection) => {
             if (isInput || pin === "execute") {
                 return connection.to.id === id && connection.to.pin === pin;
@@ -20,7 +22,13 @@ export default function useLinkable(id: string, pin: string, isInput: boolean = 
                 return connection.from.id === id && connection.from.pin === pin;
             }
         }) !== undefined;
-    }, [connections.lastUpdated, id, pin, isInput, isOutput]);
+    }, [id, pin, isInput, isOutput]);
+
+    useRefSignalEffect(() => {
+        if (getIsConnected() !== isConnected) {
+            setIsConnected(!isConnected);
+        }
+    }, [connections, getIsConnected, isConnected]);
 
     const onClick = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
         e.preventDefault();

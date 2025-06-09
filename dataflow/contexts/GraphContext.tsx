@@ -7,7 +7,7 @@ import { useRefSignal, useRefSignalEffect, RefSignal, batch } from "react-refsig
 interface GraphContextType {
     name: string;
     nodes: RefState<NodeConfig[]>;
-    connections: RefState<ConnectionConfig[]>;
+    connections: RefSignal<ConnectionConfig[]>;
     zoom: RefSignal<number>;
     scale: RefSignal<number>;
     canvasPosition: RefSignal<Coordinates>;
@@ -50,7 +50,7 @@ interface GraphProviderProps {
 export function GraphProvider({children}: GraphProviderProps) {
     const [name, setName] = useState<string>("");
     const nodes = useRefState<NodeConfig[]>([]);
-    const connections = useRefState<ConnectionConfig[]>([]);
+    const connections = useRefSignal<ConnectionConfig[]>([]);
     const canvasPosition = useRefSignal<Coordinates>({x: 0, y: 0});
     const zoom = useRefSignal<number>(100);
     const scale = useRefSignal<number>(zoom.ref.current != 0 ? 1 / (zoom.ref.current / 100) : 0);
@@ -87,7 +87,7 @@ export function GraphProvider({children}: GraphProviderProps) {
             connections.ref.current.splice(index, 1);
         }
 
-        connections.setLastUpdated(Date.now());
+        connections.notifyUpdate();
     }, []);
 
     const removeNode = useCallback((id: string) => {
@@ -259,7 +259,7 @@ export function GraphProvider({children}: GraphProviderProps) {
         
         if (index === -1) {
             connections.ref.current.push(connection);
-            connections.setLastUpdated(Date.now());
+            connections.notifyUpdate();
         }
     }, []);
 
@@ -283,13 +283,13 @@ export function GraphProvider({children}: GraphProviderProps) {
         batch(() => {
             canvasPosition.update({x: 0, y: 0});
             zoom.update(graph.zoom ?? 100);
-        }, [canvasPosition, zoom]);
+            connections.update(graph.connections ?? []);
+            types.update(graph.types ?? []);
+            variables.update(Array.isArray(graph.variables) ? graph.variables : []);
+        }, [canvasPosition, zoom, connections, types, variables]);
 
         setName(graph.name);
         nodes.update(graph.nodes);
-        connections.update(graph.connections ?? []);
-        types.update(graph.types ?? []);
-        variables.update(Array.isArray(graph.variables) ? graph.variables : []);
     }, []);
 
     const zoomIn = useCallback(() => {

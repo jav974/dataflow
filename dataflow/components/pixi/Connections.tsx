@@ -1,9 +1,12 @@
 import { useGraphContext } from '@/dataflow/contexts/GraphContext';
 import { ConnectionConfig } from '../../config/schema';
 import Connection from './Connection';
+import { useRefSignalRender } from 'react-refsignal';
 
 export default function Connections() {
     const { name, connections } = useGraphContext();
+
+    useRefSignalRender([connections]);
 
     return (
         <>
