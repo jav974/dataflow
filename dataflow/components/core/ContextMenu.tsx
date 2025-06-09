@@ -1,6 +1,6 @@
 import { useNodes } from "@/dataflow/contexts/NodeContext";
 import { useCallback, useMemo } from "react";
-import { NodeConfig, NodeType } from "../../config/schema";
+import { NodeType } from "../../config/schema";
 import { v4 as uuidv4 } from 'uuid';
 import { useGraphContext } from "@/dataflow/contexts/GraphContext";
 import registry from "../nodes/registry";
@@ -64,9 +64,9 @@ export default function ContextMenu() {
     }, [spawnNode]);
 
     const menu = useMemo((): MenuTree => {
-        const hasStartNode = nodes.ref.current.findIndex((n: NodeConfig) => n.type === NodeType.START) !== -1;
-        const hasReturnNode = nodes.ref.current.findIndex((n: NodeConfig) => n.type === NodeType.RETURN) !== -1;
-        const hasTriggerNode = nodes.ref.current.findIndex((n: NodeConfig) => n.type === NodeType.TRIGGER) !== -1;
+        const hasStartNode = nodes.ref.current.findIndex((ns) => ns.ref.current.type === NodeType.START) !== -1;
+        const hasReturnNode = nodes.ref.current.findIndex((ns) => ns.ref.current.type === NodeType.RETURN) !== -1;
+        const hasTriggerNode = nodes.ref.current.findIndex((ns) => ns.ref.current.type === NodeType.TRIGGER) !== -1;
         const specialEntries: MenuTree[] = [];
 
         if (!hasStartNode && !hasTriggerNode) {

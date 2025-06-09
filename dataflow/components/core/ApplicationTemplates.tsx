@@ -1,18 +1,19 @@
 import React, { useState } from "react";
-import { NodeConfig } from "../../config/schema";
 import ErrorBoundary from "./ErrorBoundary";
 import { useGraphContext } from "@/dataflow/contexts/GraphContext";
 import NodeWrapper from "./NodeWrapper";
 import registry from "../nodes/registry";
 import "../nodes/NodeTemplates"
 import { useRefSignalEffect } from "react-refsignal";
+import NodeTemplateWrapper from "../nodes/NodeTemplateWrapper";
 
 export default function ApplicationTemplates() {
     const { nodes } = useGraphContext();
     const [templates, setTemplates] = useState<React.ReactElement[]>([]);
 
     useRefSignalEffect(() => {
-        const _templates = nodes.ref.current.map((node: NodeConfig): React.ReactElement => {
+        const _templates = nodes.ref.current.map((nodeSignal): React.ReactElement => {
+            const node = nodeSignal.ref.current;
             const reactElementBuilder = registry.get(node.type)?.builder;
 
             if (!reactElementBuilder) {
@@ -29,7 +30,9 @@ export default function ApplicationTemplates() {
 
             return (
                 <NodeWrapper nodeId={node.id} key={node.id}>
-                    {reactElementBuilder(node)}
+                    <NodeTemplateWrapper nodeSignal={nodeSignal} nodeTemplate={(node) =>
+                        reactElementBuilder(node)
+                    }/>
                 </NodeWrapper>
             );
         }) ?? [];

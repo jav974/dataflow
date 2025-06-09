@@ -1,0 +1,14 @@
+import React from "react";
+import { NodeConfig } from "@/dataflow/config/schema";
+import { RefSignal, useRefSignalRender } from "react-refsignal";
+
+interface NodeTemplateWrapperProps {
+    nodeSignal: RefSignal<NodeConfig>;
+    nodeTemplate: (node: NodeConfig) => React.ReactNode;
+}
+
+export default function NodeTemplateWrapper({nodeSignal, nodeTemplate}: NodeTemplateWrapperProps) {
+    useRefSignalRender([nodeSignal]);
+
+    return nodeTemplate(nodeSignal.ref.current);
+}

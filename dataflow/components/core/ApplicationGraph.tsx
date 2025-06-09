@@ -29,7 +29,9 @@ export default function ApplicationGraph() {
             scale={zoom.ref.current / 100}
             roundPixels={true}
         >
-            {nodes.ref.current.map((node) => <HtmlNode key={`${name}_${node.id}`} node={node} />)}
+            {nodes.ref.current.map((nodeSignal) =>
+                <HtmlNode key={`${name}_${nodeSignal.ref.current.id}`} node={nodeSignal.ref.current} />
+            )}
             <Connections />
             <ConnectionDrag />
         </pixiContainer>

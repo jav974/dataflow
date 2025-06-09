@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import PlayButton from "../buttons/PlayButton";
 import { useUserGraph } from "@/dataflow/contexts/UserGraphContext";
 import NewGraphButton from "../buttons/NewGraphButton";
@@ -17,7 +17,7 @@ import { useRefSignalRender } from "react-refsignal";
 
 export default function Toolbar() {
     const { graphs, loadGraph, graph, saveGraph, deleteGraph } = useUserGraph();
-    const { connections, nodes, zoom, variables, types, computedResult, canvasPosition } = useGraphContext();
+    const { zoom, computedResult, canvasPosition, toGraph } = useGraphContext();
     const [isNewModalOpen, setIsNewModalOpen] = useState(false);
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [isPlaying, setIsPlaying] = useState<boolean>(false);
@@ -44,15 +44,10 @@ export default function Toolbar() {
 
     const onSaveGraphClick = useCallback(() => {
         if (graph) {
-            const newConfig = { ...graph };
-            newConfig.connections = connections.ref.current;
-            newConfig.nodes = nodes.ref.current;
-            newConfig.zoom = zoom.ref.current;
-            newConfig.types = types.ref.current;
-            newConfig.variables = variables.ref.current;
+            const newConfig = { ...graph, ...toGraph() };
             saveGraph(graph.name, newConfig);
         }
-    }, [graph, saveGraph]);
+    }, [graph, saveGraph, toGraph]);
 
     const onDeleteGraphClick = useCallback(() => {
         setIsDeleteModalOpen(true);
@@ -68,7 +63,7 @@ export default function Toolbar() {
         if (!isPlaying && graph && selectedExecutor) {
             setIsPlaying(true);
 
-            selectedExecutor(graph, {Ad: 36}).then((result) => {
+            selectedExecutor(toGraph(), {Ad: 36}).then((result) => {
                 console.log("Graph execution result:", result);
                 setGraphResult(result);
                 computedResult.update(result?.graph ? getIOValues(result.graph) : new Map());
@@ -79,7 +74,7 @@ export default function Toolbar() {
                 setTimeout(() => setIsPlaying(false), 0);
             });
         }
-    }, [graph, isPlaying, selectedExecutor, setGraphResult]);
+    }, [graph, isPlaying, selectedExecutor, setGraphResult, toGraph]);
 
     const handleModeChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
         const newMode = e.target.value as "local" | "remote";

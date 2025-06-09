@@ -5,7 +5,6 @@ import MathNode from "./math/MathNode";
 import SetVarNode from "./variables/SetVarNode";
 import IfNode from "./conditional/IfNode";
 import GetVarNode from "./variables/GetVarNode";
-import { jsonToMap } from "@/dataflow/engine/utils";
 import StartNode from "./special/StartNode";
 import ReturnNode from "./special/ReturnNode";
 import SequenceNode from "./sequence/SequenceNode";
@@ -177,7 +176,7 @@ registry.set(NodeType.SET, {
 });
 
 registry.set(NodeType.GET, {
-    builder: (node: NodeConfig) => <GetVarNode node={node} context={jsonToMap<any>(node.context)} />,
+    builder: (node: NodeConfig) => <GetVarNode node={node} />,
     config: {
         type: NodeType.GET,
         name: "Get variable",
