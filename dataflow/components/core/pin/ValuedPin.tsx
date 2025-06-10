@@ -50,7 +50,7 @@ export default function ValuedPin({id, name, type, required, defaultValue, remov
             case ParameterTypes.BOOLEAN:
                 return defaultValue ?? "false";
             case ParameterTypes.ANY:
-                return undefined;
+                return defaultValue;
             case ParameterTypes.STRING:
             default:
                 return defaultValue ?? "";

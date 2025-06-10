@@ -2,6 +2,7 @@ import { NodeType, ParameterTypes, ParameterValueType } from "@/dataflow/config/
 import registry, { NodeExecContext, NodeExecParams, NodeExecutor } from "./registry";
 import { isNumeric, math_add, math_div, math_mod, math_mul, math_sub } from "./lib";
 import executionContext from "./context";
+import "./handlers/array";
 
 type SimpleMathContext = Map<string, (...numbers: number[]) => number>;
 

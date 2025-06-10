@@ -32,6 +32,22 @@ enum NodeType {
     SEQUENCE = "sequence",
 
     TYPEDEF = "typedef",
+
+    ARRAY_AT = "array_at",
+    ARRAY_CONCAT = "array_concat",
+    ARRAY_FILL = "array_fill",
+    ARRAY_FILTER = "array_filter",
+    ARRAY_FIND = "array_find",
+    ARRAY_FINDINDEX = "array_findindex",
+    ARRAY_MAP = "array_map",
+    ARRAY_SHIFT = "array_shift",
+    ARRAY_UNSHIFT = "array_unshift",
+    ARRAY_SLICE = "array_slice",
+    ARRAY_POP = "array_pop",
+    ARRAY_PUSH = "array_push",
+    ARRAY_SPLICE = "array_splice",
+    ARRAY_REVERSE = "array_reverse",
+    ARRAY_LENGTH = "array_length",
 }
 
 enum ParameterTypes {

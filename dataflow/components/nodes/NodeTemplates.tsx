@@ -15,6 +15,7 @@ import TypeDefNode from "./type/TypeDefNode";
 import StringNode from "./string/StringNode";
 import DebugVarNode from "./variables/DebugVarNode";
 import NewVarNode from "./variables/NewVarNode";
+import ArrayNode from "./array/ArrayNode";
 
 registry.set(NodeType.START, {
     builder: (node: NodeConfig) => <StartNode node={node} />,
@@ -458,7 +459,187 @@ registry.set(NodeType.NEW, {
             {id: "defaultValue", name: "Default", type: ParameterTypes.ANY, required: false, editable: true},
         ],
         outputs: [
-            {id: "result", name: "Var", type: ParameterTypes.ANY}
+            {id: "result", name: "var", type: ParameterTypes.ANY}
+        ]
+    }
+});
+
+registry.set(NodeType.ARRAY_AT, {
+    builder: (node: NodeConfig) => <ArrayNode node={node} />,
+    config: {
+        type: NodeType.ARRAY_AT,
+        executable: true,
+        name: "Array At",
+        inputs: [
+            {id: "array", name: "Array", type: ParameterTypes.ANY, required: true, editable: false, isCollection: true},
+            {id: "index", name: "Index", type: ParameterTypes.NUMBER, required: true, editable: true}
+        ],
+        outputs: [
+            {id: "result", name: "element", type: ParameterTypes.ANY}
+        ]
+    }
+});
+
+registry.set(NodeType.ARRAY_CONCAT, {
+    builder: (node: NodeConfig) => <ArrayNode node={node} inputMultiple={true} minInputParams={2} />,
+    config: {
+        type: NodeType.ARRAY_CONCAT,
+        executable: true,
+        name: "Array Concat",
+        inputs: [
+            {id: "array_a", name: "A", type: ParameterTypes.ANY, required: true, editable: false, isCollection: true},
+            {id: "array_b", name: "B", type: ParameterTypes.ANY, required: true, editable: false, isCollection: true},
+        ],
+        outputs: [
+            {id: "result", name: "result", type: ParameterTypes.ANY, isCollection: true}
+        ]
+    }
+});
+
+registry.set(NodeType.ARRAY_FILL, {
+    builder: (node: NodeConfig) => <ArrayNode node={node} />,
+    config: {
+        type: NodeType.ARRAY_FILL,
+        executable: true,
+        name: "Array Fill",
+        inputs: [
+            {id: "array", name: "Array", type: ParameterTypes.ANY, required: true, editable: false, isCollection: true},
+            {id: "value", name: "Value", type: ParameterTypes.ANY, required: true, editable: true},
+            {id: "start", name: "Start", type: ParameterTypes.NUMBER, required: false, editable: true},
+            {id: "end", name: "End", type: ParameterTypes.NUMBER, required: false, editable: true}
+        ],
+        outputs: [
+            {id: "result", name: "result", type: ParameterTypes.ANY, isCollection: true}
+        ]
+    }
+});
+
+registry.set(NodeType.ARRAY_SHIFT, {
+    builder: (node: NodeConfig) => <ArrayNode node={node} />,
+    config: {
+        type: NodeType.ARRAY_SHIFT,
+        executable: true,
+        name: "Array Shift",
+        inputs: [
+            {id: "array", name: "Array", type: ParameterTypes.ANY, required: true, editable: false, isCollection: true},
+        ],
+        outputs: [
+            {id: "result", name: "result", type: ParameterTypes.ANY, isCollection: true},
+            {id: "element", name: "element", type: ParameterTypes.ANY}
+        ]
+    }
+});
+
+registry.set(NodeType.ARRAY_UNSHIFT, {
+    builder: (node: NodeConfig) => <ArrayNode node={node} />,
+    config: {
+        type: NodeType.ARRAY_UNSHIFT,
+        executable: true,
+        name: "Array Unshift",
+        inputs: [
+            {id: "array", name: "Array", type: ParameterTypes.ANY, required: true, editable: false, isCollection: true},
+            {id: "value", name: "Value", type: ParameterTypes.ANY, required: true, editable: true}
+        ],
+        outputs: [
+            {id: "result", name: "result", type: ParameterTypes.ANY, isCollection: true},
+            {id: "length", name: "length", type: ParameterTypes.NUMBER}
+        ]
+    }
+});
+
+registry.set(NodeType.ARRAY_SLICE, {
+    builder: (node: NodeConfig) => <ArrayNode node={node} />,
+    config: {
+        type: NodeType.ARRAY_SLICE,
+        executable: true,
+        name: "Array Slice",
+        inputs: [
+            {id: "array", name: "Array", type: ParameterTypes.ANY, required: true, editable: false, isCollection: true},
+            {id: "start", name: "Start", type: ParameterTypes.NUMBER, required: true, editable: true},
+            {id: "end", name: "End", type: ParameterTypes.NUMBER, required: false, editable: true},
+        ],
+        outputs: [
+            {id: "result", name: "result", type: ParameterTypes.ANY, isCollection: true},
+        ]
+    }
+});
+
+registry.set(NodeType.ARRAY_SPLICE, {
+    builder: (node: NodeConfig) => <ArrayNode node={node} />,
+    config: {
+        type: NodeType.ARRAY_SPLICE,
+        executable: true,
+        name: "Array Splice",
+        inputs: [
+            {id: "array", name: "Array", type: ParameterTypes.ANY, required: true, editable: false, isCollection: true},
+            {id: "start", name: "Start", type: ParameterTypes.NUMBER, required: true, editable: true},
+            {id: "count", name: "Count", type: ParameterTypes.NUMBER, required: true, editable: true},
+        ],
+        outputs: [
+            {id: "result", name: "result", type: ParameterTypes.ANY, isCollection: true},
+            {id: "removed", name: "removed", type: ParameterTypes.ANY, isCollection: true},
+        ]
+    }
+});
+
+registry.set(NodeType.ARRAY_POP, {
+    builder: (node: NodeConfig) => <ArrayNode node={node} />,
+    config: {
+        type: NodeType.ARRAY_POP,
+        executable: true,
+        name: "Array Pop",
+        inputs: [
+            {id: "array", name: "Array", type: ParameterTypes.ANY, required: true, editable: false, isCollection: true},
+        ],
+        outputs: [
+            {id: "result", name: "result", type: ParameterTypes.ANY, isCollection: true},
+            {id: "removed", name: "removed", type: ParameterTypes.ANY, isCollection: false},
+        ]
+    }
+});
+
+registry.set(NodeType.ARRAY_PUSH, {
+    builder: (node: NodeConfig) => <ArrayNode node={node} />,
+    config: {
+        type: NodeType.ARRAY_PUSH,
+        executable: true,
+        name: "Array Push",
+        inputs: [
+            {id: "array", name: "Array", type: ParameterTypes.ANY, required: true, editable: false, isCollection: true},
+            {id: "value", name: "Value", type: ParameterTypes.ANY, required: true, editable: true},
+        ],
+        outputs: [
+            {id: "result", name: "result", type: ParameterTypes.ANY, isCollection: true},
+        ]
+    }
+});
+
+registry.set(NodeType.ARRAY_REVERSE, {
+    builder: (node: NodeConfig) => <ArrayNode node={node} />,
+    config: {
+        type: NodeType.ARRAY_REVERSE,
+        executable: true,
+        name: "Array Reverse",
+        inputs: [
+            {id: "array", name: "Array", type: ParameterTypes.ANY, required: true, editable: false, isCollection: true},
+        ],
+        outputs: [
+            {id: "result", name: "result", type: ParameterTypes.ANY, isCollection: true},
+        ]
+    }
+});
+
+registry.set(NodeType.ARRAY_LENGTH, {
+    builder: (node: NodeConfig) => <ArrayNode node={node} />,
+    config: {
+        type: NodeType.ARRAY_LENGTH,
+        executable: true,
+        name: "Array Length",
+        inputs: [
+            {id: "array", name: "Array", type: ParameterTypes.ANY, required: true, editable: false, isCollection: true},
+        ],
+        outputs: [
+            {id: "result", name: "length", type: ParameterTypes.NUMBER, isCollection: false},
         ]
     }
 });

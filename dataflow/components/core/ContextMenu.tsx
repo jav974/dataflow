@@ -128,6 +128,22 @@ export default function ContextMenu() {
                         createNodeMenuEntry("To Lower Case", NodeType.STRING_TO_LOWER),
                     ]
                 },
+                {
+                    name: "Array",
+                    children: [
+                        createNodeMenuEntry("At", NodeType.ARRAY_AT),
+                        createNodeMenuEntry("Concat", NodeType.ARRAY_CONCAT),
+                        createNodeMenuEntry("Slice", NodeType.ARRAY_SLICE),
+                        createNodeMenuEntry("Splice", NodeType.ARRAY_SPLICE),
+                        createNodeMenuEntry("Pop", NodeType.ARRAY_POP),
+                        createNodeMenuEntry("Push", NodeType.ARRAY_PUSH),
+                        createNodeMenuEntry("Shift", NodeType.ARRAY_SHIFT),
+                        createNodeMenuEntry("Unshift", NodeType.ARRAY_UNSHIFT),
+                        createNodeMenuEntry("Length", NodeType.ARRAY_LENGTH),
+                        createNodeMenuEntry("Reverse", NodeType.ARRAY_REVERSE),
+                        createNodeMenuEntry("Fill", NodeType.ARRAY_FILL),
+                    ]
+                },
                 createNodeMenuEntry("Sequence", NodeType.SEQUENCE),
                 createNodeMenuEntry("Fetch", NodeType.FETCH),
                 createNodeMenuEntry("Type", NodeType.TYPEDEF),
