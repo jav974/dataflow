@@ -129,6 +129,8 @@ interface InputConfig {
     defaultValue?: any;
     editable?: boolean;
     isCollection?: boolean;
+    typeEditable?: boolean;
+    collectionEditable?: boolean;
 }
 
 interface OutputConfig {

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Texture } from "pixi.js";
-import { ConnectorConfig, Coordinates } from "../../config/schema";
+import { ConnectorConfig, Coordinates, ParameterTypes } from "../../config/schema";
 import { Node, Pin, useNodes } from "@/dataflow/contexts/NodeContext";
 import { LineTextures } from "./textures";
 import BezierCurve from "./BezierCurve";
@@ -69,11 +69,18 @@ export default function Connection({from, to}: ConnectionProps) {
                 const inputConfig = toNode.current.ref.current.mutableNodeConfig.inputs?.find(input => input.id === to.pin);
 
                 if (outputConfig && inputConfig) {
-                    const key = outputConfig.type !== inputConfig.type
-                        ? `${outputConfig.type}_${inputConfig.type}`
-                        : outputConfig.type
-                    ;
-                    setTexture(LineTextures[key] ?? LineTextures.error);
+                    // undefined should evaluate as false here, so keep this comparison operator !
+                    if (outputConfig.isCollection != inputConfig.isCollection && inputConfig.type !== ParameterTypes.ANY) {
+                        setTexture(LineTextures.error);
+                    } else {
+                        const inputKey = !LineTextures[inputConfig.type] ? 'custom' : inputConfig.type;
+                        const outputKey = !LineTextures[outputConfig.type] ? 'custom' : outputConfig.type;
+                        const key = outputConfig.type !== inputConfig.type
+                            ? `${outputKey}_${inputKey}`
+                            : outputKey
+                        ;
+                        setTexture(LineTextures[key] ?? LineTextures.error);
+                    }
                 }
             }
             // Output (branch) to Execute

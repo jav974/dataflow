@@ -14,15 +14,16 @@ interface PinTypeFormProps {
     isInput: boolean;
     type?: string;
     isCollection?: boolean;
+    collectionEditable?: boolean;
 }
 
-export default function PinTypeForm({nodeId, pinId, isInput, type, isCollection}: PinTypeFormProps) {
+export default function PinTypeForm({nodeId, pinId, isInput, type, isCollection, collectionEditable}: PinTypeFormProps) {
     const {options} = useKnownTypes();
     const {updateNodeInput, updateNodeOutput} = useGraphContext();
     const formRef = useRef<HTMLFormElement | null>(null);
     const schema = useMemo(() => yup.object({
         type: yup.string().required(),
-        isCollection: yup.boolean().required()
+        isCollection: collectionEditable ? yup.boolean().required() : yup.boolean()
     }), []);
     const methods = useForm({
         resolver: yupResolver(schema),
@@ -47,9 +48,11 @@ export default function PinTypeForm({nodeId, pinId, isInput, type, isCollection}
         <FormProvider {...methods}>
             <form ref={formRef} className="flex flex-nowrap items-end gap-1" onSubmit={methods.handleSubmit(onSubmit)}>
                 <Select name="type" onBlur={onBlur} options={options}/>
+                {collectionEditable &&
                 <Tooltip tooltip="Collection?">
                     <Checkbox className="grow-0" name="isCollection" onBlur={onBlur}/>
                 </Tooltip>
+                }
             </form>
         </FormProvider>
     );

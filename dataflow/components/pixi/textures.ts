@@ -25,6 +25,8 @@ const LineTextures: Record<string, Texture | null> = {
     string_number: createGradientTexture(COLOR_PINK_500, COLOR_GREEN_500, 100, LINE_THICKNESS_PARAM),
     string_any: createGradientTexture(COLOR_PINK_500, COLOR_BLUE_500, 100, LINE_THICKNESS_PARAM),
 
+    custom_any: createGradientTexture(COLOR_PURPLE_500, COLOR_BLUE_500, 100, LINE_THICKNESS_PARAM),
+
     error: createColorTexture('#ff0000', 1, LINE_THICKNESS_PARAM),
 };
 

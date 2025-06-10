@@ -1,9 +1,75 @@
 import Node, { NodeProps } from "../../core/Node";
+import { useCallback, useEffect, useMemo, useRef } from "react";
+import { InputConfig, NodeConfig, NodeType } from "@/dataflow/config/schema";
+import { useGraphContext } from "@/dataflow/contexts/GraphContext";
+import { useRefSignalEffect } from "react-refsignal";
 
 interface ArrayNodeProps extends NodeProps {
 }
 
 export default function ArrayNode({node, ...props}: ArrayNodeProps) {
+    const prevInputRef = useRef<InputConfig | undefined>(node.inputs ? {...node.inputs[0]} : undefined);
+    const {setNodeInputs, setNodeOutputs, getConnectionInfo, connections} = useGraphContext();
+    const arrayInput = useMemo(() => node.inputs ? node.inputs[0] : undefined, [node.inputs]);
+    const connectionInfo = useMemo(() => {
+        if (!arrayInput) return undefined;
+        return getConnectionInfo(node.id, arrayInput);
+    }, [arrayInput]);
+    const error = useMemo(() => {
+        if (connectionInfo && !connectionInfo.target.isCollection) {
+            return "Invalid Array input";
+        }
+        return undefined;
+    }, [connectionInfo]);
+
+    const updateType = useCallback((node: NodeConfig, type: string) => {
+        setNodeInputs(node.id, node.inputs?.map((v) => {
+            switch (v.id) {
+                case 'array':
+                case 'value':
+                    return {...v, type};
+            }
+
+            return v;
+        }) ?? []);
+
+        if (node.type !== NodeType.ARRAY_LENGTH) {
+            setNodeOutputs(node.id, node.outputs?.map((v) => {
+                switch (v.id) {
+                    case 'result':
+                    case 'element':
+                    case 'removed':
+                        return {...v, type};
+                }
+
+                return v;
+            }) ?? []);
+        }
+    }, []);
+
+    // Update types of inputs/outputs after array input is connected
+    // Update types of inputs/outputs after array input connection type changes
+    useRefSignalEffect(() => {
+        if (!arrayInput) return ;
+        const connectionInfo = getConnectionInfo(node.id, arrayInput);
+
+        if (connectionInfo && connectionInfo.target.isCollection) {
+            if (connectionInfo.target.type !== arrayInput.type) {
+                updateType(node, connectionInfo.target.type);
+            }
+        }
+    }, [connections, connectionInfo?.node, arrayInput]);
+
+    // Update types of inputs/outputs after user changes type for array input
+    useEffect(() => {
+        if (!node.inputs || !arrayInput) return ;
+
+        if (arrayInput.type !== prevInputRef.current?.type) {
+            prevInputRef.current = arrayInput;
+            updateType(node, arrayInput.type);
+        }
+    }, [arrayInput]);
+
     return (
         <Node
             node={node}
@@ -11,6 +77,8 @@ export default function ArrayNode({node, ...props}: ArrayNodeProps) {
             hasContinue={true}
             size={{ width: 200, height: 100 }}
             {...props}
-        />
+        >
+            {error && <div>{error}</div>}
+        </Node>
     );
 }

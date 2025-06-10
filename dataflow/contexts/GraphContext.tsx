@@ -4,6 +4,11 @@ import { RefState, useRefState } from "@/dataflow/hooks/useRefState";
 import { filterObject } from "@/dataflow/engine/utils";
 import { useRefSignal, useRefSignalEffect, RefSignal, batch, createRefSignal } from "react-refsignal";
 
+interface ConnectionInfo {
+    node: RefSignal<NodeConfig>;
+    target: InputConfig | OutputConfig;
+}
+
 interface GraphContextType {
     name: string;
     nodes: RefSignal<RefSignal<NodeConfig>[]>;
@@ -40,6 +45,7 @@ interface GraphContextType {
     setNodeContext: (nodeId: string, context: Map<string, any>) => void;
     setOutputName: (nodeId: string, outputId: string, name: string) => void;
     setInputName: (nodeId: string, inputId: string, name: string) => void;
+    getConnectionInfo: (nodeId: string, src: InputConfig | OutputConfig) => ConnectionInfo | undefined;
 }
 
 const GraphContext = createContext<GraphContextType | null>(null);
@@ -363,6 +369,36 @@ export function GraphProvider({children}: GraphProviderProps) {
         }
     }, [updateNode]);
 
+    const getConnectionInfo = useCallback((nodeId: string, src: InputConfig | OutputConfig) => {
+        if ("required" in src) {
+            const connection = connections.ref.current.find((v) => v.to.id === nodeId && v.to.pin === src.id);
+            if (!connection) return undefined;
+            // Fetch corresponding node output
+            const node = nodes.ref.current.find((v) => v.ref.current.id === connection.from.id);
+            if (!node) return undefined;
+            const output = node.ref.current.outputs?.find((v) => v.id === connection.from.pin);
+            if (!output) return undefined;
+
+            return {
+                node,
+                target: output
+            };
+        } else {
+            const connection = connections.ref.current.find((v) => v.from.id === nodeId && v.from.pin === src.id);
+            if (!connection) return undefined;
+            // Fetch corresponding node input
+            const node = nodes.ref.current.find((v) => v.ref.current.id === connection.to.id);
+            if (!node) return undefined;
+            const input = node.ref.current.inputs?.find((v) => v.id === connection.to.pin);
+            if (!input) return undefined;
+            
+            return {
+                node,
+                target: input
+            };
+        }
+    }, []);
+
     return <GraphContext.Provider value={{
         name,
         nodes,
@@ -399,6 +435,7 @@ export function GraphProvider({children}: GraphProviderProps) {
         setNodeContext,
         setOutputName,
         setInputName,
+        getConnectionInfo
     }}>
         {children}
     </GraphContext.Provider>

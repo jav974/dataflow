@@ -21,10 +21,11 @@ interface PinProps {
     editable?: boolean;
     isCollection?: boolean;
     typeEditable?: boolean;
+    collectionEditable?: boolean;
     onRef: (id: string, el: HTMLDivElement | null) => void;
 }
 
-function Pin({ nodeId, id, nodeType, name, type, required, isInput, onRef, removable = false, defaultValue, editable, isCollection = false, typeEditable = false }: PinProps) {
+function Pin({ nodeId, id, nodeType, name, type, required, isInput, onRef, removable = false, defaultValue, editable, isCollection = false, typeEditable = false, collectionEditable = false }: PinProps) {
     const {removeNodeInput, removeNodeOutput, setInputDefaultValue, setOutputName, setInputName, computedResult} = useGraphContext();
     const {isConnected, onClick, handlePointerDown, handlePointerUp} = useLinkable(nodeId, id, isInput, !isInput);
     
@@ -64,7 +65,7 @@ function Pin({ nodeId, id, nodeType, name, type, required, isInput, onRef, remov
     const style = PinStyle[type] ?? PinStyle.custom;
     const connectedClass = isConnected ? style.connectedClass : `border-2 bg-transparent ${style.disconnectedClass}`;
     const pinClass = `io-pin min-w-[12px] min-h-[12px] ${typeClass} ${connectedClass} cursor-pointer`;
-    const pinTypeForm = !typeEditable ? null : <PinTypeForm nodeId={nodeId} pinId={id} isInput={isInput} type={type} isCollection={isCollection}/>;
+    const pinTypeForm = !typeEditable ? null : <PinTypeForm nodeId={nodeId} pinId={id} isInput={isInput} type={type} isCollection={isCollection} collectionEditable={collectionEditable} />;
 
     return (
         <Tooltip tooltip={executionValue}>

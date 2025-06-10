@@ -11,6 +11,7 @@ export default function useKnownTypes(): UseKnownTypesReturn {
     const {types} = useGraphContext();
     const options: OptionProps[] = useMemo((): OptionProps[] => {
         const options: OptionProps[] = [
+            {name: "any", value: "any"},
             {name: "boolean", value: "boolean"},
             {name: "number", value: "number"},
             {name: "string", value: "string"},

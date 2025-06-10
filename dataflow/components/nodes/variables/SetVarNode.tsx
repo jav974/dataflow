@@ -15,7 +15,7 @@ interface SetVarNodeProps extends NodeProps {
 }
 
 export default function SetVarNode({node}: SetVarNodeProps) {
-    const {setVariable, variables, setNodeInputs, setNodeOutputs} = useGraphContext();
+    const {setVariable, variables, types, setNodeInputs, setNodeOutputs} = useGraphContext();
     const {options} = useKnownTypes();
     const formRef = useRef<HTMLFormElement | null>(null);
     const schema = useMemo(() => yup.object({
@@ -57,7 +57,7 @@ export default function SetVarNode({node}: SetVarNodeProps) {
         ? "p-1 outline outline-red-500/50 focus:outline-red-500 max-h-[30px] grow text-center"
         : "p-1 outline outline-blue-500/50 focus:outline-blue-500 max-h-[30px] grow text-center";
 
-    useRefSignalRender([variables]);
+    useRefSignalRender([variables, types]);
 
     return (
         <Node

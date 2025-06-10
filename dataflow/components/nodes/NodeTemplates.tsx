@@ -471,7 +471,7 @@ registry.set(NodeType.ARRAY_AT, {
         executable: true,
         name: "Array At",
         inputs: [
-            {id: "array", name: "Array", type: ParameterTypes.ANY, required: true, editable: false, isCollection: true},
+            {id: "array", name: "Array", type: ParameterTypes.ANY, required: true, editable: false, isCollection: true, typeEditable: true},
             {id: "index", name: "Index", type: ParameterTypes.NUMBER, required: true, editable: true}
         ],
         outputs: [
@@ -503,7 +503,7 @@ registry.set(NodeType.ARRAY_FILL, {
         executable: true,
         name: "Array Fill",
         inputs: [
-            {id: "array", name: "Array", type: ParameterTypes.ANY, required: true, editable: false, isCollection: true},
+            {id: "array", name: "Array", type: ParameterTypes.ANY, required: true, editable: false, isCollection: true, typeEditable: true},
             {id: "value", name: "Value", type: ParameterTypes.ANY, required: true, editable: true},
             {id: "start", name: "Start", type: ParameterTypes.NUMBER, required: false, editable: true},
             {id: "end", name: "End", type: ParameterTypes.NUMBER, required: false, editable: true}
@@ -521,7 +521,7 @@ registry.set(NodeType.ARRAY_SHIFT, {
         executable: true,
         name: "Array Shift",
         inputs: [
-            {id: "array", name: "Array", type: ParameterTypes.ANY, required: true, editable: false, isCollection: true},
+            {id: "array", name: "Array", type: ParameterTypes.ANY, required: true, editable: false, isCollection: true, typeEditable: true},
         ],
         outputs: [
             {id: "result", name: "result", type: ParameterTypes.ANY, isCollection: true},
@@ -537,7 +537,7 @@ registry.set(NodeType.ARRAY_UNSHIFT, {
         executable: true,
         name: "Array Unshift",
         inputs: [
-            {id: "array", name: "Array", type: ParameterTypes.ANY, required: true, editable: false, isCollection: true},
+            {id: "array", name: "Array", type: ParameterTypes.ANY, required: true, editable: false, isCollection: true, typeEditable: true},
             {id: "value", name: "Value", type: ParameterTypes.ANY, required: true, editable: true}
         ],
         outputs: [
@@ -554,7 +554,7 @@ registry.set(NodeType.ARRAY_SLICE, {
         executable: true,
         name: "Array Slice",
         inputs: [
-            {id: "array", name: "Array", type: ParameterTypes.ANY, required: true, editable: false, isCollection: true},
+            {id: "array", name: "Array", type: ParameterTypes.ANY, required: true, editable: false, isCollection: true, typeEditable: true},
             {id: "start", name: "Start", type: ParameterTypes.NUMBER, required: true, editable: true},
             {id: "end", name: "End", type: ParameterTypes.NUMBER, required: false, editable: true},
         ],
@@ -571,7 +571,7 @@ registry.set(NodeType.ARRAY_SPLICE, {
         executable: true,
         name: "Array Splice",
         inputs: [
-            {id: "array", name: "Array", type: ParameterTypes.ANY, required: true, editable: false, isCollection: true},
+            {id: "array", name: "Array", type: ParameterTypes.ANY, required: true, editable: false, isCollection: true, typeEditable: true},
             {id: "start", name: "Start", type: ParameterTypes.NUMBER, required: true, editable: true},
             {id: "count", name: "Count", type: ParameterTypes.NUMBER, required: true, editable: true},
         ],
@@ -589,7 +589,7 @@ registry.set(NodeType.ARRAY_POP, {
         executable: true,
         name: "Array Pop",
         inputs: [
-            {id: "array", name: "Array", type: ParameterTypes.ANY, required: true, editable: false, isCollection: true},
+            {id: "array", name: "Array", type: ParameterTypes.ANY, required: true, editable: false, isCollection: true, typeEditable: true},
         ],
         outputs: [
             {id: "result", name: "result", type: ParameterTypes.ANY, isCollection: true},
@@ -605,7 +605,7 @@ registry.set(NodeType.ARRAY_PUSH, {
         executable: true,
         name: "Array Push",
         inputs: [
-            {id: "array", name: "Array", type: ParameterTypes.ANY, required: true, editable: false, isCollection: true},
+            {id: "array", name: "Array", type: ParameterTypes.ANY, required: true, editable: false, isCollection: true, typeEditable: true},
             {id: "value", name: "Value", type: ParameterTypes.ANY, required: true, editable: true},
         ],
         outputs: [
@@ -621,7 +621,7 @@ registry.set(NodeType.ARRAY_REVERSE, {
         executable: true,
         name: "Array Reverse",
         inputs: [
-            {id: "array", name: "Array", type: ParameterTypes.ANY, required: true, editable: false, isCollection: true},
+            {id: "array", name: "Array", type: ParameterTypes.ANY, required: true, editable: false, isCollection: true, typeEditable: true},
         ],
         outputs: [
             {id: "result", name: "result", type: ParameterTypes.ANY, isCollection: true},
