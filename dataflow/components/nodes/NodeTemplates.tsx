@@ -14,6 +14,7 @@ import ForeachNode from "./loop/ForeachNode";
 import TypeDefNode from "./type/TypeDefNode";
 import StringNode from "./string/StringNode";
 import DebugVarNode from "./variables/DebugVarNode";
+import NewVarNode from "./variables/NewVarNode";
 
 registry.set(NodeType.START, {
     builder: (node: NodeConfig) => <StartNode node={node} />,
@@ -443,6 +444,21 @@ registry.set(NodeType.DEBUG, {
         name: "Debug",
         inputs: [
             {id: "value", name: "Value", type: ParameterTypes.ANY, required: true, editable: false}
+        ]
+    }
+});
+
+registry.set(NodeType.NEW, {
+    builder: (node: NodeConfig) => <NewVarNode node={node} />,
+    config: {
+        type: NodeType.NEW,
+        executable: true,
+        name: "New variable",
+        inputs: [
+            {id: "defaultValue", name: "Default", type: ParameterTypes.ANY, required: false, editable: true},
+        ],
+        outputs: [
+            {id: "result", name: "Var", type: ParameterTypes.ANY}
         ]
     }
 });

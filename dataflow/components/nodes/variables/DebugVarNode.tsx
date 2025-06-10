@@ -20,7 +20,7 @@ export default function DebugVarNode({node}: DebugVarNodeProps) {
             hasExecute={true}
             size={{width: 150, height: 100}}
         >
-            {executionValue &&
+            {computedResult.ref.current.size > 0 &&
             <pre className="text-lg bg-gray-900" style={{ whiteSpace: "pre-wrap", wordBreak: "break-all" }}>
                 {JSON.stringify(executionValue, null, 2)}
             </pre>

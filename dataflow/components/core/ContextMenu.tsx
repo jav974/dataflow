@@ -86,6 +86,7 @@ export default function ContextMenu() {
                     children: [
                         createNodeMenuEntry("Get", NodeType.GET),
                         createNodeMenuEntry("Set", NodeType.SET),
+                        createNodeMenuEntry("New", NodeType.NEW),
                         createNodeMenuEntry("Debug", NodeType.DEBUG),
                     ]
                 },

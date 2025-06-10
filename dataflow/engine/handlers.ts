@@ -1,4 +1,4 @@
-import { NodeType, ParameterValueType } from "@/dataflow/config/schema";
+import { NodeType, ParameterTypes, ParameterValueType } from "@/dataflow/config/schema";
 import registry, { NodeExecContext, NodeExecParams, NodeExecutor } from "./registry";
 import { isNumeric, math_add, math_div, math_mod, math_mul, math_sub } from "./lib";
 import executionContext from "./context";
@@ -117,6 +117,41 @@ const handleGetVar: NodeExecutor = async (_: NodeExecParams, context: NodeExecCo
 
     return result;
 };
+
+const handleNewVar: NodeExecutor = async (inputs: NodeExecParams, context: NodeExecContext): Promise<NodeExecParams> => {
+    const result: NodeExecParams = new Map();
+    const value = inputs.get('defaultValue');
+    let defaultValue: any;
+
+    // Use provided value
+    if (value !== null && value !== undefined) {
+        defaultValue = value;
+    } else {
+        if (context.get('_isCollection')) {
+            defaultValue = [];
+        } else {
+            switch (context.get('_type')) {
+                case ParameterTypes.BOOLEAN:
+                    defaultValue = false;
+                    break ;
+                case ParameterTypes.NUMBER:
+                    defaultValue = 0;
+                    break ;
+                case ParameterTypes.STRING:
+                    defaultValue = '';
+                    break ;
+                default:
+                    defaultValue = new Map();
+                    break ;
+            }
+        }
+    }
+
+    result.set('result', defaultValue);
+    executionContext.variables[context.get('_node_id')] = defaultValue;
+
+    return result;
+}
 
 const handleStart: NodeExecutor = async (_: NodeExecParams, context: NodeExecContext): Promise<NodeExecParams> => {
     const result: Map<string, any> = new Map();
@@ -258,6 +293,7 @@ registry.set(NodeType.FOREACH, handleForeach);
 
 registry.set(NodeType.SET, handleSetVar);
 registry.set(NodeType.GET, handleGetVar);
+registry.set(NodeType.NEW, handleNewVar);
 
 registry.set(NodeType.SEQUENCE, dummyExecutor);
 
