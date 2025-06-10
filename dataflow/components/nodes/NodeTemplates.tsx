@@ -13,6 +13,7 @@ import ForNode from "./loop/ForNode";
 import ForeachNode from "./loop/ForeachNode";
 import TypeDefNode from "./type/TypeDefNode";
 import StringNode from "./string/StringNode";
+import DebugVarNode from "./variables/DebugVarNode";
 
 registry.set(NodeType.START, {
     builder: (node: NodeConfig) => <StartNode node={node} />,
@@ -430,6 +431,18 @@ registry.set(NodeType.STRING_TO_LOWER, {
         ],
         outputs: [
             {id: "result", name: "result", type: ParameterTypes.STRING}
+        ]
+    }
+});
+
+registry.set(NodeType.DEBUG, {
+    builder: (node: NodeConfig) => <DebugVarNode node={node} />,
+    config: {
+        type: NodeType.DEBUG,
+        executable: true,
+        name: "Debug",
+        inputs: [
+            {id: "value", name: "Value", type: ParameterTypes.ANY, required: true, editable: false}
         ]
     }
 });

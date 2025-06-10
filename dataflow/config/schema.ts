@@ -27,6 +27,7 @@ enum NodeType {
     FOREACH = "foreach",
     SET = "set_variable",
     GET = "get_variable",
+    DEBUG = "debug_variable",
     SEQUENCE = "sequence",
 
     TYPEDEF = "typedef",
