@@ -69,8 +69,8 @@ export default function Connection({from, to}: ConnectionProps) {
                 const inputConfig = toNode.current.ref.current.mutableNodeConfig.inputs?.find(input => input.id === to.pin);
 
                 if (outputConfig && inputConfig) {
-                    // undefined should evaluate as false here, so keep this comparison operator !
-                    if (outputConfig.isCollection != inputConfig.isCollection && inputConfig.type !== ParameterTypes.ANY) {
+                    // undefined should evaluate as false here, so keep this coercion operator !!
+                    if (!!outputConfig.isCollection !== !!inputConfig.isCollection && inputConfig.type !== ParameterTypes.ANY) {
                         setTexture(LineTextures.error);
                     } else {
                         const inputKey = !LineTextures[inputConfig.type] ? 'custom' : inputConfig.type;
