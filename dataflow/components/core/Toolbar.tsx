@@ -1,5 +1,4 @@
 import { useCallback, useMemo, useState } from "react";
-import PlayButton from "../buttons/PlayButton";
 import { useUserGraph } from "@/dataflow/contexts/UserGraphContext";
 import NewGraphButton from "../buttons/NewGraphButton";
 import NewGraphModal from "./NewGraphModal";
@@ -7,24 +6,19 @@ import SaveButton from "../buttons/SaveButton";
 import DeleteGraphButton from "../buttons/DeleteGraphButton";
 import DeleteGraphModal from "./DeleteGraphModal";
 import { useGraphContext } from "@/dataflow/contexts/GraphContext";
-import { useNodes } from "@/dataflow/contexts/NodeContext";
-import { getIOValues } from "@/dataflow/engine/utils";
 import { useDataflowContext } from "@/dataflow/contexts/DataflowContext";
 import { OptionProps } from "../forms/Select";
 import ResetViewButton from "../buttons/ResetViewButton";
 import ZoomResetButton from "../buttons/ZoomResetButton";
 import { useRefSignalRender } from "react-refsignal";
-import { useDashboardContext } from "@/dataflow/contexts/DashboardContext";
+import ToolbarPlayer from "./ToolbarPlayer";
 
 export default function Toolbar() {
     const { graphs, loadGraph, graph, saveGraph, deleteGraph } = useUserGraph();
-    const { zoom, computedResult, canvasPosition, toGraph, startParams } = useGraphContext();
+    const { zoom, canvasPosition, toGraph } = useGraphContext();
     const [isNewModalOpen, setIsNewModalOpen] = useState(false);
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-    const [isPlaying, setIsPlaying] = useState<boolean>(false);
-    const {setGraphResult} = useNodes();
-    const {localExecutor, remoteExecutor, mode, setMode, selectedExecutor} = useDataflowContext();
-    const {logs} = useDashboardContext();
+    const {localExecutor, remoteExecutor, mode, setMode} = useDataflowContext();
     const availableModes = useMemo((): OptionProps[] => {
         const modes: OptionProps[] = [];
         if (localExecutor) {
@@ -60,24 +54,6 @@ export default function Toolbar() {
             deleteGraph(graph.name);
         }
     }, [graph, deleteGraph]);
-
-    const onPlay = useCallback(() => {
-        if (!isPlaying && graph && selectedExecutor) {
-            logs.update([]);
-            setIsPlaying(true);
-
-            selectedExecutor(toGraph(), startParams.ref.current).then((result) => {
-                console.log("Graph execution result:", result);
-                setGraphResult(result);
-                computedResult.update(result?.graph ? getIOValues(result.graph) : new Map());
-            }).catch((reason: any) => {
-                console.error("Error executing graph:", reason);
-                setGraphResult(undefined);
-            }).finally(() => {
-                setTimeout(() => setIsPlaying(false), 0);
-            });
-        }
-    }, [graph, isPlaying, selectedExecutor, setGraphResult, toGraph]);
 
     const handleModeChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
         const newMode = e.target.value as "local" | "remote";
@@ -133,7 +109,7 @@ export default function Toolbar() {
                         step="2" />
                 </div>
                 <div className="flex justify-center items-center">
-                    {graph && <PlayButton isPlaying={isPlaying} onClick={onPlay}/>}
+                    <ToolbarPlayer />
                 </div>
                 <div className="flex justify-end items-center pr-2 gap-4">
                     {graph && availableModes.length > 0 && (

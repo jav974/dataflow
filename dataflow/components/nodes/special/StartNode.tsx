@@ -42,8 +42,6 @@ export default function StartNode({node}: StartNodeProps) {
             startParams.ref.current[key] = value;
         }
 
-        console.log(startParams.ref.current);
-
         startParams.notifyUpdate();
     }, [context]);
 

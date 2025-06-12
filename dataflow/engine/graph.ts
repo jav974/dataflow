@@ -4,6 +4,7 @@ import { jsonToMap, Stack } from "./utils";
 import executionContext, { KeyValue } from "./context";
 import { ExecutionBranch, ExecutionGraph, ExecutionInput, ExecutionOutput, GraphResult } from "./types";
 import "./handlers";
+import controller from "./controller";
 
 const graphs: Map<string, ExecutionGraph> = new Map();
 const stack = new Stack<ExecutionGraph>();
@@ -204,7 +205,7 @@ async function handleForeach(
             while (stack.pop() !== foreachGraph);
             stack.push(foreachGraph);
         }
-    } 
+    }
     // Handle plain objects (iterate over keys)
     else {
         const entries = Object.entries<any>(target);
@@ -224,6 +225,8 @@ async function handleForeach(
 }
 
 export async function handleExecution(graph: ExecutionGraph, revisit: boolean = false): Promise<ExecutionGraph> {
+    await waitOrCancel();
+
     const executor = registry.get(graph.nodeType);
 
     if (executor) {
@@ -273,6 +276,11 @@ export async function handleExecution(graph: ExecutionGraph, revisit: boolean = 
     }
 
     return graph;
+}
+
+async function waitOrCancel() {
+    if (controller.cancelled) throw new Error("Execution cancelled");
+    await controller.waitIfPaused();
 }
 
 export async function resolveExecutionGraph(graph: ExecutionGraph, revisit: boolean = false): Promise<ExecutionGraph> {
