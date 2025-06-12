@@ -14,7 +14,7 @@ export default function Modal({title, isOpen, children}: ModalProps) {
 
     return createPortal(
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-2000">
-            <div className="bg-black border border-gray-800 rounded-lg p-6 w-96">
+            <div className="bg-black border border-gray-800 rounded-lg p-6 w-150">
                 <h2 className="text-xl font-bold mb-4 text-white">{title}</h2>
                 {children}
             </div>

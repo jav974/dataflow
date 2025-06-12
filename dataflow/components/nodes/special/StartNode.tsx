@@ -1,15 +1,23 @@
 import { OutputConfig } from "@/dataflow/config/schema";
 import Node, { NodeProps } from "@/dataflow/components/core/Node";
 import { useGraphContext } from "@/dataflow/contexts/GraphContext";
-import { useEffect, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { batch } from "react-refsignal";
+import StartConfigModal from "./StartConfigModal";
+import { jsonToMap } from "@/dataflow/engine/utils";
 
 interface StartNodeProps extends NodeProps {
 }
 
 export default function StartNode({node}: StartNodeProps) {
-    const {variables, setVariable, removeVariable} = useGraphContext();
+    const {variables, setVariable, removeVariable, startParams} = useGraphContext();
     const outputs = useRef<OutputConfig[]>([...node.outputs ?? []]);
+    const [configureModalOpen, setConfigureModalOpen] = useState<boolean>(false);
+    const context = useMemo(() => jsonToMap(node.context), [node.context]);
+
+    const toggleConfigureModal = useCallback(() => {
+        setConfigureModalOpen(!configureModalOpen);
+    }, [configureModalOpen]);
 
     useEffect(() => {
         batch(() => {
@@ -27,6 +35,18 @@ export default function StartNode({node}: StartNodeProps) {
         }, [variables]);
     }, [node.outputs]);
 
+    useEffect(() => {
+        startParams.ref.current = {};
+
+        for (const [key, value] of context.entries()) {
+            startParams.ref.current[key] = value;
+        }
+
+        console.log(startParams.ref.current);
+
+        startParams.notifyUpdate();
+    }, [context]);
+
     return (
         <Node
             node={node}
@@ -34,6 +54,21 @@ export default function StartNode({node}: StartNodeProps) {
             hasContinue={true}
             size={{width: 200, height: 100}}
             outputMultiple={true}
-        />
+        >
+            {node.outputs && node.outputs.length > 0 &&
+            <div className="flex flex-col gap-2">
+                <div className="flex justify-center p-2">
+                    <button className="text-blue-500 hover:underline cursor-pointer" onClick={toggleConfigureModal}>Configure</button>
+                    
+                    <StartConfigModal
+                        isOpen={configureModalOpen}
+                        onClose={toggleConfigureModal}
+                        node={node}
+                        context={context}
+                    />
+                </div>
+            </div>
+            }
+        </Node>
     );
 }

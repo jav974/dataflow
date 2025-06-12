@@ -18,7 +18,7 @@ import { useDashboardContext } from "@/dataflow/contexts/DashboardContext";
 
 export default function Toolbar() {
     const { graphs, loadGraph, graph, saveGraph, deleteGraph } = useUserGraph();
-    const { zoom, computedResult, canvasPosition, toGraph } = useGraphContext();
+    const { zoom, computedResult, canvasPosition, toGraph, startParams } = useGraphContext();
     const [isNewModalOpen, setIsNewModalOpen] = useState(false);
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [isPlaying, setIsPlaying] = useState<boolean>(false);
@@ -66,7 +66,7 @@ export default function Toolbar() {
             logs.update([]);
             setIsPlaying(true);
 
-            selectedExecutor(toGraph(), {Ad: 36}).then((result) => {
+            selectedExecutor(toGraph(), startParams.ref.current).then((result) => {
                 console.log("Graph execution result:", result);
                 setGraphResult(result);
                 computedResult.update(result?.graph ? getIOValues(result.graph) : new Map());

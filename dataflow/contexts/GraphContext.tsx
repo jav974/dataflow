@@ -3,6 +3,7 @@ import { AppConfig, ConnectionConfig, ConnectorConfig, Coordinates, GraphType, I
 import { RefState, useRefState } from "@/dataflow/hooks/useRefState";
 import { filterObject } from "@/dataflow/engine/utils";
 import { useRefSignal, useRefSignalEffect, RefSignal, batch, createRefSignal } from "react-refsignal";
+import { KeyValue } from "../engine/context";
 
 interface ConnectionInfo {
     node: RefSignal<NodeConfig>;
@@ -19,6 +20,7 @@ interface GraphContextType {
     variables: RefSignal<VariableConfig[]>;
     types: RefSignal<GraphType[]>;
     computedResult: RefState<Map<string, any>>;
+    startParams: RefSignal<KeyValue>;
     addNode: (node: NodeConfig) => void;
     updateNode: (node: NodeConfig) => void;
     removeNode: (id: string) => void;
@@ -64,6 +66,7 @@ export function GraphProvider({children}: GraphProviderProps) {
     const variables = useRefSignal<VariableConfig[]>([]);
     const types = useRefSignal<GraphType[]>([]);
     const computedResult = useRefState<Map<string, any>>(new Map());
+    const startParams = useRefSignal<KeyValue>(new Map());
 
     useRefSignalEffect(() => {
         scale.update(zoom.ref.current != 0 ? 1 / (zoom.ref.current / 100) : 0);
@@ -409,6 +412,7 @@ export function GraphProvider({children}: GraphProviderProps) {
         variables,
         types,
         computedResult,
+        startParams,
         addNode,
         updateNode,
         removeNode,
