@@ -3,6 +3,8 @@ import { Coordinates } from "../config/schema";
 import { useRefSignal, RefSignal } from "react-refsignal";
 import { useGraphContext } from "./GraphContext";
 import useResizeObserver from "../hooks/useResizeObserver";
+import { Log } from "../engine/types";
+import { useEvent } from "../hooks/useEvent";
 
 interface PointerPosition {
     global: Coordinates;
@@ -15,6 +17,7 @@ interface DashboardContextType {
     pointerPosition: RefSignal<PointerPosition>;
     canvasRef: React.RefObject<HTMLDivElement | null>;
     canvasRect: RefSignal<DOMRect | undefined>;
+    logs: RefSignal<Log[]>;
 }
 
 const DashboardContext = createContext<DashboardContextType | null>(null);
@@ -33,6 +36,7 @@ export function DashboardProvider({children}: DashboardProviderProps) {
         viewport: {x: 0, y: 0},
         canvasScaled: {x: 0, y: 0},
     });
+    const logs = useRefSignal<Log[]>([]);
 
     useResizeObserver(canvasRef, (entry) => {
         canvasRect.update(canvasRef.current?.getBoundingClientRect() ?? entry.contentRect);
@@ -56,10 +60,17 @@ export function DashboardProvider({children}: DashboardProviderProps) {
         return () => window.removeEventListener("pointermove", handlePointerMove);
     }, [handlePointerMove]);
 
+    useEvent<Log>('io_write', (log) => {
+        console.log("Log event received", log);
+        logs.ref.current.push(log);
+        logs.notifyUpdate();
+    });
+
     return <DashboardContext.Provider value={{
         pointerPosition,
         canvasRef,
-        canvasRect
+        canvasRect,
+        logs
     }}>
         {children}
     </DashboardContext.Provider>;

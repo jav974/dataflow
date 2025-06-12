@@ -3,6 +3,8 @@ import registry, { NodeExecContext, NodeExecParams, NodeExecutor } from "./regis
 import { isNumeric, math_add, math_div, math_mod, math_mul, math_sub } from "./lib";
 import executionContext from "./context";
 import "./handlers/array";
+import { eventBus } from "../events/events";
+import { Log } from "./types";
 
 type SimpleMathContext = Map<string, (...numbers: number[]) => number>;
 
@@ -220,9 +222,9 @@ const handleStringConcat: NodeExecutor = async (inputs: NodeExecParams): Promise
     const result: NodeExecParams = new Map();
     const values = Array.from(inputs.values()).map(v => v?.toString() ?? '');
     const concatenated = values.join('');
-    
+
     result.set('result', concatenated);
-    
+
     return result;
 };
 
@@ -276,6 +278,50 @@ const handleStringToLower: NodeExecutor = async (inputs: NodeExecParams): Promis
     return result;
 };
 
+const handleIOWrite: NodeExecutor = async (inputs: NodeExecParams): Promise<NodeExecParams> => {
+    const result: NodeExecParams = new Map();
+    const fd = inputs.get('fd') as Number;
+    const content = inputs.get('content') as string;
+    let type = "log";
+    
+    if (fd === 1) {
+        type = "log";
+    } else if (fd === 2) {
+        type = "error";
+    } else if (fd === 3) {
+        type = "warn";
+    } else if (fd === 4) {
+        type = "debug";
+    }
+
+    // TODO: Really handle fd server side
+
+    // Emit an event for client display
+    eventBus.emit<Log>('io_write', {
+        type,
+        createdAt: Date.now(),
+        message: content
+    } as Log);
+
+    result.set('bytes_written', content.length);
+    return result;
+};
+
+function sleep(ms: number) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+const handleDelay: NodeExecutor = async (inputs: NodeExecParams): Promise<NodeExecParams> => {
+    const result: NodeExecParams = new Map();
+    const delay = inputs.get('delay') as number;
+
+    const before = Date.now();
+    await sleep(delay);
+    const after = Date.now();
+
+    return result.set('awaited', after - before);
+}
+
 registry.set(NodeType.START, handleStart);
 registry.set(NodeType.RETURN, handleReturn);
 
@@ -305,3 +351,6 @@ registry.set(NodeType.STRING_REPLACE, handleStringReplace);
 registry.set(NodeType.STRING_LENGTH, handleStringLength);
 registry.set(NodeType.STRING_TO_UPPER, handleStringToUpper);
 registry.set(NodeType.STRING_TO_LOWER, handleStringToLower);
+
+registry.set(NodeType.IO_WRITE, handleIOWrite);
+registry.set(NodeType.DELAY, handleDelay);

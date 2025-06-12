@@ -10,6 +10,7 @@ import { useUserGraph } from "@/dataflow/contexts/UserGraphContext";
 import { useGraphContext } from "@/dataflow/contexts/GraphContext";
 import { useDashboardContext } from "@/dataflow/contexts/DashboardContext";
 import { useRefSignalRender } from "react-refsignal";
+import Console from "./Console";
 
 export default function AppContainer() {
     const {canvasRef, canvasRect} = useDashboardContext();
@@ -87,6 +88,7 @@ export default function AppContainer() {
                     <Background />
                     <ApplicationGraph />
                 </Application>
+                <Console />
             </div>
             <ApplicationTemplates />
             <ContextMenu />

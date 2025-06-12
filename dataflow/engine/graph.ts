@@ -125,9 +125,9 @@ export async function resolveInputs(graph: ExecutionGraph, revisit: boolean = fa
         inputs.set(input.inputId, input.defaultValue);
 
         if (input.resolve) {
-            const bannedRevisitGraph = stack.peek();
+            const isBannedFromRevisit = stack.items.some((v) => v.nodeId === input.resolve?.graph.nodeId);
 
-            if (input.resolve.graph.nodeId !== bannedRevisitGraph?.nodeId && (!input.resolve.graph.visited || revisit)) {
+            if (!isBannedFromRevisit && (!input.resolve.graph.visited || revisit)) {
                 input.resolve.graph = await resolveExecutionGraph(input.resolve.graph, revisit);
             }
 
@@ -153,16 +153,21 @@ async function handleFor(forGraph: ExecutionGraph, graph: ExecutionGraph, inputs
         for (let i = first; inclusive ? i <= last : i < last; i++) {
             forGraph.outputs[0].value = i;
             graph = await resolveExecutionGraph(graph, true);
+
+            while (stack.pop() !== forGraph);
+            stack.push(forGraph);
         }
     } else {
         for (let i = first; inclusive ? i >= last : i > last; i--) {
             forGraph.outputs[0].value = i;
             graph = await resolveExecutionGraph(graph, true);
+
+            while (stack.pop() !== forGraph);
+            stack.push(forGraph);
         }
     }
 
     stack.pop();
-
     return graph;
 }
 
@@ -195,6 +200,9 @@ async function handleForeach(
             foreachGraph.outputs[0].value = key;
             foreachGraph.outputs[1].value = value;
             graph = await resolveExecutionGraph(graph, true);
+
+            while (stack.pop() !== foreachGraph);
+            stack.push(foreachGraph);
         }
     } 
     // Handle plain objects (iterate over keys)
@@ -205,6 +213,9 @@ async function handleForeach(
             foreachGraph.outputs[0].value = key;
             foreachGraph.outputs[1].value = value;
             graph = await resolveExecutionGraph(graph, true);
+
+            while (stack.pop() !== foreachGraph);
+            stack.push(foreachGraph);
         }
     }
 
@@ -265,12 +276,16 @@ export async function handleExecution(graph: ExecutionGraph, revisit: boolean = 
 }
 
 export async function resolveExecutionGraph(graph: ExecutionGraph, revisit: boolean = false): Promise<ExecutionGraph> {
-    if (graph.visited && (!revisit || graph.nodeType === NodeType.START)) {
+    if (graph.visited && (!revisit || graph.nodeType === NodeType.START || stack.items.includes(graph))) {
         return graph;
     }
 
     graph = await handleExecution(graph, revisit);
     graph.visited = true;
+
+    if (revisit) {
+        stack.push(graph);
+    }
 
     if (graph.next) {
         graph.next = await resolveExecutionGraph(graph.next, revisit);

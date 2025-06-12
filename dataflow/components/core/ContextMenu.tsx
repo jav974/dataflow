@@ -144,6 +144,13 @@ export default function ContextMenu() {
                         createNodeMenuEntry("Fill", NodeType.ARRAY_FILL),
                     ]
                 },
+                {
+                    name: "I/O",
+                    children: [
+                        createNodeMenuEntry("Write", NodeType.IO_WRITE)
+                    ]
+                },
+                createNodeMenuEntry("Delay", NodeType.DELAY),
                 createNodeMenuEntry("Sequence", NodeType.SEQUENCE),
                 createNodeMenuEntry("Fetch", NodeType.FETCH),
                 createNodeMenuEntry("Type", NodeType.TYPEDEF),

@@ -45,4 +45,12 @@ export interface GraphResult {
     result: KeyValue;
 }
 
+export type LogLevel = "warn" | "error" | "debug" | "log";
+
+export interface Log {
+    message: string;
+    type: LogLevel;
+    createdAt: number;
+}
+
 export type GraphExecutor = (graph: AppConfig, params?: KeyValue) => Promise<GraphResult | undefined>;

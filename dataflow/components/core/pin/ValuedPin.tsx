@@ -72,7 +72,7 @@ export default function ValuedPin({id, name, type, required, defaultValue, remov
         <FormProvider {...methods}>
             <form ref={formRef} onSubmit={methods.handleSubmit(onSubmit)} onPointerEnter={handleMouseEnter} onPointerLeave={handleMouseLeave} className="flex grow">
                 <Input className="grow" id={id} name={id} onBlur={onBlur} placeholder={name}/>
-                {removable && isHovered && <sup className="text-red-500 ml-1 cursor-pointer" onClick={onRemove}>[x]</sup>}
+                {removable && isHovered && <span className="text-red-500 ml-1 cursor-pointer" onClick={onRemove}>[x]</span>}
                 <span className={`${required ? 'visible' : 'invisible'} text-red-500 ml-1`}>*</span>
             </form>
         </FormProvider>

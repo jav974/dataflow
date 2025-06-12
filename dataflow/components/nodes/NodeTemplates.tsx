@@ -16,6 +16,8 @@ import StringNode from "./string/StringNode";
 import DebugVarNode from "./variables/DebugVarNode";
 import NewVarNode from "./variables/NewVarNode";
 import ArrayNode from "./array/ArrayNode";
+import IONode from "./io/IONode";
+import Node from "../core/Node";
 
 registry.set(NodeType.START, {
     builder: (node: NodeConfig) => <StartNode node={node} />,
@@ -343,11 +345,11 @@ registry.set(NodeType.STRING_TRIM, {
 });
 
 registry.set(NodeType.STRING_CONCAT, {
-    builder: (node: NodeConfig) => <StringNode node={node} inputMultiple={true} inputMultipleType={ParameterTypes.STRING} />,
+    builder: (node: NodeConfig) => <StringNode hasExecute={false} hasContinue={false} node={node} inputMultiple={true} inputMultipleType={ParameterTypes.STRING} />,
     config: {
         type: NodeType.STRING_CONCAT,
         name: "Concatenate",
-        executable: true,
+        executable: false,
         inputs: [
             {id: "value", name: "Value", type: ParameterTypes.STRING, required: true, editable: true, defaultValue: ""}
         ],
@@ -640,6 +642,37 @@ registry.set(NodeType.ARRAY_LENGTH, {
         ],
         outputs: [
             {id: "result", name: "length", type: ParameterTypes.NUMBER, isCollection: false},
+        ]
+    }
+});
+
+registry.set(NodeType.IO_WRITE, {
+    builder: (node: NodeConfig) => <IONode node={node}/>,
+    config: {
+        type: NodeType.IO_WRITE,
+        executable: true,
+        name: "IO Write",
+        inputs: [
+            {id: "fd", name: "File descriptor", type: ParameterTypes.NUMBER, required: true, editable: true, defaultValue: 1},
+            {id: "content", name: "Content", type: ParameterTypes.STRING, required: true, editable: true}
+        ],
+        outputs: [
+            {id: "bytes_written", name: "Bytes written", type: ParameterTypes.NUMBER}
+        ]
+    }
+});
+
+registry.set(NodeType.DELAY, {
+    builder: (node: NodeConfig) => <Node node={node} hasContinue={true} hasExecute={true} size={{width: 200, height: 100}} />,
+    config: {
+        type: NodeType.DELAY,
+        executable: true,
+        name: "Delay",
+        inputs: [
+            {id: "delay", name: "Time in ms", type: ParameterTypes.NUMBER, required: true, editable: true, defaultValue: 0}
+        ],
+        outputs: [
+            {id: "awaited", name: "Awaited", type: ParameterTypes.NUMBER}
         ]
     }
 });

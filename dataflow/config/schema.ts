@@ -48,6 +48,10 @@ enum NodeType {
     ARRAY_SPLICE = "array_splice",
     ARRAY_REVERSE = "array_reverse",
     ARRAY_LENGTH = "array_length",
+
+    IO_WRITE = "io_write",
+    IO_READ = "io_read",
+    DELAY = "delay"
 }
 
 enum ParameterTypes {
