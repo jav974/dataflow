@@ -14,6 +14,7 @@ import { OptionProps } from "../forms/Select";
 import ResetViewButton from "../buttons/ResetViewButton";
 import ZoomResetButton from "../buttons/ZoomResetButton";
 import { useRefSignalRender } from "react-refsignal";
+import { useDashboardContext } from "@/dataflow/contexts/DashboardContext";
 
 export default function Toolbar() {
     const { graphs, loadGraph, graph, saveGraph, deleteGraph } = useUserGraph();
@@ -23,6 +24,7 @@ export default function Toolbar() {
     const [isPlaying, setIsPlaying] = useState<boolean>(false);
     const {setGraphResult} = useNodes();
     const {localExecutor, remoteExecutor, mode, setMode, selectedExecutor} = useDataflowContext();
+    const {logs} = useDashboardContext();
     const availableModes = useMemo((): OptionProps[] => {
         const modes: OptionProps[] = [];
         if (localExecutor) {
@@ -61,6 +63,7 @@ export default function Toolbar() {
 
     const onPlay = useCallback(() => {
         if (!isPlaying && graph && selectedExecutor) {
+            logs.update([]);
             setIsPlaying(true);
 
             selectedExecutor(toGraph(), {Ad: 36}).then((result) => {

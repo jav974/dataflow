@@ -61,7 +61,6 @@ export function DashboardProvider({children}: DashboardProviderProps) {
     }, [handlePointerMove]);
 
     useEvent<Log>('io_write', (log) => {
-        console.log("Log event received", log);
         logs.ref.current.push(log);
         logs.notifyUpdate();
     });

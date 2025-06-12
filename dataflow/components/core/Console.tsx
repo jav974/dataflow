@@ -1,15 +1,22 @@
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import Resizable from "./Resizable";
 import { useDashboardContext } from "@/dataflow/contexts/DashboardContext";
 import { useRefSignalRender } from "react-refsignal";
 
 function ConsoleLogs() {
     const {logs} = useDashboardContext();
+    const olRef = useRef<HTMLOListElement>(null);
+
+    useEffect(() => {
+        if (olRef.current) {
+            olRef.current.scrollTop = olRef.current.scrollHeight;
+        }
+    }, [logs.ref.current.length]); // Trigger when logs change
 
     useRefSignalRender([logs]);
 
     return (
-        <ol>
+        <ol ref={olRef} className="overflow-auto h-full scrollbar-thumb-rounded-full scrollbar-track-rounded-full scrollbar scrollbar-thumb-gray-500 scrollbar-track-gray-500/10">
             {logs.ref.current.map((v, index) => {
                 let liClassName = '';
                 switch (v.type) {
@@ -51,7 +58,7 @@ export default function Console() {
           {visible && (
             <div className="flex w-full h-full">
                 <Resizable directions={['n']} className="grow" minSize={{width: 0, height: 200}} maxSize={{width: 0, height: 550}}>
-                    <div className="min-h-[200px] grow h-full bg-black/90 p-4 pt-2 overflow-auto">
+                    <div className="min-h-[200px] grow h-full bg-black/90 pl-4 pt-2 pr-1 pb-1">
                         <ConsoleLogs/>
                     </div>
                 </Resizable>
