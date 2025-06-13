@@ -2,6 +2,7 @@ import React, { createContext, useCallback, useContext, useMemo, useState } from
 import { GraphExecutor } from "../engine/types";
 import { AppConfig } from "../config/schema";
 import { runGraph } from "../engine/graph";
+import { createUrlGraphExecutor } from "../utils/utils";
 
 type DataflowAuth = {
     apiKey?: string;
@@ -12,6 +13,7 @@ type DataflowExec = {
     remoteExecutor?: GraphExecutor;
     localExecutor?: GraphExecutor;
     mode?: "remote" | "local";
+    serverUrl?: string; // Optional: if provided, use as remoteExecutor
 };
 
 type DataflowUtils = {
@@ -35,9 +37,16 @@ const getLocalStorageGraphKey = (name: string) => {
     return `dataflow-graph-${safeName}`;
 };
 
-export function DataflowProvider({ children, remoteExecutor, localExecutor = runGraph, mode: initialMode = "local" }: DataflowProviderProps) {
+export function DataflowProvider({ children, remoteExecutor, localExecutor = runGraph, mode: initialMode = "local", serverUrl }: DataflowProviderProps) {
     const [apiKey, setApiKey] = useState<string | undefined>(undefined);
     const [mode, setMode] = useState<"remote" | "local">(initialMode);
+
+    // If serverUrl is provided, use it to create a remoteExecutor
+    const effectiveRemoteExecutor = useMemo(() => {
+        if (remoteExecutor) return remoteExecutor;
+        if (serverUrl) return createUrlGraphExecutor(serverUrl);
+        return undefined;
+    }, [remoteExecutor, serverUrl]);
 
     const fetchGraph = useCallback(async (graphId: string): Promise<AppConfig | null> => {
         try {
@@ -55,22 +64,23 @@ export function DataflowProvider({ children, remoteExecutor, localExecutor = run
     }, [mode]);
 
     const selectedExecutor = useMemo((): GraphExecutor | undefined => {
-        if (mode === "remote" && remoteExecutor) {
-            return remoteExecutor;
+        if (mode === "remote" && effectiveRemoteExecutor) {
+            return effectiveRemoteExecutor;
         }
         if (mode === "local" && localExecutor) {
             return localExecutor;
         }
         return undefined;
-    }, [mode, remoteExecutor, localExecutor]);
+    }, [mode, effectiveRemoteExecutor, localExecutor]);
 
     return (
         <DataflowContext.Provider value={{
             apiKey,
             setApiKey,
-            remoteExecutor,
+            remoteExecutor: effectiveRemoteExecutor,
             localExecutor,
             mode,
+            serverUrl,
             setMode,
             fetchGraph,
             selectedExecutor

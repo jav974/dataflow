@@ -41,8 +41,9 @@ export interface ExecutionGraph {
 }
 
 export interface GraphResult {
-    graph: ExecutionGraph;
+    graph?: ExecutionGraph;
     result: KeyValue;
+    io_values: KeyValue;
 }
 
 export type LogLevel = "warn" | "error" | "debug" | "log";

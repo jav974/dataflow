@@ -15,14 +15,18 @@ interface DataflowProps {
     // Function to execute the graph remotely. If not provided, remote execution will not be available.
     // You can wrap the default local execution logic to provide a remote execution capability.
     remoteExecutor?: GraphExecutor;
+    // URL to remote server Graph executor. If provided, will build a custom server executor
+    // remoteExecutor property has the final word: either set it or this server url
+    serverUrl?: string;
 }
 
-export default function Dataflow({ localExecutor = runGraph, remoteExecutor }: DataflowProps) {
+export default function Dataflow({ localExecutor = runGraph, remoteExecutor, serverUrl }: DataflowProps) {
     return (
         <ErrorBoundary>
             <DataflowProvider
                 remoteExecutor={remoteExecutor}
                 localExecutor={localExecutor}
+                serverUrl={serverUrl}
             >
                 <UserGraphProvider>
                     <GraphProvider>

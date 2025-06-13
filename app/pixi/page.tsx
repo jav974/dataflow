@@ -5,6 +5,7 @@ import Dataflow from '@/dataflow/components/core/Dataflow';
 
 export default function Page() {
   return (
-      <Dataflow remoteExecutor={executeGraph}/>
+      // <Dataflow remoteExecutor={executeGraph}/>
+      <Dataflow serverUrl='http://localhost:3000/api/graph'/>
   );
 }

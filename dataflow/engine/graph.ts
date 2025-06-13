@@ -1,6 +1,6 @@
 import { AppConfig, ConnectionConfig, InputConfig, NodeConfig, NodeType, OutputBranchConfig, OutputConfig, ParameterValueType } from "@/dataflow/config/schema";
 import registry from "./registry";
-import { jsonToMap, Stack } from "./utils";
+import { getIOValues, jsonToMap, mapToKeyValue, Stack } from "./utils";
 import executionContext, { KeyValue } from "./context";
 import { ExecutionBranch, ExecutionGraph, ExecutionInput, ExecutionOutput, GraphResult } from "./types";
 import "./handlers";
@@ -340,6 +340,7 @@ export async function runGraph(graph: AppConfig, params?: KeyValue): Promise<Gra
 
     return {
         graph: executionGraph,
-        result: executionContext.result
+        result: executionContext.result,
+        io_values: mapToKeyValue(getIOValues(executionGraph))
     };
 }

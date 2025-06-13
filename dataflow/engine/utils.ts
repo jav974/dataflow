@@ -1,3 +1,4 @@
+import { KeyValue } from "./context";
 import { ExecutionGraph } from "./types";
 
 export function jsonToMap<V = any>(json: string | null | undefined) {
@@ -55,6 +56,26 @@ export function getIOValues(executionGraph: ExecutionGraph, values: Map<string, 
     }
 
     return values;
+}
+
+export function mapToKeyValue(map: Map<string, any>): KeyValue {
+    const keyValue: KeyValue = {};
+
+    for (const [key, value] of map) {
+        keyValue[key] = value;
+    }
+
+    return keyValue;
+}
+
+export function keyValueToMap(keyValue: KeyValue): Map<string, any> {
+    const map: Map<string, any> = new Map();
+
+    for (const key in keyValue) {
+        map.set(key, keyValue[key]);
+    }
+
+    return map;
 }
 
 export class Stack<T> {
