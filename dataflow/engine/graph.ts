@@ -281,7 +281,7 @@ export async function handleExecution(graph: ExecutionGraph, revisit: boolean = 
 async function waitOrCancel() {
     if (!controller.started) {
         controller.clear();
-        throw new Error("Execution cancelled");
+        throw new Error("Execution canceled");
     }
     await controller.waitIfPaused();
 }

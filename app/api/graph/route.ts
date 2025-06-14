@@ -5,7 +5,7 @@ import controller from "@/dataflow/engine/controller";
 export async function POST(req: NextRequest) {
     const { graph, params } = await req.json();
     let result = undefined;
-    let hasError = false;
+    let status = 200;
 
     try {
         result = await controller.start(executeGraph, graph, params);
@@ -16,8 +16,8 @@ export async function POST(req: NextRequest) {
         }
     } catch (error) {
         result = {message: (error as Error).message} as Error;
-        hasError = true;
+        status = result.message === "Execution canceled" ? 499 : 500;
     }
 
-    return NextResponse.json(result, {status: hasError ? 500 : 200});
+    return NextResponse.json(result, {status});
 }

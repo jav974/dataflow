@@ -11,7 +11,7 @@ export function createUrlGraphExecutor(serverUrl: string): GraphExecutor {
             body: JSON.stringify({ graph, params }),
         });
         const response = await res.json();
-        if (!res.ok) throw new Error((response as Error).message);
+        if (!res.ok || res.status === 499) throw new Error((response as Error).message);
         return response;
     };
 }
