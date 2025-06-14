@@ -29,17 +29,17 @@ export default function Dataflow({ localExecutor = runGraph, remoteExecutor, ser
                 localExecutor={localExecutor}
                 serverUrl={serverUrl}
             >
-                <UserGraphProvider>
-                    <GraphProvider>
-                        <NodeProvider>
-                            <DashboardProvider>
-                                <RealTimeProvider url="ws://localhost:3001">
+                <RealTimeProvider url="ws://localhost:3001">
+                    <UserGraphProvider>
+                        <GraphProvider>
+                            <NodeProvider>
+                                <DashboardProvider>
                                     <AppContainer />
-                                </RealTimeProvider>
-                            </DashboardProvider>
-                        </NodeProvider>
-                    </GraphProvider>
-                </UserGraphProvider>
+                                </DashboardProvider>
+                            </NodeProvider>
+                        </GraphProvider>
+                    </UserGraphProvider>
+                </RealTimeProvider>
             </DataflowProvider>
         </ErrorBoundary>
     );

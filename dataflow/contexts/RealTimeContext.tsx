@@ -1,8 +1,7 @@
-import React, { createContext, useContext, useEffect, useRef } from "react";
+import React, { createContext, useContext, useEffect } from "react";
 import { io, Socket } from "socket.io-client";
-import { Log } from "../engine/types";
-import { eventBus } from "../events/events";
 import { ClientToServerEvents, ServerToClientEvents } from "../realtime/socket-types";
+import { useRefState } from "../hooks/useRefState";
 
 interface RealTimeProviderProps {
     url?: string;
@@ -16,20 +15,16 @@ interface RealTimeProviderType {
 export const RealTimeContext = createContext<RealTimeProviderType | null>(null);
 
 export function RealTimeProvider({ url, children }: RealTimeProviderProps) {
-    const socketRef = useRef<Socket<ServerToClientEvents, ClientToServerEvents> | null>(null);
+    const socketRef = useRefState<Socket<ServerToClientEvents, ClientToServerEvents> | null>(null);
 
     useEffect(() => {
         if (!url) return ;
 
         const socket = io(url, { path: "/ws" });
-        socketRef.current = socket;
+        socketRef.update(socket);
 
         socket.on("connect", () => {
             console.log("Connected to Socket.IO server");
-        });
-
-        socket.on("writeTo", (data: Log) => {
-            eventBus.emit<Log>('io_write', data);
         });
 
         return () => {
@@ -39,7 +34,7 @@ export function RealTimeProvider({ url, children }: RealTimeProviderProps) {
 
     return (
         <RealTimeContext.Provider value={{
-            socket: socketRef.current,
+            socket: socketRef.ref.current,
         }}>
             {children}
         </RealTimeContext.Provider>

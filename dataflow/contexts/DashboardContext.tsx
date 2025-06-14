@@ -5,6 +5,7 @@ import { useGraphContext } from "./GraphContext";
 import useResizeObserver from "../hooks/useResizeObserver";
 import { Log } from "../engine/types";
 import { useEvent } from "../hooks/useEvent";
+import useWebSocketEvent from "../hooks/useWebSocketEvent";
 
 interface PointerPosition {
     global: Coordinates;
@@ -61,6 +62,11 @@ export function DashboardProvider({children}: DashboardProviderProps) {
     }, [handlePointerMove]);
 
     useEvent<Log>('io_write', (log) => {
+        logs.ref.current.push(log);
+        logs.notifyUpdate();
+    });
+
+    useWebSocketEvent('writeTo', (log) => {
         logs.ref.current.push(log);
         logs.notifyUpdate();
     });
