@@ -18,44 +18,46 @@ export default function ToolbarPlayer() {
     const {setGraphResult} = useNodes();
     const {logs} = useDashboardContext();
     const {computedResult, startParams, toGraph} = useGraphContext();
-    const {selectedExecutor} = useDataflowContext();
+    const {selectedExecutor, mode} = useDataflowContext();
 
     const onPlay = useCallback(() => {
+        controller.setMode(mode ?? "local");
+
         if (!isPlaying && graph && selectedExecutor) {
-            if (!controller.started) {
-                logs.update([]);
+            if (controller.paused) {
+                controller.resume(() => setIsPlaying(true));
             }
 
-            setIsPlaying(true);
-            controller.resume();
-
             if (!controller.started) {
-                controller.started = true;
+                setIsPlaying(true);
+                logs.update([]);
 
-                selectedExecutor(toGraph(), startParams.ref.current).then((result) => {
+                controller.start(
+                    selectedExecutor,
+                    toGraph(),
+                    startParams.ref.current
+                ).then((result) => {
                     eventBus.emit<Log>('io_write', {type: "debug", createdAt: Date.now(), message: "Return: " + JSON.stringify(result?.result ?? "undefined", null, 2)} as Log)
                     setGraphResult(result);
                     computedResult.update(keyValueToMap(result?.io_values ?? {}));
                 }).catch((reason: Error) => {
                     eventBus.emit<Log>('io_write', {type: "error", message: reason.message, createdAt: Date.now()} as Log);
                     setGraphResult(undefined);
+                    computedResult.update(new Map());
                 }).finally(() => {
-                    controller.started = false;
-                    controller.cancelled = false;
-                    controller.paused = false;
                     setTimeout(() => setIsPlaying(false), 0);
                 });
             }
         } else if (isPlaying) {
-            controller.pause();
-            setIsPlaying(false);
+            controller.pause(() => setIsPlaying(false));
         }
-    }, [graph, isPlaying, selectedExecutor, setGraphResult, toGraph]);
+    }, [graph, isPlaying, selectedExecutor, setGraphResult, toGraph, mode]);
 
     const handleCancel = useCallback(() => {
-        controller.cancel();
-        controller.resume();
-    }, []);
+        controller.cancel(() => {
+            setIsPlaying(false);
+        });
+    }, [mode]);
 
     return (
         <>

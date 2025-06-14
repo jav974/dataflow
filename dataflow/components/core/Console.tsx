@@ -58,7 +58,7 @@ export default function Console() {
           {visible && (
             <div className="flex w-full h-full">
                 <Resizable directions={['n']} className="grow" minSize={{width: 0, height: 200}} maxSize={{width: 0, height: 550}}>
-                    <div className="min-h-[200px] grow h-full bg-black/90 pl-4 pt-2 pr-1 pb-1">
+                    <div className="min-h-[200px] max-h-[550px] grow h-full bg-black/90 pl-4 pt-2 pr-1 pb-1">
                         <ConsoleLogs/>
                     </div>
                 </Resizable>

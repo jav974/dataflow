@@ -3,7 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev --turbopack",
+    "dev:next": "next dev --turbopack",
+    "dev:ws": "nodemon --watch dataflow/realtime/ws-server.mts --exec \"node --loader ts-node/esm dataflow/realtime/ws-server.mts\"",
+    "dev": "concurrently \"npm run dev:next\" \"npm run dev:ws\"",
     "build": "next build",
     "start": "next start",
     "lint": "next lint"
@@ -19,6 +21,8 @@
     "react-dom": "^19.0.0",
     "react-hook-form": "^7.56.3",
     "react-refsignal": "^0.1.2",
+    "socket.io": "^4.8.1",
+    "socket.io-client": "^4.8.1",
     "uuid": "^11.1.0",
     "yup": "^1.6.1"
   },
@@ -28,10 +32,13 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "concurrently": "^9.1.2",
     "eslint": "^9",
     "eslint-config-next": "15.3.0",
+    "nodemon": "^3.1.10",
     "tailwind-scrollbar": "^4.0.2",
     "tailwindcss": "^4",
+    "ts-node": "^10.9.2",
     "typescript": "^5"
   }
 }

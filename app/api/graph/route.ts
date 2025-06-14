@@ -1,14 +1,23 @@
 import { NextRequest, NextResponse } from "next/server";
 import { executeGraph } from "@/actions/graph";
+import controller from "@/dataflow/engine/controller";
 
 export async function POST(req: NextRequest) {
     const { graph, params } = await req.json();
-    const result = await executeGraph(graph, params);
-    
-    // Removes circular dependencies by removing the graph itself.
-    if (result) {
-        result.graph = undefined;
+    let result = undefined;
+    let hasError = false;
+
+    try {
+        result = await controller.start(executeGraph, graph, params);
+        
+        // Removes circular dependencies by removing the graph itself.
+        if (result) {
+            result.graph = undefined;
+        }
+    } catch (error) {
+        result = {message: (error as Error).message} as Error;
+        hasError = true;
     }
 
-    return NextResponse.json(result);
+    return NextResponse.json(result, {status: hasError ? 500 : 200});
 }
