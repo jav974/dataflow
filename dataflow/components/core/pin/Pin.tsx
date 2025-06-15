@@ -57,10 +57,10 @@ function Pin({ nodeId, id, nodeType, name, type, required, isInput, onRef, remov
     }, [nodeId, id, setInputName]);
 
     const executionValue = useMemo((): any => {
-        if (computedResult.ref.current.size === 0) return undefined;
-        if (!computedResult.ref.current.has(nodeId + ':' + id)) return undefined;
+        if (computedResult.current.size === 0) return undefined;
+        if (!computedResult.current.has(nodeId + ':' + id)) return undefined;
         
-        const res = computedResult.ref.current.get(nodeId + ':' + id);
+        const res = computedResult.current.get(nodeId + ':' + id);
         return JSON.stringify(res, null, 2);
     }, [computedResult.lastUpdated, nodeId, id]);
 

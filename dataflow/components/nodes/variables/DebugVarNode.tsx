@@ -10,7 +10,7 @@ export default function DebugVarNode({node}: DebugVarNodeProps) {
 
     const executionValue = useMemo((): any => {
         const inputId = node.inputs ? node.inputs[0].id : '';
-        return computedResult.ref.current.get(node.id + ':' + inputId);
+        return computedResult.current.get(node.id + ':' + inputId);
     }, [computedResult.lastUpdated, node]);
 
     return (
@@ -20,7 +20,7 @@ export default function DebugVarNode({node}: DebugVarNodeProps) {
             hasExecute={true}
             size={{width: 150, height: 100}}
         >
-            {computedResult.ref.current.size > 0 &&
+            {computedResult.current.size > 0 &&
             <pre className="text-lg bg-gray-900" style={{ whiteSpace: "pre-wrap", wordBreak: "break-all" }}>
                 {JSON.stringify(executionValue, null, 2)}
             </pre>

@@ -1,10 +1,10 @@
-import React, { useCallback, useRef, useState } from "react";
+import React, { useCallback, useReducer, useRef } from "react";
 
-export interface RefState<T> {
-    readonly ref: React.RefObject<T>;
-    readonly lastUpdated: number;
+export interface RefState<T = unknown> extends React.RefObject<T> {
+    lastUpdated: number;
     readonly update: (value: T) => void;
-    readonly setLastUpdated: (lastUpdated: number) => void;
+    readonly notify: () => void;
+    readonly notifyUpdate: () => void;
 }
 
 export function useRefState<T>(initialValue: T): RefState<T>;
@@ -12,17 +12,29 @@ export function useRefState<T>(initialValue: T | null): RefState<T | null>;
 export function useRefState<T>(initialValue: T | undefined): RefState<T | undefined>;
 
 export function useRefState<T>(initialValue: T | null | undefined): RefState<T | null | undefined> {
-    const ref = useRef<T | null | undefined>(initialValue);
-    const [lastUpdated, setLastUpdated] = useState<number>(0);
-    const update = useCallback((value: T | null | undefined): void => {
-        ref.current = value;
-        setLastUpdated(Date.now());
+    const [, forceUpdate] = useReducer((x) => x + 1, 0);
+
+    const notify = useCallback(() => {
+        forceUpdate();
+    }, []);
+    
+    const notifyUpdate = useCallback(() => {
+        ref.current.lastUpdated = Date.now();
+        notify();
     }, []);
 
-    return {
-        ref,
-        lastUpdated,
+    const update = useCallback((value: T | null | undefined): void => {
+        ref.current.current = value;
+        notifyUpdate();
+    }, []);
+
+    const ref = useRef<RefState<T | null | undefined>>({
+        current: initialValue,
+        lastUpdated: 0,
         update,
-        setLastUpdated
-    };
+        notify,
+        notifyUpdate
+    });
+    
+    return ref.current;
 }

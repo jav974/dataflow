@@ -25,8 +25,8 @@ export default function ConnectionDrag() {
     const position = useRefState<Coordinates>({x: NaN, y: NaN});
     const origin = useMemo((): ConnectionOrigin | undefined => {
         if (!connectionDrag.current) {
-            position.ref.current.x = NaN;
-            position.ref.current.y = NaN;
+            position.current.x = NaN;
+            position.current.y = NaN;
             return undefined;
         }
 
@@ -107,8 +107,8 @@ export default function ConnectionDrag() {
             onPointerUp={handlePointerUp}
         >
             <BezierCurve
-                from={origin.isDst ? position.ref.current : origin.pos}
-                to={origin.isDst ? origin.pos : position.ref.current}
+                from={origin.isDst ? position.current : origin.pos}
+                to={origin.isDst ? origin.pos : position.current}
                 alpha={0.8}
                 controlPoints={100}
                 texture={origin.texture ?? undefined}

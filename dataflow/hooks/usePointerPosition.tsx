@@ -11,9 +11,9 @@ export default function usePointerPosition(): UsePointerPositionReturn {
     const position = useRefState<Coordinates>({x: 0, y: 0});
 
     const handlePointerMove = useCallback((e: PointerEvent) => {
-        position.ref.current.x = e.clientX;
-        position.ref.current.y = e.clientY;
-        position.setLastUpdated(Date.now());
+        position.current.x = e.clientX;
+        position.current.y = e.clientY;
+        position.notifyUpdate();
     }, []);
 
     useEffect(() => {
@@ -25,7 +25,7 @@ export default function usePointerPosition(): UsePointerPositionReturn {
     }, [handlePointerMove]);
 
     return {
-        position: position.ref.current,
+        position: position.current,
         lastUpdated: position.lastUpdated
     }
 }

@@ -34,7 +34,7 @@ export function RealTimeProvider({ url, children }: RealTimeProviderProps) {
 
     return (
         <RealTimeContext.Provider value={{
-            socket: socketRef.ref.current,
+            socket: socketRef.current,
         }}>
             {children}
         </RealTimeContext.Provider>
