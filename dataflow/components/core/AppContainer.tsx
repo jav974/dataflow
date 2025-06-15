@@ -79,8 +79,8 @@ export default function AppContainer() {
                     antialias={true}
                     resizeTo={canvasRef}
                     clearBeforeRender={true}
-                    width={canvasRect.ref.current?.width ?? 0}
-                    height={canvasRect.ref.current?.height ?? 0}
+                    width={canvasRect.current?.width ?? 0}
+                    height={canvasRect.current?.height ?? 0}
                     // preference="webgpu"
                     preference="webgl"
                     powerPreference="high-performance"

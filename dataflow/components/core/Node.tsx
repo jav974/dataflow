@@ -48,8 +48,8 @@ export default function Node({
 
     const getScaledRelativePosition = useCallback((outerRect: DOMRect, innerRect: DOMRect, adjustments?: Coordinates): Coordinates => {
         return {
-            x: (innerRect.left - outerRect.left) * scale.ref.current + (adjustments?.x ?? 0),
-            y: (innerRect.top - outerRect.top) * scale.ref.current + (adjustments?.y ?? 0),
+            x: (innerRect.left - outerRect.left) * scale.current + (adjustments?.x ?? 0),
+            y: (innerRect.top - outerRect.top) * scale.current + (adjustments?.y ?? 0),
         }
     }, []);
 
@@ -132,10 +132,10 @@ export default function Node({
     }, [node.id, selectedNodes, selected, isSelected]);
 
     useRefSignalEffect(() => {
-        if (!containerRef.current || !selectionArea.ref.current) return;
+        if (!containerRef.current || !selectionArea.current) return;
 
         const overlapping = isOverlapping(
-            selectionArea.ref.current,
+            selectionArea.current,
             containerRef.current.getBoundingClientRect()
         );
 

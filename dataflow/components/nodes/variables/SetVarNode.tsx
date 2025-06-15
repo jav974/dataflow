@@ -24,8 +24,8 @@ export default function SetVarNode({node}: SetVarNodeProps) {
         isCollection: yup.boolean().required()
     }), []);
     const variable = useMemo(
-        () => variables.ref.current.find(v => v.id === node.id),
-        [node.id, variables.lastUpdated.current]
+        () => variables.current.find(v => v.id === node.id),
+        [node.id, variables.lastUpdated]
     );
     const methods = useForm({
         resolver: yupResolver(schema),

@@ -17,15 +17,15 @@ export default function GetVarNode({node}: GetVarNodeProps) {
 
     const variable = useMemo(() => {
         if (!contextVar) return undefined;
-        const v = variables.ref.current.find(v => v.id === contextVar);
+        const v = variables.current.find(v => v.id === contextVar);
         return v ? {...v} : undefined;
-    }, [variables.lastUpdated.current, contextVar]);
+    }, [variables.lastUpdated, contextVar]);
 
     const options = useMemo((): React.ReactElement[] => {
         const result: React.ReactElement[] = [];
         let found: boolean = contextVar === undefined ? true : false;
 
-        variables.ref.current.forEach((variable) => {
+        variables.current.forEach((variable) => {
             result.push(<option key={variable.id} value={variable.id}>{variable.name}</option>);
 
             if (variable.id === contextVar) {
@@ -41,11 +41,11 @@ export default function GetVarNode({node}: GetVarNodeProps) {
         }
 
         return result;
-    }, [variables.lastUpdated.current, contextVar]);
+    }, [variables.lastUpdated, contextVar]);
 
     useEffect(() => {
         if (!context?.get('var')) {
-            setNodeContext(node.id, (new Map(context)).set('var', variables.ref.current[0].id));
+            setNodeContext(node.id, (new Map(context)).set('var', variables.current[0].id));
         }
     }, [node.id, context, setNodeContext]);
 

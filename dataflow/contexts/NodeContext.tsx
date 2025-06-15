@@ -101,24 +101,24 @@ export function NodeProvider({ children }: { children: React.ReactNode }) {
     const selectedNodes = useRefSignal<string[]>([]);
 
     const registerNode = useCallback((node: NodeConfig, inputs: InputPin[], outputs: OutputPin[], branches: OutputBranchPin[], executePin?: Pin, continuePin?: Pin) => {
-        const nodeSignal = nodes.ref.current.get(node.id);
+        const nodeSignal = nodes.current.get(node.id);
         const nodeData = { mutableNodeConfig: node, inputs, outputs, branches, executePin, continuePin };
 
         if (nodeSignal) {
             nodeSignal.update(nodeData);
         } else {
-            nodes.ref.current.set(node.id, createRefSignal<Node>(nodeData));
+            nodes.current.set(node.id, createRefSignal<Node>(nodeData));
             nodes.notifyUpdate();
         }
     }, []);
 
     const isSelected = useCallback((id: string): boolean => {
-        return selectedNodes.ref.current.includes(id);
+        return selectedNodes.current.includes(id);
     }, []);
 
     const updateNodePosition = useCallback((id: string, x: number, y: number) => {
-        const nodeSignal = nodes.ref.current.get(id);
-        const node = nodeSignal?.ref.current;
+        const nodeSignal = nodes.current.get(id);
+        const node = nodeSignal?.current;
 
         if (node) {
             // Node is part of a selection, move the selection along
@@ -126,12 +126,12 @@ export function NodeProvider({ children }: { children: React.ReactNode }) {
                 const deltaX = x - node.mutableNodeConfig.position.x;
                 const deltaY = y - node.mutableNodeConfig.position.y;
 
-                for (const [_, n] of nodes.ref.current) {
-                    if (isSelected(n.ref.current.mutableNodeConfig.id)) {
-                        n.ref.current.mutableNodeConfig.position.x += deltaX;
-                        n.ref.current.mutableNodeConfig.position.y += deltaY;
-                        emitNodeUpdated(n.ref.current.mutableNodeConfig.id);
-                        emitNodePositionUpdated(n.ref.current.mutableNodeConfig.id);
+                for (const [_, n] of nodes.current) {
+                    if (isSelected(n.current.mutableNodeConfig.id)) {
+                        n.current.mutableNodeConfig.position.x += deltaX;
+                        n.current.mutableNodeConfig.position.y += deltaY;
+                        emitNodeUpdated(n.current.mutableNodeConfig.id);
+                        emitNodePositionUpdated(n.current.mutableNodeConfig.id);
                     }
                 }
             } else { // Otherwise simply update its position
@@ -196,7 +196,7 @@ export function NodeProvider({ children }: { children: React.ReactNode }) {
     }, []);
 
     const buildConnectionDrag = useCallback((connector: Connector): ConnectionDrag | undefined => {
-        const node = nodes.ref.current.get(connector.id)?.ref.current;
+        const node = nodes.current.get(connector.id)?.current;
         if (!node) return undefined;
 
         return {
@@ -230,12 +230,12 @@ export function NodeProvider({ children }: { children: React.ReactNode }) {
     }, []);
 
     const onPointerUp = useCallback((e: PointerEvent) => {
-        if (connectionDrag && e.id && connectionDrag.ref.current && connectionDrag.ref.current.connector.id !== e.id) {
+        if (connectionDrag && e.id && connectionDrag.current && connectionDrag.current.connector.id !== e.id) {
             const dst = buildConnectionDrag({id: e.id, pin: e.element});
 
-            if (dst && validateConnection(connectionDrag.ref.current, dst, true)) {
-                const from = connectionDrag.ref.current.info.isSrc ? connectionDrag.ref.current : dst;
-                const to = !connectionDrag.ref.current.info.isSrc ? connectionDrag.ref.current : dst;
+            if (dst && validateConnection(connectionDrag.current, dst, true)) {
+                const from = connectionDrag.current.info.isSrc ? connectionDrag.current : dst;
+                const to = !connectionDrag.current.info.isSrc ? connectionDrag.current : dst;
 
                 // Only Output connectors can be connected to multiple other connectors
                 if (!from.info.isOutput) {
@@ -256,15 +256,15 @@ export function NodeProvider({ children }: { children: React.ReactNode }) {
     }, []);
 
     const setRenderTarget = useCallback((id: string, target: HTMLElement) => {
-        renderTargets.ref.current.set(id, target);
+        renderTargets.current.set(id, target);
         renderTargets.notifyUpdate();
     }, []);
 
     const setSelected = useCallback((id: string, selected: boolean) => {
-        if (selected && !selectedNodes.ref.current.includes(id)) {
-            selectedNodes.update([...selectedNodes.ref.current, id]);
+        if (selected && !selectedNodes.current.includes(id)) {
+            selectedNodes.update([...selectedNodes.current, id]);
         } else if (!selected) {
-            selectedNodes.update(selectedNodes.ref.current.filter((v) => v !== id));
+            selectedNodes.update(selectedNodes.current.filter((v) => v !== id));
         }
     },  []);
 

@@ -62,27 +62,27 @@ export function GraphProvider({children}: GraphProviderProps) {
     const connections = useRefSignal<ConnectionConfig[]>([]);
     const canvasPosition = useRefSignal<Coordinates>({x: 0, y: 0});
     const zoom = useRefSignal<number>(100);
-    const scale = useRefSignal<number>(zoom.ref.current != 0 ? 1 / (zoom.ref.current / 100) : 0);
+    const scale = useRefSignal<number>(zoom.current != 0 ? 1 / (zoom.current / 100) : 0);
     const variables = useRefSignal<VariableConfig[]>([]);
     const types = useRefSignal<GraphType[]>([]);
     const computedResult = useRefState<Map<string, any>>(new Map());
     const startParams = useRefSignal<KeyValue>(new Map());
 
     useRefSignalEffect(() => {
-        scale.update(zoom.ref.current != 0 ? 1 / (zoom.ref.current / 100) : 0);
+        scale.update(zoom.current != 0 ? 1 / (zoom.current / 100) : 0);
     }, [zoom]);
 
     const addNode = useCallback((node: NodeConfig) => {
-        const index = nodes.ref.current.findIndex((n: RefSignal<NodeConfig>) => n.ref.current.id === node.id);
+        const index = nodes.current.findIndex((n: RefSignal<NodeConfig>) => n.current.id === node.id);
 
         if (index === -1) {
-            nodes.ref.current.push(createRefSignal(node));
+            nodes.current.push(createRefSignal(node));
             nodes.notifyUpdate();
         }
     }, []);
 
     const updateNode = useCallback((node: NodeConfig) => {
-        const nodeSignal = nodes.ref.current.find((n: RefSignal<NodeConfig>) => n.ref.current.id === node.id);
+        const nodeSignal = nodes.current.find((n: RefSignal<NodeConfig>) => n.current.id === node.id);
 
         if (nodeSignal) {
             nodeSignal.update({...node});
@@ -92,33 +92,33 @@ export function GraphProvider({children}: GraphProviderProps) {
     const removeConnectionsByPredicate = useCallback((predicate: (conn: ConnectionConfig) => boolean) => {
         let index: number;
 
-        while ((index = connections.ref.current.findIndex(predicate)) !== -1) {
-            connections.ref.current.splice(index, 1);
+        while ((index = connections.current.findIndex(predicate)) !== -1) {
+            connections.current.splice(index, 1);
         }
 
         connections.notifyUpdate();
     }, []);
 
     const removeNode = useCallback((id: string) => {
-        const index = nodes.ref.current.findIndex((n: RefSignal<NodeConfig>) => n.ref.current.id === id);
+        const index = nodes.current.findIndex((n: RefSignal<NodeConfig>) => n.current.id === id);
 
         if (index !== -1) {
             batch(() => {
-                if (nodes.ref.current[index].ref.current.type === NodeType.SET) {
+                if (nodes.current[index].current.type === NodeType.SET) {
                     removeVariable(id);
                 }
 
-                nodes.ref.current.splice(index, 1);
+                nodes.current.splice(index, 1);
                 removeConnectionsByPredicate(conn => (conn.from.id === id || conn.to.id === id));
             }, [nodes, connections, variables]);
         }
     }, []);
 
     const addNodeInput = useCallback((id: string, input: InputConfig) => {
-        const nodeSignal = nodes.ref.current.find((n: RefSignal<NodeConfig>) => n.ref.current.id === id);
+        const nodeSignal = nodes.current.find((n: RefSignal<NodeConfig>) => n.current.id === id);
 
         if (nodeSignal) {
-            const node = nodeSignal.ref.current;
+            const node = nodeSignal.current;
 
             if ((node.inputs?.findIndex((i: InputConfig): boolean => i.id === input.id) ?? -1) === -1) {
                 updateNode({...node, inputs: [...(node.inputs || []), input]});
@@ -127,10 +127,10 @@ export function GraphProvider({children}: GraphProviderProps) {
     }, [updateNode]);
 
     const updateNodeInput = useCallback((id: string, input: Partial<InputConfig>) => {
-        const nodeSignal = nodes.ref.current.find((n: RefSignal<NodeConfig>) => n.ref.current.id === id);
+        const nodeSignal = nodes.current.find((n: RefSignal<NodeConfig>) => n.current.id === id);
 
         if (nodeSignal) {
-            const node = nodeSignal.ref.current;
+            const node = nodeSignal.current;
             const index = node.inputs?.findIndex((i: InputConfig): boolean => i.id === input.id);
 
             if (index !== -1) {
@@ -140,38 +140,38 @@ export function GraphProvider({children}: GraphProviderProps) {
     }, [updateNode]);
 
     const setNodeInputs = useCallback((id: string, inputs: InputConfig[]) => {
-        const nodeSignal = nodes.ref.current.find((n: RefSignal<NodeConfig>) => n.ref.current.id === id);
+        const nodeSignal = nodes.current.find((n: RefSignal<NodeConfig>) => n.current.id === id);
 
         if (nodeSignal) {
-            updateNode({...nodeSignal.ref.current, inputs});
+            updateNode({...nodeSignal.current, inputs});
         }
     }, [updateNode]);
 
     const removeNodeInput = useCallback((nodeId: string, inputId: string) => {
-        const nodeSignal = nodes.ref.current.find((n: RefSignal<NodeConfig>) => n.ref.current.id === nodeId);
+        const nodeSignal = nodes.current.find((n: RefSignal<NodeConfig>) => n.current.id === nodeId);
 
         if (nodeSignal) {
-            const node = nodeSignal.ref.current;
+            const node = nodeSignal.current;
 
             updateNode({...node, inputs: node.inputs?.filter((input: InputConfig) => input.id !== inputId)});
         }
     }, [updateNode]);
 
     const setInputDefaultValue = useCallback((nodeId: string, inputId: string, value: any) => {
-        const nodeSignal = nodes.ref.current.find((n: RefSignal<NodeConfig>) => n.ref.current.id === nodeId);
+        const nodeSignal = nodes.current.find((n: RefSignal<NodeConfig>) => n.current.id === nodeId);
 
         if (nodeSignal) {
-            const node = nodeSignal.ref.current;
+            const node = nodeSignal.current;
 
             updateNode({...node, inputs: node.inputs?.map((i: InputConfig) => i.id === inputId ? {...i, defaultValue: value} : i)})
         }
     }, [updateNode]);
 
     const addNodeOutput = useCallback((id: string, output: OutputConfig) => {
-        const nodeSignal = nodes.ref.current.find((n: RefSignal<NodeConfig>) => n.ref.current.id === id);
+        const nodeSignal = nodes.current.find((n: RefSignal<NodeConfig>) => n.current.id === id);
 
         if (nodeSignal) {
-            const node = nodeSignal.ref.current;
+            const node = nodeSignal.current;
 
             if ((node.outputs?.findIndex((i: OutputConfig): boolean => i.id === output.id) ?? -1) === -1) {
                 updateNode({...node, outputs: [...(node.outputs || []), output]});
@@ -180,10 +180,10 @@ export function GraphProvider({children}: GraphProviderProps) {
     }, [updateNode]);
 
     const updateNodeOutput = useCallback((id: string, output: Partial<OutputConfig>) => {
-        const nodeSignal = nodes.ref.current.find((n: RefSignal<NodeConfig>) => n.ref.current.id === id);
+        const nodeSignal = nodes.current.find((n: RefSignal<NodeConfig>) => n.current.id === id);
 
         if (nodeSignal) {
-            const node = nodeSignal.ref.current;
+            const node = nodeSignal.current;
             const _output = node.outputs?.find((o: OutputConfig): boolean => o.id === output.id);
 
             if (_output) {
@@ -204,28 +204,28 @@ export function GraphProvider({children}: GraphProviderProps) {
     }, [updateNode]);
 
     const setNodeOutputs = useCallback((id: string, outputs: OutputConfig[]) => {
-        const nodeSignal = nodes.ref.current.find((n: RefSignal<NodeConfig>) => n.ref.current.id === id);
+        const nodeSignal = nodes.current.find((n: RefSignal<NodeConfig>) => n.current.id === id);
 
         if (nodeSignal) {
-            updateNode({...nodeSignal.ref.current, outputs});
+            updateNode({...nodeSignal.current, outputs});
         }
     }, [updateNode]);
 
     const removeNodeOutput = useCallback((nodeId: string, outputId: string) => {
-        const nodeSignal = nodes.ref.current.find((n: RefSignal<NodeConfig>) => n.ref.current.id === nodeId);
+        const nodeSignal = nodes.current.find((n: RefSignal<NodeConfig>) => n.current.id === nodeId);
 
         if (nodeSignal) {
-            const node = nodeSignal.ref.current;
+            const node = nodeSignal.current;
 
             updateNode({...node, outputs: node.outputs?.filter((output: OutputConfig) => output.id !== outputId)});
         }
     }, [updateNode]);
 
     const addNodeBranch = useCallback((id: string, branch: OutputBranchConfig) => {
-        const nodeSignal = nodes.ref.current.find((n: RefSignal<NodeConfig>) => n.ref.current.id === id);
+        const nodeSignal = nodes.current.find((n: RefSignal<NodeConfig>) => n.current.id === id);
 
         if (nodeSignal) {
-            const node = nodeSignal.ref.current;
+            const node = nodeSignal.current;
 
             if ((node.branches?.findIndex((b: OutputBranchConfig): boolean => b.id === branch.id) ?? -1) === -1) {
                 updateNode({...node, branches: [...(node.branches || []), branch]});
@@ -234,28 +234,28 @@ export function GraphProvider({children}: GraphProviderProps) {
     }, []);
 
     const removeNodeBranch = useCallback((nodeId: string, branchId: string) => {
-        const nodeSignal = nodes.ref.current.find((n: RefSignal<NodeConfig>) => n.ref.current.id === nodeId);
+        const nodeSignal = nodes.current.find((n: RefSignal<NodeConfig>) => n.current.id === nodeId);
 
         if (nodeSignal) {
-            const node = nodeSignal.ref.current;
+            const node = nodeSignal.current;
 
             updateNode({...node, branches: node.branches?.filter((b: OutputBranchConfig) => b.id !== branchId)});
         }
     }, []);
 
     const setNodeBranches = useCallback((id: string, branches: OutputBranchConfig[]) => {
-        const nodeSignal = nodes.ref.current.find((n: RefSignal<NodeConfig>) => n.ref.current.id === id);
+        const nodeSignal = nodes.current.find((n: RefSignal<NodeConfig>) => n.current.id === id);
 
         if (nodeSignal) {
-            updateNode({...nodeSignal.ref.current, branches: branches});
+            updateNode({...nodeSignal.current, branches: branches});
         }
     }, [updateNode]);
 
     const setOutputName = useCallback((nodeId: string, outputId: string, name: string) => {
-        const nodeSignal = nodes.ref.current.find((n: RefSignal<NodeConfig>) => n.ref.current.id === nodeId);
+        const nodeSignal = nodes.current.find((n: RefSignal<NodeConfig>) => n.current.id === nodeId);
 
         if (nodeSignal) {
-            const node = nodeSignal.ref.current;
+            const node = nodeSignal.current;
             const output = node.outputs?.find((o: OutputConfig) => o.id === outputId);
 
             if (output) {
@@ -266,10 +266,10 @@ export function GraphProvider({children}: GraphProviderProps) {
     }, [updateNode]);
 
     const setInputName = useCallback((nodeId: string, inputId: string, name: string) => {
-        const nodeSignal = nodes.ref.current.find((n: RefSignal<NodeConfig>) => n.ref.current.id === nodeId);
+        const nodeSignal = nodes.current.find((n: RefSignal<NodeConfig>) => n.current.id === nodeId);
 
         if (nodeSignal) {
-            const node = nodeSignal.ref.current;
+            const node = nodeSignal.current;
             const input = node.inputs?.find((i: InputConfig) => i.id === inputId);
 
             if (input) {
@@ -280,13 +280,13 @@ export function GraphProvider({children}: GraphProviderProps) {
     }, [updateNode]);
 
     const addConnection = useCallback((connection: ConnectionConfig) => {
-        const index = connections.ref.current.findIndex((c: ConnectionConfig) => {
+        const index = connections.current.findIndex((c: ConnectionConfig) => {
             return c.from.id === connection.from.id && c.from.pin === connection.from.pin && 
                 c.to.id === connection.to.id && c.to.pin === connection.to.pin;
         });
         
         if (index === -1) {
-            connections.ref.current.push(connection);
+            connections.current.push(connection);
             connections.notifyUpdate();
         }
     }, []);
@@ -323,26 +323,26 @@ export function GraphProvider({children}: GraphProviderProps) {
     const toGraph = useCallback((): AppConfig => {
         return {
             name,
-            connections: connections.ref.current,
-            nodes: nodes.ref.current.map(nodeSignal => nodeSignal.ref.current),
-            zoom: zoom.ref.current,
-            types: types.ref.current,
-            variables: variables.ref.current,
+            connections: connections.current,
+            nodes: nodes.current.map(nodeSignal => nodeSignal.current),
+            zoom: zoom.current,
+            types: types.current,
+            variables: variables.current,
         };
     }, [name]);
 
     const zoomIn = useCallback(() => {
-        if (zoom.ref.current >= 200) return; // Prevent zooming in too far
-        zoom.update(zoom.ref.current + 2);
+        if (zoom.current >= 200) return; // Prevent zooming in too far
+        zoom.update(zoom.current + 2);
     }, []);
 
     const zoomOut = useCallback(() => {
-        if (zoom.ref.current <= 2) return; // Prevent zooming out too far
-        zoom.update(zoom.ref.current - 2);
+        if (zoom.current <= 2) return; // Prevent zooming out too far
+        zoom.update(zoom.current - 2);
     }, []);
 
     const setVariable = useCallback((id: string, name: string, type: string, isCollection: boolean) => {
-        const variable = variables.ref.current.find(v => v.id === id);
+        const variable = variables.current.find(v => v.id === id);
 
         if (variable && (variable.name !== name || variable.type !== type || variable.isCollection !== isCollection)) {
             variable.name = name;
@@ -350,36 +350,36 @@ export function GraphProvider({children}: GraphProviderProps) {
             variable.isCollection = isCollection;
             variables.notifyUpdate();
         } else if (!variable) {
-            variables.ref.current.push({id, name, type, isCollection});
+            variables.current.push({id, name, type, isCollection});
             variables.notifyUpdate();
         }
     }, []);
 
     const removeVariable = useCallback((id: string) => {
-        const index = variables.ref.current.findIndex(v => v.id === id);
+        const index = variables.current.findIndex(v => v.id === id);
 
         if (index !== -1) {
-            variables.ref.current.splice(index, 1);
+            variables.current.splice(index, 1);
             variables.notifyUpdate();
         }
     }, []);
 
     const setNodeContext = useCallback((nodeId: string, context: Map<string, any>) => {
-        const nodeSignal = nodes.ref.current.find((n: RefSignal<NodeConfig>) => n.ref.current.id === nodeId);
+        const nodeSignal = nodes.current.find((n: RefSignal<NodeConfig>) => n.current.id === nodeId);
 
         if (nodeSignal) {
-            updateNode({...nodeSignal.ref.current, context: JSON.stringify(Object.fromEntries(context))});
+            updateNode({...nodeSignal.current, context: JSON.stringify(Object.fromEntries(context))});
         }
     }, [updateNode]);
 
     const getConnectionInfo = useCallback((nodeId: string, src: InputConfig | OutputConfig) => {
         if ("required" in src) {
-            const connection = connections.ref.current.find((v) => v.to.id === nodeId && v.to.pin === src.id);
+            const connection = connections.current.find((v) => v.to.id === nodeId && v.to.pin === src.id);
             if (!connection) return undefined;
             // Fetch corresponding node output
-            const node = nodes.ref.current.find((v) => v.ref.current.id === connection.from.id);
+            const node = nodes.current.find((v) => v.current.id === connection.from.id);
             if (!node) return undefined;
-            const output = node.ref.current.outputs?.find((v) => v.id === connection.from.pin);
+            const output = node.current.outputs?.find((v) => v.id === connection.from.pin);
             if (!output) return undefined;
 
             return {
@@ -387,12 +387,12 @@ export function GraphProvider({children}: GraphProviderProps) {
                 target: output
             };
         } else {
-            const connection = connections.ref.current.find((v) => v.from.id === nodeId && v.from.pin === src.id);
+            const connection = connections.current.find((v) => v.from.id === nodeId && v.from.pin === src.id);
             if (!connection) return undefined;
             // Fetch corresponding node input
-            const node = nodes.ref.current.find((v) => v.ref.current.id === connection.to.id);
+            const node = nodes.current.find((v) => v.current.id === connection.to.id);
             if (!node) return undefined;
-            const input = node.ref.current.inputs?.find((v) => v.id === connection.to.pin);
+            const input = node.current.inputs?.find((v) => v.id === connection.to.pin);
             if (!input) return undefined;
             
             return {

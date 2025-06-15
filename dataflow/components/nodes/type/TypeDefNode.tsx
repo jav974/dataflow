@@ -36,8 +36,8 @@ export default function TypeDefNode({node}: TypeDefNodeProps) {
         });
     }, []);
     const type = useMemo((): GraphType | undefined => {
-        return types.ref.current.find((type: GraphType) => type.id === node.id);
-    }, [node.id, types.lastUpdated.current]);
+        return types.current.find((type: GraphType) => type.id === node.id);
+    }, [node.id, types.lastUpdated]);
 
     const methods = useForm({
         resolver: yupResolver(schema),
@@ -61,10 +61,10 @@ export default function TypeDefNode({node}: TypeDefNodeProps) {
     });
 
     const onSubmit = useCallback((data: TypeDefinition) => {
-        const type = types.ref.current.find((type: GraphType) => type.id === data.id);
+        const type = types.current.find((type: GraphType) => type.id === data.id);
 
         if (!type) {
-            types.ref.current.push(data);
+            types.current.push(data);
         } else {
             type.name = data.name;
             type.properties = data.properties;

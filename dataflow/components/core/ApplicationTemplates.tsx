@@ -12,8 +12,8 @@ export default function ApplicationTemplates() {
     const [templates, setTemplates] = useState<React.ReactElement[]>([]);
 
     useRefSignalEffect(() => {
-        const _templates = nodes.ref.current.map((nodeSignal): React.ReactElement => {
-            const node = nodeSignal.ref.current;
+        const _templates = nodes.current.map((nodeSignal): React.ReactElement => {
+            const node = nodeSignal.current;
             const reactElementBuilder = registry.get(node.type)?.builder;
 
             if (!reactElementBuilder) {

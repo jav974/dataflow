@@ -15,8 +15,8 @@ export default function ApplicationGraph() {
 
     useRefSignalEffect(() => {
         if (pixiRef.current) {
-            pixiRef.current.scale = zoom.ref.current / 100;
-            pixiRef.current.position = {...canvasPosition.ref.current};
+            pixiRef.current.scale = zoom.current / 100;
+            pixiRef.current.position = {...canvasPosition.current};
         }
     }, [zoom, canvasPosition]);
 
@@ -25,12 +25,12 @@ export default function ApplicationGraph() {
     return (
         <pixiContainer
             ref={pixiRef}
-            position={{...canvasPosition.ref.current}}
-            scale={zoom.ref.current / 100}
+            position={{...canvasPosition.current}}
+            scale={zoom.current / 100}
             roundPixels={true}
         >
-            {nodes.ref.current.map((nodeSignal) =>
-                <HtmlNode key={`${name}_${nodeSignal.ref.current.id}`} node={nodeSignal.ref.current} />
+            {nodes.current.map((nodeSignal) =>
+                <HtmlNode key={`${name}_${nodeSignal.current.id}`} node={nodeSignal.current} />
             )}
             <Connections />
             <ConnectionDrag />

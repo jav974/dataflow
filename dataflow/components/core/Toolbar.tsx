@@ -103,7 +103,7 @@ export default function Toolbar() {
                         name="zoom"
                         min="2"
                         max="200"
-                        value={zoom.ref.current}
+                        value={zoom.current}
                         onChange={handleChangeZoom}
                         className="w-40"
                         step="2" />

@@ -14,9 +14,9 @@ export default function Background() {
 
     const { canvasRect, pointerPosition } = useDashboardContext();
     const { scale, canvasPosition } = useGraphContext();
-    const { position, handlers } = useDraggable(canvasPosition.ref.current);
+    const { position, handlers } = useDraggable(canvasPosition.current);
     const { onPointerUp, openContextMenu, selectionArea, selectionStart, startSelection, stopSelection } = useNodes();
-    const prevScale = useRef<number>(scale.ref.current);
+    const prevScale = useRef<number>(scale.current);
 
     const backgroundSettings = useMemo(() => ({
         spacing: 40,
@@ -35,13 +35,13 @@ export default function Background() {
     // Update position after scale changes
     // This is to avoid a brief teleport to former location before scale apply
     useRefSignalEffect(() => {
-        if (scale.lastUpdated.current > position.lastUpdated.current) {
-            const scaleDelta = scale.ref.current / prevScale.current;
+        if (scale.lastUpdated > position.lastUpdated) {
+            const scaleDelta = scale.current / prevScale.current;
 
-            prevScale.current = scale.ref.current;
-            position.ref.current = {
-                x: position.ref.current.x * scaleDelta,
-                y: position.ref.current.y * scaleDelta,
+            prevScale.current = scale.current;
+            position.current = {
+                x: position.current.x * scaleDelta,
+                y: position.current.y * scaleDelta,
             };
 
             position.notify();
@@ -50,32 +50,32 @@ export default function Background() {
 
     // Update canvas position after background position changes
     useRefSignalEffect(() => {
-        if (canvasPosition.lastUpdated.current !== position.lastUpdated.current) {
-            canvasPosition.ref.current = {
-                x: position.ref.current.x / scale.ref.current,
-                y: position.ref.current.y / scale.ref.current
+        if (canvasPosition.lastUpdated !== position.lastUpdated) {
+            canvasPosition.current = {
+                x: position.current.x / scale.current,
+                y: position.current.y / scale.current
             };
-            canvasPosition.lastUpdated.current = position.lastUpdated.current;
+            canvasPosition.lastUpdated = position.lastUpdated;
             canvasPosition.notify();
         }
     }, [position]);
 
     // Reset background position according to canvas position external change
     useRefSignalEffect(() => {
-        if (canvasPosition.lastUpdated.current !== position.lastUpdated.current) {
-            position.ref.current.x = canvasPosition.ref.current.x;
-            position.ref.current.y = canvasPosition.ref.current.y;
-            position.lastUpdated.current = canvasPosition.lastUpdated.current;
+        if (canvasPosition.lastUpdated !== position.lastUpdated) {
+            position.current.x = canvasPosition.current.x;
+            position.current.y = canvasPosition.current.y;
+            position.lastUpdated = canvasPosition.lastUpdated;
         }
     }, [canvasPosition]);
 
     // Update selection area when selection is started and pointer position changes
     useRefSignalEffect(() => {
-        if (selectionStart.ref.current) {
-            const pX = pointerPosition.ref.current.global.x;
-            const pY = pointerPosition.ref.current.global.y;
-            const sX = selectionStart.ref.current.x;
-            const sY = selectionStart.ref.current.y;
+        if (selectionStart.current) {
+            const pX = pointerPosition.current.global.x;
+            const pY = pointerPosition.current.global.y;
+            const sX = selectionStart.current.x;
+            const sY = selectionStart.current.y;
 
             selectionArea.update({
                 x: Math.min(sX, pX),
@@ -88,16 +88,16 @@ export default function Background() {
 
     // PIXI callback to draw the background grid
     const draw = useCallback((g: Graphics) => {
-        const width = canvasRect.ref.current?.width ?? 0;
-        const height = canvasRect.ref.current?.height ?? 0;
+        const width = canvasRect.current?.width ?? 0;
+        const height = canvasRect.current?.height ?? 0;
 
         g.clear();
         g.rect(0, 0, width, height);
         g.fill(backgroundFillSettings);
 
         const startOffset = 0;
-        const startX = startOffset + (Math.round(canvasPosition.ref.current.x ) % backgroundSettings.lineSpacing);
-        const startY = startOffset + (Math.round(canvasPosition.ref.current.y ) % backgroundSettings.lineSpacing);
+        const startX = startOffset + (Math.round(canvasPosition.current.x ) % backgroundSettings.lineSpacing);
+        const startY = startOffset + (Math.round(canvasPosition.current.y ) % backgroundSettings.lineSpacing);
 
         for (let x = startX; x < width; x += backgroundSettings.lineSpacing) {
             g.moveTo(x, 0);
@@ -140,7 +140,7 @@ export default function Background() {
         if (e.ctrlKey) {    // Move canvas
             handlers.onPointerDown(e);
         } else {            // Create selection rectangle
-            startSelection({...pointerPosition.ref.current.global});
+            startSelection({...pointerPosition.current.global});
         }
     }, [handlers.onPointerDown]);
 
@@ -148,15 +148,15 @@ export default function Background() {
     const drawSelection = useCallback((g: Graphics) => {
         g.clear();
 
-        if (!selectionArea.ref.current) {
+        if (!selectionArea.current) {
             return ;
         }
 
         g.rect(
-            selectionArea.ref.current.x - (canvasRect.ref.current?.left ?? 0),
-            selectionArea.ref.current.y - (canvasRect.ref.current?.top ?? 0),
-            selectionArea.ref.current.width,
-            selectionArea.ref.current.height,
+            selectionArea.current.x - (canvasRect.current?.left ?? 0),
+            selectionArea.current.y - (canvasRect.current?.top ?? 0),
+            selectionArea.current.width,
+            selectionArea.current.height,
         );
         g.fill(selectionFillSettings);
     }, [selectionStart, selectionFillSettings]);

@@ -11,12 +11,12 @@ interface NewVarNodeProps extends NodeProps {
 export default function NewVarNode({node}: NewVarNodeProps) {
     const {variables, updateNodeInput, setNodeContext} = useGraphContext();
     const variable = useRefSignalMemo(() =>
-        variables.ref.current.find((n) => n.id === node.id),
+        variables.current.find((n) => n.id === node.id),
         [variables]
     );
 
     useRefSignalEffect(() => {
-        const _var = variable.ref.current;
+        const _var = variable.current;
         if (!_var) return ;
         const input = node.inputs ? node.inputs[0] : undefined;
         if (!input) return ;

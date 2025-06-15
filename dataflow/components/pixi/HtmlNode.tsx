@@ -31,15 +31,15 @@ export default function HtmlNode({ node, ...props }: HtmlNodeProps) {
     const [layout, setLayout] = useState<HTMLElement | undefined>(undefined);
     
     useRefSignalEffect(() => {
-        updatePosition(position.ref.current);
+        updatePosition(position.current);
     }, [position, updatePosition]);
 
     // Update the current position of useDraggable upon group selection drag
     // This is to ensure that next time we move a node that was part of a selection, we get it's current position
     // Otherwise the node would be briefly teleported to its former location (before selection move)
     useEvent<number>(NodePositionUpdateEvent(node.id), () => {
-        position.ref.current.x = node.position.x;
-        position.ref.current.y = node.position.y;
+        position.current.x = node.position.x;
+        position.current.y = node.position.y;
         updatePosition(node.position);
     });
 

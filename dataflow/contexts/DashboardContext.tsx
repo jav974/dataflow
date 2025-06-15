@@ -44,14 +44,14 @@ export function DashboardProvider({children}: DashboardProviderProps) {
     });
 
     const handlePointerMove = useCallback((event: PointerEvent) => {
-        pointerPosition.ref.current.global.x = event.clientX;
-        pointerPosition.ref.current.global.y = event.clientY;
-        pointerPosition.ref.current.globalScaled.x = event.clientX * scale.ref.current;
-        pointerPosition.ref.current.globalScaled.y = event.clientY * scale.ref.current;
-        pointerPosition.ref.current.viewport.x = event.clientX - (canvasRect.ref.current?.left ?? 0);
-        pointerPosition.ref.current.viewport.y = event.clientY - (canvasRect.ref.current?.top ?? 0);
-        pointerPosition.ref.current.canvasScaled.x = (pointerPosition.ref.current.viewport.x - canvasPosition.ref.current.x) * scale.ref.current;
-        pointerPosition.ref.current.canvasScaled.y = (pointerPosition.ref.current.viewport.y - canvasPosition.ref.current.y) * scale.ref.current;
+        pointerPosition.current.global.x = event.clientX;
+        pointerPosition.current.global.y = event.clientY;
+        pointerPosition.current.globalScaled.x = event.clientX * scale.current;
+        pointerPosition.current.globalScaled.y = event.clientY * scale.current;
+        pointerPosition.current.viewport.x = event.clientX - (canvasRect.current?.left ?? 0);
+        pointerPosition.current.viewport.y = event.clientY - (canvasRect.current?.top ?? 0);
+        pointerPosition.current.canvasScaled.x = (pointerPosition.current.viewport.x - canvasPosition.current.x) * scale.current;
+        pointerPosition.current.canvasScaled.y = (pointerPosition.current.viewport.y - canvasPosition.current.y) * scale.current;
         pointerPosition.notifyUpdate();
     }, []);
 
@@ -62,12 +62,12 @@ export function DashboardProvider({children}: DashboardProviderProps) {
     }, [handlePointerMove]);
 
     useEvent<Log>('io_write', (log) => {
-        logs.ref.current.push(log);
+        logs.current.push(log);
         logs.notifyUpdate();
     });
 
     useWebSocketEvent('writeTo', (log) => {
-        logs.ref.current.push(log);
+        logs.current.push(log);
         logs.notifyUpdate();
     });
 

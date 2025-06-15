@@ -36,10 +36,10 @@ export default function StartNode({node}: StartNodeProps) {
     }, [node.outputs]);
 
     useEffect(() => {
-        startParams.ref.current = {};
+        startParams.current = {};
 
         for (const [key, value] of context.entries()) {
-            startParams.ref.current[key] = value;
+            startParams.current[key] = value;
         }
 
         startParams.notifyUpdate();

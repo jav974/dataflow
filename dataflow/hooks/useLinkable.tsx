@@ -15,7 +15,7 @@ export default function useLinkable(id: string, pin: string, isInput: boolean = 
     const { removeConnections, connections } = useGraphContext();
     const [isConnected, setIsConnected] = useState<boolean>(false);
     const getIsConnected = useCallback(() => {
-        return connections.ref.current.find((connection) => {
+        return connections.current.find((connection) => {
             if (isInput || pin === "execute") {
                 return connection.to.id === id && connection.to.pin === pin;
             } else {

@@ -17,12 +17,12 @@ export default function useKnownTypes(): UseKnownTypesReturn {
             {name: "string", value: "string"},
         ];
 
-        types.ref.current.forEach((type: GraphType) => {
+        types.current.forEach((type: GraphType) => {
             options.push({name: type.name, value: type.id});
         });
 
         return options;
-    }, [types.lastUpdated.current]);
+    }, [types.lastUpdated]);
 
     return {
         options

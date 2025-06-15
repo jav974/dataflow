@@ -28,8 +28,8 @@ export default function Connection({from, to}: ConnectionProps) {
 
     const computePositions = useCallback(() => {
         if (fromNode.current && fromPin.current && toNode.current && toPin.current) {
-            const tmpFrom: Coordinates = { x: fromNode.current.ref.current.mutableNodeConfig.position.x + fromPin.current.position.x, y: fromNode.current.ref.current.mutableNodeConfig.position.y + fromPin.current.position.y };
-            const tmpTo: Coordinates = { x: toNode.current.ref.current.mutableNodeConfig.position.x + toPin.current.position.x, y: toNode.current.ref.current.mutableNodeConfig.position.y + toPin.current.position.y };
+            const tmpFrom: Coordinates = { x: fromNode.current.current.mutableNodeConfig.position.x + fromPin.current.position.x, y: fromNode.current.current.mutableNodeConfig.position.y + fromPin.current.position.y };
+            const tmpTo: Coordinates = { x: toNode.current.current.mutableNodeConfig.position.x + toPin.current.position.x, y: toNode.current.current.mutableNodeConfig.position.y + toPin.current.position.y };
 
             if (fromPos.current?.x !== tmpFrom.x || fromPos.current?.y !== tmpFrom.y
                 || toPos.current?.x !== tmpTo.x || toPos.current?.y !== tmpTo.y
@@ -48,12 +48,12 @@ export default function Connection({from, to}: ConnectionProps) {
 
     // Initialize fromNode and toNode after nodes update
     useRefSignalEffect(() => {
-        fromNode.current = nodes.ref.current.get(from.id);
-        toNode.current = nodes.ref.current.get(to.id);
+        fromNode.current = nodes.current.get(from.id);
+        toNode.current = nodes.current.get(to.id);
 
         batch(() => {
-            trackedFrom.update(fromNode.current?.ref.current);
-            trackedTo.update(toNode.current?.ref.current);
+            trackedFrom.update(fromNode.current?.current);
+            trackedTo.update(toNode.current?.current);
         }, [trackedFrom, trackedTo]);
     }, [nodes]);
 
@@ -62,11 +62,11 @@ export default function Connection({from, to}: ConnectionProps) {
         if (fromNode.current && toNode.current) {
             // Output (value) to Input
             if (from.pin !== 'continue' && to.pin !== 'execute') {
-                fromPin.current = fromNode.current.ref.current.outputs.find(output => output.id === from.pin);
-                toPin.current = toNode.current.ref.current.inputs.find(input => input.id === to.pin);
+                fromPin.current = fromNode.current.current.outputs.find(output => output.id === from.pin);
+                toPin.current = toNode.current.current.inputs.find(input => input.id === to.pin);
 
-                const outputConfig = fromNode.current.ref.current.mutableNodeConfig.outputs?.find(output => output.id === from.pin);
-                const inputConfig = toNode.current.ref.current.mutableNodeConfig.inputs?.find(input => input.id === to.pin);
+                const outputConfig = fromNode.current.current.mutableNodeConfig.outputs?.find(output => output.id === from.pin);
+                const inputConfig = toNode.current.current.mutableNodeConfig.inputs?.find(input => input.id === to.pin);
 
                 if (outputConfig && inputConfig) {
                     // undefined should evaluate as false here, so keep this coercion operator !!
@@ -85,14 +85,14 @@ export default function Connection({from, to}: ConnectionProps) {
             }
             // Output (branch) to Execute
             else if (from.pin !== 'continue' && to.pin === 'execute') {
-                fromPin.current = fromNode.current.ref.current.branches.find(branch => branch.id === from.pin);
-                toPin.current = toNode.current.ref.current.executePin;
+                fromPin.current = fromNode.current.current.branches.find(branch => branch.id === from.pin);
+                toPin.current = toNode.current.current.executePin;
                 setTexture(LineTextures.flow);
             }
             // Continue to Execute
             else if (from.pin === 'continue' && to.pin === 'execute') {
-                fromPin.current = fromNode.current.ref.current.continuePin;
-                toPin.current = toNode.current.ref.current.executePin;
+                fromPin.current = fromNode.current.current.continuePin;
+                toPin.current = toNode.current.current.executePin;
                 setTexture(LineTextures.flow);
             }
         }

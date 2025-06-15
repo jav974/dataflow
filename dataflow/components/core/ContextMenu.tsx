@@ -40,7 +40,7 @@ export default function ContextMenu() {
     useRefSignalRender([nodes]);
 
     const spawnNode = useCallback((type: NodeType) => {
-        if (!rightClickPosition.ref.current) return ;
+        if (!rightClickPosition.current) return ;
 
         const config = registry.get(type)?.config;
 
@@ -49,8 +49,8 @@ export default function ContextMenu() {
                 ...config,
                 id: uuidv4(),
                 position: {
-                    x: (rightClickPosition.ref.current.x - canvasPosition.ref.current.x - (canvasRect.ref.current?.left ?? 0)) * scale.ref.current,
-                    y: (rightClickPosition.ref.current.y - canvasPosition.ref.current.y - (canvasRect.ref.current?.top ?? 0)) * scale.ref.current
+                    x: (rightClickPosition.current.x - canvasPosition.current.x - (canvasRect.current?.left ?? 0)) * scale.current,
+                    y: (rightClickPosition.current.y - canvasPosition.current.y - (canvasRect.current?.top ?? 0)) * scale.current
                 },
             });
         }
@@ -64,9 +64,9 @@ export default function ContextMenu() {
     }, [spawnNode]);
 
     const menu = useMemo((): MenuTree => {
-        const hasStartNode = nodes.ref.current.findIndex((ns) => ns.ref.current.type === NodeType.START) !== -1;
-        const hasReturnNode = nodes.ref.current.findIndex((ns) => ns.ref.current.type === NodeType.RETURN) !== -1;
-        const hasTriggerNode = nodes.ref.current.findIndex((ns) => ns.ref.current.type === NodeType.TRIGGER) !== -1;
+        const hasStartNode = nodes.current.findIndex((ns) => ns.current.type === NodeType.START) !== -1;
+        const hasReturnNode = nodes.current.findIndex((ns) => ns.current.type === NodeType.RETURN) !== -1;
+        const hasTriggerNode = nodes.current.findIndex((ns) => ns.current.type === NodeType.TRIGGER) !== -1;
         const specialEntries: MenuTree[] = [];
 
         if (!hasStartNode && !hasTriggerNode) {
@@ -156,18 +156,18 @@ export default function ContextMenu() {
                 createNodeMenuEntry("Type", NodeType.TYPEDEF),
             ]
         }
-    }, [createNodeMenuEntry, nodes.lastUpdated.current]);
+    }, [createNodeMenuEntry, nodes.lastUpdated]);
 
     useRefSignalRender([rightClickPosition]);
 
-    if (!rightClickPosition.ref.current) {
+    if (!rightClickPosition.current) {
         return null;
     }
 
     return (
         <div
             className="absolute bg-black/50 p-1 shadow-lg z-100000 text-white"
-            style={{top: rightClickPosition.ref.current.y, left: rightClickPosition.ref.current.x}}
+            style={{top: rightClickPosition.current.y, left: rightClickPosition.current.x}}
         >
             <HorizontalMenu menu={menu} />
         </div>

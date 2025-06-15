@@ -11,13 +11,13 @@ function ConsoleLogs() {
         if (olRef.current) {
             olRef.current.scrollTop = olRef.current.scrollHeight;
         }
-    }, [logs.ref.current.length]); // Trigger when logs change
+    }, [logs.current.length]); // Trigger when logs change
 
     useRefSignalRender([logs]);
 
     return (
         <ol ref={olRef} className="overflow-auto h-full scrollbar-thumb-rounded-full scrollbar-track-rounded-full scrollbar scrollbar-thumb-gray-500 scrollbar-track-gray-500/10">
-            {logs.ref.current.map((v, index) => {
+            {logs.current.map((v, index) => {
                 let liClassName = '';
                 switch (v.type) {
                     case 'log':

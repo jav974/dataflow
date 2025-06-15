@@ -10,7 +10,7 @@ export default function Connections() {
 
     return (
         <>
-            {connections.ref.current.map((c: ConnectionConfig) =>
+            {connections.current.map((c: ConnectionConfig) =>
                 <Connection key={`${name}_{${c.from.id}-${c.from.pin}-${c.to.id}-${c.to.pin}`} from={c.from} to={c.to} />
             )}
         </>

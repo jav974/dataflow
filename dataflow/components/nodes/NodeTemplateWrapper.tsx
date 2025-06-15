@@ -10,5 +10,5 @@ interface NodeTemplateWrapperProps {
 export default function NodeTemplateWrapper({nodeSignal, nodeTemplate}: NodeTemplateWrapperProps) {
     useRefSignalRender([nodeSignal]);
 
-    return nodeTemplate(nodeSignal.ref.current);
+    return nodeTemplate(nodeSignal.current);
 }

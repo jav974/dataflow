@@ -34,8 +34,8 @@ export default function Resizable({ children, directions, className, minSize, ma
 
         if (width === 0 || height === 0) return; // Ignore zero sizes!
         if (
-            size.ref.current.width !== width ||
-            size.ref.current.height !== height
+            size.current.width !== width ||
+            size.current.height !== height
         ) {
             size.update({width, height});
         }
@@ -56,15 +56,15 @@ export default function Resizable({ children, directions, className, minSize, ma
 
     useRefSignalEffect(() => {
         if (!resizeDirection.current || !containerRef.current) return;
-        const clientX = pointerPosition.ref.current.global.x;
-        const clientY = pointerPosition.ref.current.global.y;
-        let newWidth = size.ref.current.width;
-        let newHeight = size.ref.current.height;
+        const clientX = pointerPosition.current.global.x;
+        const clientY = pointerPosition.current.global.y;
+        let newWidth = size.current.width;
+        let newHeight = size.current.height;
 
         // North
         if (resizeDirection.current.includes("n")) {
             const delta = clientY - containerRef.current.getBoundingClientRect().top;
-            newHeight = size.ref.current.height - delta;
+            newHeight = size.current.height - delta;
         }
         // South
         if (resizeDirection.current.includes("s")) {
@@ -77,7 +77,7 @@ export default function Resizable({ children, directions, className, minSize, ma
         // West
         if (resizeDirection.current.includes("w")) {
             const delta = clientX - containerRef.current.getBoundingClientRect().left;
-            newWidth = size.ref.current.width - delta;
+            newWidth = size.current.width - delta;
             const maxWidth = (maxSize && maxSize.width > 0) ? maxSize.width : 10000000;
             
             if (newWidth >= (minSize?.width ?? 0) && newWidth <= maxWidth)
@@ -85,8 +85,8 @@ export default function Resizable({ children, directions, className, minSize, ma
         }
 
         if (
-            newWidth !== size.ref.current.width ||
-            newHeight !== size.ref.current.height
+            newWidth !== size.current.width ||
+            newHeight !== size.current.height
         ) {
             newWidth = minSize ? Math.max(newWidth, minSize.width) : newWidth;
             newHeight = minSize ? Math.max(newHeight, minSize.height) : newHeight;
@@ -119,12 +119,12 @@ export default function Resizable({ children, directions, className, minSize, ma
         return null;
     }
 
-    if (Number.isNaN(size.ref.current.width)) {
+    if (Number.isNaN(size.current.width)) {
         return childrenElement;
     }
 
-    const width = size.ref.current.width;
-    const height = size.ref.current.height;
+    const width = size.current.width;
+    const height = size.current.height;
 
     return (
         <div className={`${className} relative`} style={{ width, height }}>

@@ -13,7 +13,7 @@ export default function NodeWrapper({ nodeId, children }: NodeWrapperProps) {
     const [layout, setLayout] = useState<HTMLElement | null>(null);
 
     useRefSignalEffect(() => {
-        const el = renderTargets.ref.current.get(nodeId);
+        const el = renderTargets.current.get(nodeId);
 
         if (el) {
             setLayout(el);

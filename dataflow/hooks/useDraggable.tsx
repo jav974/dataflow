@@ -24,18 +24,18 @@ export default function useDraggable(
     
     useRefSignalEffect(() => {
         if (isDraggingRef.current && lastPosRef.current) {
-            const dx = pointerPosition.ref.current.globalScaled.x - lastPosRef.current.x;
-            const dy = pointerPosition.ref.current.globalScaled.y - lastPosRef.current.y;
+            const dx = pointerPosition.current.globalScaled.x - lastPosRef.current.x;
+            const dy = pointerPosition.current.globalScaled.y - lastPosRef.current.y;
             
-            lastPosRef.current.x = pointerPosition.ref.current.globalScaled.x;
-            lastPosRef.current.y = pointerPosition.ref.current.globalScaled.y;
-            position.ref.current.x += dx;
-            position.ref.current.y += dy;
+            lastPosRef.current.x = pointerPosition.current.globalScaled.x;
+            lastPosRef.current.y = pointerPosition.current.globalScaled.y;
+            position.current.x += dx;
+            position.current.y += dy;
 
             position.notifyUpdate();
 
             if (onPositionUpdated) {
-                onPositionUpdated(position.ref.current);
+                onPositionUpdated(position.current);
             }
         }
     }, [pointerPosition]);
@@ -46,7 +46,7 @@ export default function useDraggable(
     }, []);
 
     const handlePointerDown = useCallback(() => {
-        lastPosRef.current = {...pointerPosition.ref.current.globalScaled};
+        lastPosRef.current = {...pointerPosition.current.globalScaled};
         isDraggingRef.current = true;
         window.addEventListener('pointerup', handlePointerUp);
     }, [handlePointerUp]);

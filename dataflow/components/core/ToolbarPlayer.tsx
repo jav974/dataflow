@@ -35,7 +35,7 @@ export default function ToolbarPlayer() {
                 controller.start(
                     selectedExecutor,
                     toGraph(),
-                    startParams.ref.current
+                    startParams.current
                 ).then((result) => {
                     eventBus.emit<Log>('io_write', {type: "debug", createdAt: Date.now(), message: "Return: " + JSON.stringify(result?.result ?? "undefined", null, 2)} as Log)
                     setGraphResult(result);
