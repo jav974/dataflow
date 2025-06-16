@@ -29,8 +29,6 @@ export default function ConnectionDrag() {
         void lastUpdated;
 
         if (!connectionDrag.current) {
-            position.current.x = NaN;
-            position.current.y = NaN;
             return undefined;
         }
 
@@ -83,7 +81,7 @@ export default function ConnectionDrag() {
             },
             texture
         };
-    }, [connectionDrag, lastUpdated, nodes, position]);
+    }, [connectionDrag, lastUpdated, nodes]);
 
     const handlePointerUp = useCallback((e: PointerEvent) => {
         onPointerUp({ element: 'connection', x: e.clientX, y: e.clientY, type: PointerEventType.POINTER_UP });
@@ -102,6 +100,8 @@ export default function ConnectionDrag() {
     useRefSignalRender([connectionDrag]);
 
     if (!origin) {
+        position.current.x = NaN;
+        position.current.y = NaN;
         return null;
     }
 
