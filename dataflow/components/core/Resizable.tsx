@@ -99,18 +99,19 @@ export default function Resizable({ children, directions, className, minSize, ma
 
     useEffect(() => {
         return () => window.removeEventListener("pointerup", onPointerUp);
-    }, []);
+    }, [onPointerUp]);
 
     // First child measurement
     useEffect(() => {
         if (!childrenElement) {
             // Clone the child to inject the ref
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const childWithRef = cloneElement(children as React.ReactElement<any>, {
                 ref: contentRef,
             });
             setChildrenElement(childWithRef);
         }
-    }, [childrenElement]);
+    }, [childrenElement, children]);
 
     const background = "bg-gray-500/50";
     const background2 = "bg-gray-500/50";

@@ -104,7 +104,7 @@ export default function Connection({from, to}: ConnectionProps) {
     // Recompute position after node movement
     useEffect(() => {
         computePositions();
-    }, [fromNodeUpdatedAt, toNodeUpdatedAt]);
+    }, [fromNodeUpdatedAt, toNodeUpdatedAt, computePositions]);
 
     if (!fromPos.current || !toPos.current) {
         return null;

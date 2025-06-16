@@ -1,9 +1,6 @@
 import Node, { NodeProps } from "@/dataflow/components/core/Node";
 
-interface ForNodeProps extends NodeProps {
-}
-
-export default function ForNode({node}: ForNodeProps) {
+export default function ForNode({node}: NodeProps) {
     return (
         <Node
             node={node}

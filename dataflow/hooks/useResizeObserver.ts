@@ -11,11 +11,10 @@ export default function useResizeObserver(ref: React.RefObject<HTMLElement | nul
         });
 
         resizeObserver.observe(ref.current);
+        const current = ref.current;
 
         return () => {
-            if (ref.current) {
-                resizeObserver.unobserve(ref.current);
-            }
+            resizeObserver.unobserve(current);
         }
     }, [ref, onResize]);
 }

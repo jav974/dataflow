@@ -70,7 +70,8 @@ export function nodeConfigToExecutionGraph(node: NodeConfig, graph: AppConfig): 
     }
 
     const nextNode = findNextNode(node, graph);
-    const context = jsonToMap(node.context);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const context = jsonToMap<any>(node.context);
 
     context.set('_node_id', node.id);
     context.set('_inputMap', new Map<string, string>());
@@ -177,6 +178,7 @@ async function handleForeach(
     graph: ExecutionGraph, 
     inputs: Map<string, ParameterValueType>
 ): Promise<ExecutionGraph> {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const target: any = inputs.get("value");
 
     // Exclude unwanted types
@@ -208,7 +210,7 @@ async function handleForeach(
     }
     // Handle plain objects (iterate over keys)
     else {
-        const entries = Object.entries<any>(target);
+        const entries = Object.entries(target);
 
         for (const [key, value] of entries) {
             foreachGraph.outputs[0].value = key;

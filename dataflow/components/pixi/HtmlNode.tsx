@@ -56,7 +56,7 @@ export default function HtmlNode({ node, ...props }: HtmlNodeProps) {
             _layout.remove();
             setLayout(undefined);
         }
-    }, [node.id, handlers.onPointerDown]);
+    }, [node.id, handlers.onPointerDown, setRenderTarget]);
 
     useEffect(() => {
         if (!layout) {

@@ -19,6 +19,7 @@ interface GraphContextType {
     canvasPosition: RefSignal<Coordinates>;
     variables: RefSignal<VariableConfig[]>;
     types: RefSignal<GraphType[]>;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     computedResult: RefState<Map<string, any>>;
     startParams: RefSignal<KeyValue>;
     addNode: (node: NodeConfig) => void;
@@ -28,7 +29,7 @@ interface GraphContextType {
     updateNodeInput: (id: string, input: Partial<InputConfig>) => void;
     removeNodeInput: (nodeId: string, inputId: string) => void;
     setNodeInputs: (id: string, inputs: InputConfig[]) => void;
-    setInputDefaultValue: (nodeId: string, inputId: string, value: any) => void;
+    setInputDefaultValue: (nodeId: string, inputId: string, value: unknown) => void;
     addNodeOutput: (id: string, output: OutputConfig) => void;
     updateNodeOutput: (id: string, output: Partial<OutputConfig>) => void;
     removeNodeOutput: (nodeId: string, outputId: string) => void;
@@ -44,6 +45,7 @@ interface GraphContextType {
     zoomOut: () => void;
     setVariable: (id: string, name: string, type: string, isCollection: boolean) => void;
     removeVariable: (id: string) => void;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     setNodeContext: (nodeId: string, context: Map<string, any>) => void;
     setOutputName: (nodeId: string, outputId: string, name: string) => void;
     setInputName: (nodeId: string, inputId: string, name: string) => void;
@@ -65,6 +67,7 @@ export function GraphProvider({children}: GraphProviderProps) {
     const scale = useRefSignal<number>(zoom.current != 0 ? 1 / (zoom.current / 100) : 0);
     const variables = useRefSignal<VariableConfig[]>([]);
     const types = useRefSignal<GraphType[]>([]);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const computedResult = useRefState<Map<string, any>>(new Map());
     const startParams = useRefSignal<KeyValue>(new Map());
 
@@ -79,7 +82,7 @@ export function GraphProvider({children}: GraphProviderProps) {
             nodes.current.push(createRefSignal(node));
             nodes.notifyUpdate();
         }
-    }, []);
+    }, [nodes]);
 
     const updateNode = useCallback((node: NodeConfig) => {
         const nodeSignal = nodes.current.find((n: RefSignal<NodeConfig>) => n.current.id === node.id);
@@ -87,7 +90,7 @@ export function GraphProvider({children}: GraphProviderProps) {
         if (nodeSignal) {
             nodeSignal.update({...node});
         }
-    }, []);
+    }, [nodes]);
 
     const removeConnectionsByPredicate = useCallback((predicate: (conn: ConnectionConfig) => boolean) => {
         let index: number;
@@ -97,7 +100,16 @@ export function GraphProvider({children}: GraphProviderProps) {
         }
 
         connections.notifyUpdate();
-    }, []);
+    }, [connections]);
+
+    const removeVariable = useCallback((id: string) => {
+        const index = variables.current.findIndex(v => v.id === id);
+
+        if (index !== -1) {
+            variables.current.splice(index, 1);
+            variables.notifyUpdate();
+        }
+    }, [variables]);
 
     const removeNode = useCallback((id: string) => {
         const index = nodes.current.findIndex((n: RefSignal<NodeConfig>) => n.current.id === id);
@@ -112,7 +124,7 @@ export function GraphProvider({children}: GraphProviderProps) {
                 removeConnectionsByPredicate(conn => (conn.from.id === id || conn.to.id === id));
             }, [nodes, connections, variables]);
         }
-    }, []);
+    }, [nodes, connections, removeVariable, removeConnectionsByPredicate, variables]);
 
     const addNodeInput = useCallback((id: string, input: InputConfig) => {
         const nodeSignal = nodes.current.find((n: RefSignal<NodeConfig>) => n.current.id === id);
@@ -124,7 +136,7 @@ export function GraphProvider({children}: GraphProviderProps) {
                 updateNode({...node, inputs: [...(node.inputs || []), input]});
             }
         }
-    }, [updateNode]);
+    }, [updateNode, nodes]);
 
     const updateNodeInput = useCallback((id: string, input: Partial<InputConfig>) => {
         const nodeSignal = nodes.current.find((n: RefSignal<NodeConfig>) => n.current.id === id);
@@ -137,7 +149,7 @@ export function GraphProvider({children}: GraphProviderProps) {
                 updateNode({...node, inputs: node.inputs?.map((i) => i.id === input.id ? {...i, ...filterObject(input, undefined)} : i)});
             }
         }
-    }, [updateNode]);
+    }, [updateNode, nodes]);
 
     const setNodeInputs = useCallback((id: string, inputs: InputConfig[]) => {
         const nodeSignal = nodes.current.find((n: RefSignal<NodeConfig>) => n.current.id === id);
@@ -145,7 +157,7 @@ export function GraphProvider({children}: GraphProviderProps) {
         if (nodeSignal) {
             updateNode({...nodeSignal.current, inputs});
         }
-    }, [updateNode]);
+    }, [updateNode, nodes]);
 
     const removeNodeInput = useCallback((nodeId: string, inputId: string) => {
         const nodeSignal = nodes.current.find((n: RefSignal<NodeConfig>) => n.current.id === nodeId);
@@ -155,9 +167,9 @@ export function GraphProvider({children}: GraphProviderProps) {
 
             updateNode({...node, inputs: node.inputs?.filter((input: InputConfig) => input.id !== inputId)});
         }
-    }, [updateNode]);
+    }, [updateNode, nodes]);
 
-    const setInputDefaultValue = useCallback((nodeId: string, inputId: string, value: any) => {
+    const setInputDefaultValue = useCallback((nodeId: string, inputId: string, value: unknown) => {
         const nodeSignal = nodes.current.find((n: RefSignal<NodeConfig>) => n.current.id === nodeId);
 
         if (nodeSignal) {
@@ -165,7 +177,7 @@ export function GraphProvider({children}: GraphProviderProps) {
 
             updateNode({...node, inputs: node.inputs?.map((i: InputConfig) => i.id === inputId ? {...i, defaultValue: value} : i)})
         }
-    }, [updateNode]);
+    }, [updateNode, nodes]);
 
     const addNodeOutput = useCallback((id: string, output: OutputConfig) => {
         const nodeSignal = nodes.current.find((n: RefSignal<NodeConfig>) => n.current.id === id);
@@ -177,7 +189,7 @@ export function GraphProvider({children}: GraphProviderProps) {
                 updateNode({...node, outputs: [...(node.outputs || []), output]});
             }
         }
-    }, [updateNode]);
+    }, [updateNode, nodes]);
 
     const updateNodeOutput = useCallback((id: string, output: Partial<OutputConfig>) => {
         const nodeSignal = nodes.current.find((n: RefSignal<NodeConfig>) => n.current.id === id);
@@ -201,7 +213,7 @@ export function GraphProvider({children}: GraphProviderProps) {
                 }
             }
         }
-    }, [updateNode]);
+    }, [updateNode, nodes]);
 
     const setNodeOutputs = useCallback((id: string, outputs: OutputConfig[]) => {
         const nodeSignal = nodes.current.find((n: RefSignal<NodeConfig>) => n.current.id === id);
@@ -209,7 +221,7 @@ export function GraphProvider({children}: GraphProviderProps) {
         if (nodeSignal) {
             updateNode({...nodeSignal.current, outputs});
         }
-    }, [updateNode]);
+    }, [updateNode, nodes]);
 
     const removeNodeOutput = useCallback((nodeId: string, outputId: string) => {
         const nodeSignal = nodes.current.find((n: RefSignal<NodeConfig>) => n.current.id === nodeId);
@@ -219,7 +231,7 @@ export function GraphProvider({children}: GraphProviderProps) {
 
             updateNode({...node, outputs: node.outputs?.filter((output: OutputConfig) => output.id !== outputId)});
         }
-    }, [updateNode]);
+    }, [updateNode, nodes]);
 
     const addNodeBranch = useCallback((id: string, branch: OutputBranchConfig) => {
         const nodeSignal = nodes.current.find((n: RefSignal<NodeConfig>) => n.current.id === id);
@@ -231,7 +243,7 @@ export function GraphProvider({children}: GraphProviderProps) {
                 updateNode({...node, branches: [...(node.branches || []), branch]});
             }
         }
-    }, []);
+    }, [updateNode, nodes]);
 
     const removeNodeBranch = useCallback((nodeId: string, branchId: string) => {
         const nodeSignal = nodes.current.find((n: RefSignal<NodeConfig>) => n.current.id === nodeId);
@@ -241,7 +253,7 @@ export function GraphProvider({children}: GraphProviderProps) {
 
             updateNode({...node, branches: node.branches?.filter((b: OutputBranchConfig) => b.id !== branchId)});
         }
-    }, []);
+    }, [updateNode, nodes]);
 
     const setNodeBranches = useCallback((id: string, branches: OutputBranchConfig[]) => {
         const nodeSignal = nodes.current.find((n: RefSignal<NodeConfig>) => n.current.id === id);
@@ -249,7 +261,7 @@ export function GraphProvider({children}: GraphProviderProps) {
         if (nodeSignal) {
             updateNode({...nodeSignal.current, branches: branches});
         }
-    }, [updateNode]);
+    }, [updateNode, nodes]);
 
     const setOutputName = useCallback((nodeId: string, outputId: string, name: string) => {
         const nodeSignal = nodes.current.find((n: RefSignal<NodeConfig>) => n.current.id === nodeId);
@@ -263,7 +275,7 @@ export function GraphProvider({children}: GraphProviderProps) {
                 updateNode({...node, outputs: node.outputs?.map((o: OutputConfig) => o.id === outputId ? output : o)});
             }
         }
-    }, [updateNode]);
+    }, [updateNode, nodes]);
 
     const setInputName = useCallback((nodeId: string, inputId: string, name: string) => {
         const nodeSignal = nodes.current.find((n: RefSignal<NodeConfig>) => n.current.id === nodeId);
@@ -277,7 +289,7 @@ export function GraphProvider({children}: GraphProviderProps) {
                 updateNode({...node, inputs: node.inputs?.map((i: InputConfig) => i.id === inputId ? input : i)});
             }
         }
-    }, [updateNode]);
+    }, [updateNode, nodes]);
 
     const addConnection = useCallback((connection: ConnectionConfig) => {
         const index = connections.current.findIndex((c: ConnectionConfig) => {
@@ -289,7 +301,7 @@ export function GraphProvider({children}: GraphProviderProps) {
             connections.current.push(connection);
             connections.notifyUpdate();
         }
-    }, []);
+    }, [connections]);
 
     const removeConnections = useCallback((from?: ConnectorConfig, to?: ConnectorConfig) => {
         let predicate: (conn: ConnectionConfig) => boolean;
@@ -318,7 +330,7 @@ export function GraphProvider({children}: GraphProviderProps) {
         }, [canvasPosition, zoom, connections, types, variables, nodes]);
 
         setName(graph.name);
-    }, []);
+    }, [canvasPosition, zoom, connections, types, variables, nodes]);
 
     const toGraph = useCallback((): AppConfig => {
         return {
@@ -329,17 +341,17 @@ export function GraphProvider({children}: GraphProviderProps) {
             types: types.current,
             variables: variables.current,
         };
-    }, [name]);
+    }, [name, connections, nodes, zoom, types, variables]);
 
     const zoomIn = useCallback(() => {
         if (zoom.current >= 200) return; // Prevent zooming in too far
         zoom.update(zoom.current + 2);
-    }, []);
+    }, [zoom]);
 
     const zoomOut = useCallback(() => {
         if (zoom.current <= 2) return; // Prevent zooming out too far
         zoom.update(zoom.current - 2);
-    }, []);
+    }, [zoom]);
 
     const setVariable = useCallback((id: string, name: string, type: string, isCollection: boolean) => {
         const variable = variables.current.find(v => v.id === id);
@@ -353,24 +365,15 @@ export function GraphProvider({children}: GraphProviderProps) {
             variables.current.push({id, name, type, isCollection});
             variables.notifyUpdate();
         }
-    }, []);
+    }, [variables]);
 
-    const removeVariable = useCallback((id: string) => {
-        const index = variables.current.findIndex(v => v.id === id);
-
-        if (index !== -1) {
-            variables.current.splice(index, 1);
-            variables.notifyUpdate();
-        }
-    }, []);
-
-    const setNodeContext = useCallback((nodeId: string, context: Map<string, any>) => {
+    const setNodeContext = useCallback((nodeId: string, context: Map<string, unknown>) => {
         const nodeSignal = nodes.current.find((n: RefSignal<NodeConfig>) => n.current.id === nodeId);
 
         if (nodeSignal) {
             updateNode({...nodeSignal.current, context: JSON.stringify(Object.fromEntries(context))});
         }
-    }, [updateNode]);
+    }, [updateNode, nodes]);
 
     const getConnectionInfo = useCallback((nodeId: string, src: InputConfig | OutputConfig) => {
         if ("required" in src) {
@@ -400,7 +403,7 @@ export function GraphProvider({children}: GraphProviderProps) {
                 target: input
             };
         }
-    }, []);
+    }, [connections, nodes]);
 
     return <GraphContext.Provider value={{
         name,

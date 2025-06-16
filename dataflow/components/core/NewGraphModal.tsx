@@ -40,7 +40,7 @@ export default function NewGraphModal({ isOpen, onClose }: NewGraphModalProps) {
         setGraphName("");
         loadGraph(graphName);
         onClose();
-    }, [graphName, saveGraph, onClose]);
+    }, [graphName, saveGraph, onClose, loadGraph]);
 
     return (
         <Modal title="Create New Graph" isOpen={isOpen}>

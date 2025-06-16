@@ -15,21 +15,6 @@ export function UserGraphProvider({ children }: { children: React.ReactNode }) {
     const [graphs, setGraphs] = useState<string[] | null>(null);
     const [graph, setGraph] = useState<AppConfig | null>(null);
 
-    useEffect(() => {
-        const savedGraphs = JSON.parse(localStorage.getItem("dataflow-graphs") || "[]");
-        setGraphs(savedGraphs);
-
-        if (savedGraphs.length > 0) {
-            loadGraph(savedGraphs[0]);
-        }
-    }, []);
-
-    useEffect(() => {
-        if (graphs === null) return;
-
-        localStorage.setItem("dataflow-graphs", JSON.stringify(graphs));
-    }, [graphs]);
-
     const getLocalStorageGraphKey = useCallback((name: string) => {
         // Replace any non-alphanumeric characters with hyphens and convert to lowercase
         const safeName = name.toLowerCase().replace(/[^a-z0-9]/g, '-');
@@ -68,7 +53,22 @@ export function UserGraphProvider({ children }: { children: React.ReactNode }) {
                 setGraph(null);
             }
         }
-    }, [getLocalStorageGraphKey, graphs, graph]);
+    }, [getLocalStorageGraphKey, graphs, graph, loadGraph]);
+
+    useEffect(() => {
+        const savedGraphs = JSON.parse(localStorage.getItem("dataflow-graphs") || "[]");
+        setGraphs(savedGraphs);
+
+        if (savedGraphs.length > 0) {
+            loadGraph(savedGraphs[0]);
+        }
+    }, [loadGraph]);
+
+    useEffect(() => {
+        if (graphs === null) return;
+
+        localStorage.setItem("dataflow-graphs", JSON.stringify(graphs));
+    }, [graphs]);
     
     return <UserGraphContext.Provider value={{ graphs, graph, loadGraph, saveGraph, deleteGraph }}>
         {children}

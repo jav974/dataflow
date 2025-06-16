@@ -51,7 +51,7 @@ function interpolatePoints(points: Coordinates[], segments: number): Coordinates
 export function getBezierPoints(from: Coordinates, to: Coordinates, segments?: number, smoothness?: number): Coordinates[] {
     let points: number[] = [];
     const distance = getDistance(from.x, from.y, to.x, to.y);
-    let offset = Math.min(distance * 0.5, DISTANCE_THRESHOLD);
+    const offset = Math.min(distance * 0.5, DISTANCE_THRESHOLD);
 
     points = buildAdaptiveBezier(
         points,

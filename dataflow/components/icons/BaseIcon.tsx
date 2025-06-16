@@ -1,16 +1,13 @@
 import { HugeiconsIcon, HugeiconsIconProps } from "@hugeicons/react";
-import useHoverable from "@/dataflow/hooks/useHoverable";
+// import useHoverable from "@/dataflow/hooks/useHoverable";
 
-export interface BaseIconProps extends HugeiconsIconProps {
-}
-
-export default function BaseIcon({ color, size = 24, strokeWidth = 2, className = "cursor-pointer", ...props }: BaseIconProps) {
-    const { isHovered, handleMouseEnter, handleMouseLeave } = useHoverable();
+export default function BaseIcon({ color, size = 24, strokeWidth = 2, className = "cursor-pointer", ...props }: HugeiconsIconProps) {
+    // const { isHovered, handleMouseEnter, handleMouseLeave } = useHoverable();
 
     return (
         <HugeiconsIcon
-            onMouseEnter={handleMouseEnter}
-            onMouseLeave={handleMouseLeave}
+            // onMouseEnter={handleMouseEnter}
+            // onMouseLeave={handleMouseLeave}
             size={size}
             color={color}
             strokeWidth={strokeWidth}

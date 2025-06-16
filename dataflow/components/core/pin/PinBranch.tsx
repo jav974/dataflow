@@ -15,13 +15,13 @@ interface PinBranchProps {
 }
 
 export default function PinBranch({ nodeId, id, name, onRef, removable }: PinBranchProps) {
-    const {isConnected, onClick, handlePointerDown, handlePointerUp} = useLinkable(nodeId, id, false, false);
+    const {isConnected, onClick, handlePointerDown, handlePointerUp} = useLinkable(nodeId, id, false);
     const {isHovered, handleMouseEnter, handleMouseLeave} = useHoverable();
     const {removeNodeBranch, removeConnections} = useGraphContext();
 
     const onPinRef = useCallback((el: HTMLDivElement | null) => {
         onRef(id, el);
-    }, [nodeId, id, onRef]);
+    }, [id, onRef]);
 
     const onRemove = useCallback(() => {
         removeNodeBranch(nodeId, id);

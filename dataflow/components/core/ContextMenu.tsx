@@ -54,7 +54,7 @@ export default function ContextMenu() {
                 },
             });
         }
-    }, [addNode]);
+    }, [addNode, canvasPosition, canvasRect, rightClickPosition, scale]);
 
     const createNodeMenuEntry = useCallback((name: string, type: NodeType): MenuTree => {
         return {
@@ -63,7 +63,9 @@ export default function ContextMenu() {
         }
     }, [spawnNode]);
 
+    const lastUpdated = nodes.lastUpdated;
     const menu = useMemo((): MenuTree => {
+        void lastUpdated;
         const hasStartNode = nodes.current.findIndex((ns) => ns.current.type === NodeType.START) !== -1;
         const hasReturnNode = nodes.current.findIndex((ns) => ns.current.type === NodeType.RETURN) !== -1;
         const hasTriggerNode = nodes.current.findIndex((ns) => ns.current.type === NodeType.TRIGGER) !== -1;
@@ -156,7 +158,7 @@ export default function ContextMenu() {
                 createNodeMenuEntry("Type", NodeType.TYPEDEF),
             ]
         }
-    }, [createNodeMenuEntry, nodes.lastUpdated]);
+    }, [createNodeMenuEntry, nodes, lastUpdated]);
 
     useRefSignalRender([rightClickPosition]);
 

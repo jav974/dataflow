@@ -18,5 +18,5 @@ export default function useWebSocketEvent<E extends EventName>(
             // @ts-expect-error: TypeScript cannot infer the correct overload, but this is safe
             socket?.off(event, listener);
         }
-    }, [socket]);
+    }, [socket, event, listener]);
 }

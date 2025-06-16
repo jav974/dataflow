@@ -2,10 +2,11 @@ import { useEffect, useState } from "react";
 import { useDataflowContext } from "../contexts/DataflowContext";
 import { KeyValue } from "../engine/context";
 import { AppConfig } from "../config/schema";
+import { GraphResult } from "../engine/types";
 
 export function useDataflowGraph(graph: string | AppConfig, params?: KeyValue) {
     const { apiKey, mode, localExecutor, remoteExecutor, fetchGraph } = useDataflowContext();
-    const [result, setResult] = useState<any>(null);
+    const [result, setResult] = useState<GraphResult | undefined>(undefined);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<Error | null>(null);
 
@@ -59,7 +60,7 @@ export function useDataflowGraph(graph: string | AppConfig, params?: KeyValue) {
                 .finally(() => setLoading(false))
             ;
         }
-    }, [apiKey, graph, JSON.stringify(params)]);
+    }, [apiKey, graph, params, fetchGraph, localExecutor, mode, remoteExecutor]);
 
     return { result, loading, error };
 }

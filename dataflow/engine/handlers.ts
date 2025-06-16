@@ -16,7 +16,7 @@ function toFloats(params: NodeExecParams): number[] {
     return Array.from(params.values()).map(toFloat);
 }
 
-const dummyExecutor: NodeExecutor = async (inputs: NodeExecParams, context: NodeExecContext): Promise<NodeExecParams> => {
+const dummyExecutor: NodeExecutor = async (): Promise<NodeExecParams> => {
     return new Map();
 }
 
@@ -59,7 +59,7 @@ const handleMathMod: NodeExecutor = async (inputs: NodeExecParams): Promise<Node
     return handleSimpleMath(inputs, context);
 };
 
-const handleMathPow: NodeExecutor = async (inputs: NodeExecParams, context: NodeExecContext): Promise<NodeExecParams> => {
+const handleMathPow: NodeExecutor = async (inputs: NodeExecParams): Promise<NodeExecParams> => {
     const result: NodeExecParams = new Map();
     const base = toFloat(inputs.get('base'));
     const exponent = toFloat(inputs.get('exponent'));
@@ -70,7 +70,7 @@ const handleMathPow: NodeExecutor = async (inputs: NodeExecParams, context: Node
     return result;
 };
 
-const handleMathSqrt: NodeExecutor = async (inputs: NodeExecParams, context: NodeExecContext): Promise<NodeExecParams> => {
+const handleMathSqrt: NodeExecutor = async (inputs: NodeExecParams): Promise<NodeExecParams> => {
     const result: NodeExecParams = new Map();
     const value = toFloat(inputs.get('value'));
     const sqrt = Math.sqrt(value);
@@ -124,7 +124,7 @@ const handleGetVar: NodeExecutor = async (_: NodeExecParams, context: NodeExecCo
 const handleNewVar: NodeExecutor = async (inputs: NodeExecParams, context: NodeExecContext): Promise<NodeExecParams> => {
     const result: NodeExecParams = new Map();
     const value = inputs.get('defaultValue');
-    let defaultValue: any;
+    let defaultValue: unknown;
 
     // Use provided value
     if (value !== null && value !== undefined) {
@@ -157,7 +157,7 @@ const handleNewVar: NodeExecutor = async (inputs: NodeExecParams, context: NodeE
 }
 
 const handleStart: NodeExecutor = async (_: NodeExecParams, context: NodeExecContext): Promise<NodeExecParams> => {
-    const result: Map<string, any> = new Map();
+    const result: NodeExecParams = new Map();
     executionContext.variables = {};
     executionContext.result = {};
 
@@ -185,17 +185,17 @@ const handleReturn: NodeExecutor = async (inputs: NodeExecParams, context: NodeE
     return new Map();
 };
 
-const handleIf: NodeExecutor = async (inputs: NodeExecParams, context: NodeExecContext): Promise<NodeExecParams> => {
+const handleIf: NodeExecutor = async (inputs: NodeExecParams): Promise<NodeExecParams> => {
     const value = inputs.get('value');
 
     return (new Map()).set('branch', value ? 'on_true' : 'on_false');
 };
 
-const handleFor: NodeExecutor = async (inputs: NodeExecParams, context: NodeExecContext): Promise<NodeExecParams> => {
+const handleFor: NodeExecutor = async (inputs: NodeExecParams): Promise<NodeExecParams> => {
     return (new Map()).set('index', Number(inputs.get('first')));
 };
 
-const handleForeach: NodeExecutor = async (inputs: NodeExecParams, context: NodeExecContext): Promise<NodeExecParams> => {
+const handleForeach: NodeExecutor = async (): Promise<NodeExecParams> => {
     return (new Map()).set('index', undefined).set('item', undefined);
 };
 
@@ -280,7 +280,7 @@ const handleStringToLower: NodeExecutor = async (inputs: NodeExecParams): Promis
 
 const handleIOWrite: NodeExecutor = async (inputs: NodeExecParams): Promise<NodeExecParams> => {
     const result: NodeExecParams = new Map();
-    const fd = inputs.get('fd') as Number;
+    const fd = inputs.get('fd') as number;
     const content = inputs.get('content') as string;
     let type = "log";
     

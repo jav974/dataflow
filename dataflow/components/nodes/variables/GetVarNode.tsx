@@ -4,24 +4,24 @@ import { jsonToMap } from "@/dataflow/engine/utils";
 import { useRefSignalRender } from "react-refsignal";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 
-interface GetVarNodeProps extends NodeProps {
-}
-
-export default function GetVarNode({node}: GetVarNodeProps) {
+export default function GetVarNode({node}: NodeProps) {
     const {variables, setNodeContext, updateNodeOutput} = useGraphContext();
     const [hasError, setHasError] = useState<boolean>(false);
-    const context = useMemo(() => jsonToMap(node.context), [node.context]);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const context = useMemo(() => jsonToMap<any>(node.context), [node.context]);
     const contextVar = useMemo(() => {
         return context?.get('var');
     }, [context]);
-
+    const lastUpdated = variables.lastUpdated;
     const variable = useMemo(() => {
+        void lastUpdated;
         if (!contextVar) return undefined;
         const v = variables.current.find(v => v.id === contextVar);
         return v ? {...v} : undefined;
-    }, [variables.lastUpdated, contextVar]);
+    }, [variables, lastUpdated, contextVar]);
 
     const options = useMemo((): React.ReactElement[] => {
+        void lastUpdated;
         const result: React.ReactElement[] = [];
         let found: boolean = contextVar === undefined ? true : false;
 
@@ -41,19 +41,19 @@ export default function GetVarNode({node}: GetVarNodeProps) {
         }
 
         return result;
-    }, [variables.lastUpdated, contextVar]);
+    }, [variables, lastUpdated, contextVar]);
 
     useEffect(() => {
         if (!context?.get('var')) {
             setNodeContext(node.id, (new Map(context)).set('var', variables.current[0].id));
         }
-    }, [node.id, context, setNodeContext]);
+    }, [node.id, context, setNodeContext, variables]);
 
     useEffect(() => {
         if (variable && node.outputs && node.outputs.length > 0) {
             updateNodeOutput(node.id, {id: node.outputs[0].id, type: variable.type, isCollection: variable.isCollection});
         }
-    }, [node.id, variable]);
+    }, [node.id, node.outputs, variable, updateNodeOutput]);
 
     const onChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
         setNodeContext(node.id, (new Map(context)).set('var', e.target.value));

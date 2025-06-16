@@ -53,7 +53,7 @@ export function DashboardProvider({children}: DashboardProviderProps) {
         pointerPosition.current.canvasScaled.x = (pointerPosition.current.viewport.x - canvasPosition.current.x) * scale.current;
         pointerPosition.current.canvasScaled.y = (pointerPosition.current.viewport.y - canvasPosition.current.y) * scale.current;
         pointerPosition.notifyUpdate();
-    }, []);
+    }, [pointerPosition, canvasPosition, canvasRect, scale]);
 
     // Update pointer position on pointer move
     useEffect(() => {

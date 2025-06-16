@@ -23,6 +23,7 @@ export interface NodeProps {
     inputMultiple?: boolean;
     minInputParams?: number;
     inputMultipleType?: ParameterType;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     context?: Map<string, any>;
     outputMultiple?: boolean;
     branchMultiple?: boolean;
@@ -51,7 +52,7 @@ export default function Node({
             x: (innerRect.left - outerRect.left) * scale.current + (adjustments?.x ?? 0),
             y: (innerRect.top - outerRect.top) * scale.current + (adjustments?.y ?? 0),
         }
-    }, []);
+    }, [scale]);
 
     const getPin = useCallback((pinId: string, element: HTMLDivElement, containerRect: DOMRect, adjustments?: Coordinates): PinType => {
         const pinRect = element.getBoundingClientRect();
@@ -86,7 +87,7 @@ export default function Node({
             const pinData = node.inputs?.find(input => input.id === key);
             
             if (pin && pinData) {
-                let data: InputPin = { ...getPin(key, pin, containerRect, {x: 4, y: 6}), ...pinData };
+                const data: InputPin = { ...getPin(key, pin, containerRect, {x: 4, y: 6}), ...pinData };
                 inputPins.push(data);
             }
         }
@@ -96,7 +97,7 @@ export default function Node({
             const pinData = node.outputs?.find(output => output.id === key);
 
             if (pin && pinData) {
-                let data: OutputPin = { ...getPin(key, pin, containerRect, {x: 4, y: 6}), ...pinData };
+                const data: OutputPin = { ...getPin(key, pin, containerRect, {x: 4, y: 6}), ...pinData };
                 outputPins.push(data);
             }
         }
@@ -106,7 +107,7 @@ export default function Node({
             const pinData = node.branches?.find(branch => branch.id === key);
 
             if (pin && pinData) {
-                let data: OutputBranchPin = { ...getPin(key, pin, containerRect, {x: 14, y: 10}), ...pinData };
+                const data: OutputBranchPin = { ...getPin(key, pin, containerRect, {x: 14, y: 10}), ...pinData };
                 outputBranchPins.push(data);
             }
         }

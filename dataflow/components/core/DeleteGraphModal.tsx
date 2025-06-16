@@ -17,7 +17,7 @@ export default function DeleteGraphModal({ isOpen, onClose, onConfirm, graphName
     return (
         <Modal title="Delete Graph" isOpen={isOpen}>
             <p className="text-gray-400 mb-6">
-                Are you sure you want to delete the graph "{graphName}"? This action cannot be undone.
+                Are you sure you want to delete the graph &ldquo;{graphName}&rdquo;? This action cannot be undone.
             </p>
             <div className="flex justify-end gap-2">
                 <button

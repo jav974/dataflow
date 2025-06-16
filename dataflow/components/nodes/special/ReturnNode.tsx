@@ -1,10 +1,7 @@
 import { ParameterTypes } from "@/dataflow/config/schema";
 import Node, { NodeProps } from "@/dataflow/components/core/Node";
 
-interface ReturnNodeProps extends NodeProps {
-}
-
-export default function ReturnNode({node}: ReturnNodeProps) {
+export default function ReturnNode({node}: NodeProps) {
     return (
         <Node
             node={node}

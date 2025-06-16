@@ -1,9 +1,6 @@
 import Node, { NodeProps } from "../../core/Node";
 
-interface IONodeProps extends NodeProps {
-}
-
-export default function IONode({node}: IONodeProps) {
+export default function IONode({node}: NodeProps) {
     return (
         <Node
             node={node}

@@ -45,7 +45,7 @@ export default function NodeInputs({nodeId, nodeType, inputs, onRef, multiple = 
                 editable: true
             });
         }
-    }, [addNodeInput, nodeId, inputs, multipleType, multiple, nodeType]);
+    }, [addNodeInput, nodeId, multipleType, multiple, nodeType]);
 
     const handlePointerUp = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
         if (!isHovered || !multiple || !connectionDrag.current) return ;
@@ -80,7 +80,7 @@ export default function NodeInputs({nodeId, nodeType, inputs, onRef, multiple = 
         });
 
         stopConnectionDrag();
-    }, [nodeId, multipleType, isHovered, multiple, addNodeInput, addConnection, stopConnectionDrag]);
+    }, [nodeId, multipleType, isHovered, multiple, addNodeInput, addConnection, stopConnectionDrag, connectionDrag, nodes]);
 
     if (!inputs?.length && !multiple) {
         return null;

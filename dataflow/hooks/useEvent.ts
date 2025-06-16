@@ -11,7 +11,7 @@ export function useEvent<T>(name: string, listener: (payload: T | null | undefin
         return () => {
             unsubscribe(name, listener);
         }
-    }, [name]);
+    }, [name, listener]);
 }
 
 export function useEventState<T>(name: string): T;

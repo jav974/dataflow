@@ -49,7 +49,7 @@ export default function useDraggable(
         lastPosRef.current = {...pointerPosition.current.globalScaled};
         isDraggingRef.current = true;
         window.addEventListener('pointerup', handlePointerUp);
-    }, [handlePointerUp]);
+    }, [handlePointerUp, pointerPosition]);
 
     const handlers = useMemo(() => ({
         onPointerDown: handlePointerDown,

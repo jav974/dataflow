@@ -1,9 +1,6 @@
 import Node, { NodeProps } from "@/dataflow/components/core/Node";
 
-interface CompareNodeProps extends NodeProps {
-}
-
-export default function CompareNode({node}: CompareNodeProps) {
+export default function CompareNode({node}: NodeProps) {
     return (
         <Node
             node={node}

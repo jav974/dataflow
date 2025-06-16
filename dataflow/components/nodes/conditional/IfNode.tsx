@@ -1,9 +1,6 @@
 import Node, { NodeProps } from "@/dataflow/components/core/Node";
 
-interface IfNodeProps extends NodeProps {
-}
-
-export default function IfNode({node}: IfNodeProps) {
+export default function IfNode({node}: NodeProps) {
     return (
         <Node
             node={node}

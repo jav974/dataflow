@@ -21,12 +21,12 @@ export function useRefState<T>(initialValue: T | null | undefined): RefState<T |
     const notifyUpdate = useCallback(() => {
         ref.current.lastUpdated = Date.now();
         notify();
-    }, []);
+    }, [notify]);
 
     const update = useCallback((value: T | null | undefined): void => {
         ref.current.current = value;
         notifyUpdate();
-    }, []);
+    }, [notifyUpdate]);
 
     const ref = useRef<RefState<T | null | undefined>>({
         current: initialValue,

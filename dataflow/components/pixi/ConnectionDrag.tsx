@@ -23,7 +23,11 @@ export default function ConnectionDrag() {
     const { connectionDrag, nodes, onPointerUp } = useNodeContext();
     const { pointerPosition } = useDashboardContext();
     const position = useRefState<Coordinates>({x: NaN, y: NaN});
+    const lastUpdated = connectionDrag.lastUpdated;
+
     const origin = useMemo((): ConnectionOrigin | undefined => {
+        void lastUpdated;
+
         if (!connectionDrag.current) {
             position.current.x = NaN;
             position.current.y = NaN;
@@ -79,7 +83,7 @@ export default function ConnectionDrag() {
             },
             texture
         };
-    }, [connectionDrag.lastUpdated]);
+    }, [connectionDrag, lastUpdated, nodes, position]);
 
     const handlePointerUp = useCallback((e: PointerEvent) => {
         onPointerUp({ element: 'connection', x: e.clientX, y: e.clientY, type: PointerEventType.POINTER_UP });
@@ -87,7 +91,7 @@ export default function ConnectionDrag() {
 
     const updatePosition = useCallback(() => {
         position.update({...pointerPosition.current.canvasScaled});
-    }, [position]);
+    }, [position, pointerPosition]);
 
     useRefSignalEffect(() => {
         if (origin) {

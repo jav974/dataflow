@@ -10,6 +10,7 @@ interface NamedPinProps {
     value: string;
     removable: boolean;
     orientation?: string;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     onSubmit: (data: any, event?: React.BaseSyntheticEvent) => void;
     onRemove?: () => void;
 }

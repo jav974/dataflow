@@ -13,6 +13,7 @@ export default function FetchConfigModal({isOpen, onClose}: FetchConfigModalProp
   const [method, setMethod] = useState("GET");
   const [headers, setHeaders] = useState("");
   const [body, setBody] = useState("");
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [response, setResponse] = useState<any>(null);
   const [status, setStatus] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
@@ -41,6 +42,7 @@ export default function FetchConfigModal({isOpen, onClose}: FetchConfigModalProp
       setResponse(await res.json());
     } catch (err) {
       setError("Error fetching data");
+      console.log(err);
     }
     setLoading(false);
   };

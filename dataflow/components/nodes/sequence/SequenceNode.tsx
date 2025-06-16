@@ -1,9 +1,6 @@
 import Node, { NodeProps } from "@/dataflow/components/core/Node";
 
-interface SequenceNodeProps extends NodeProps {
-}
-
-export default function SequenceNode({node}: SequenceNodeProps) {
+export default function SequenceNode({node}: NodeProps) {
     return (
         <Node
             node={node}

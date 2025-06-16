@@ -2,10 +2,7 @@ import { useCallback, useState } from "react";
 import Node, { type NodeProps } from "../../core/Node";
 import FetchConfigModal from "./FetchConfigModal";
 
-interface FetchNodeProps extends NodeProps {
-}
-
-export default function FetchNode({ node }: FetchNodeProps) {
+export default function FetchNode({ node }: NodeProps) {
     const [configureModalOpen, setConfigureModalOpen] = useState<boolean>(false);
 
     const toggleConfigureModal = useCallback(() => {

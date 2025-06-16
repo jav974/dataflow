@@ -4,7 +4,7 @@ import Node, { NodeProps } from "@/dataflow/components/core/Node";
 import BaseIcon from "@/dataflow/components/icons/BaseIcon";
 import { useGraphContext } from "@/dataflow/contexts/GraphContext";
 import { AddCircleIcon } from "@hugeicons/core-free-icons";
-import React, { useCallback, useMemo, useRef, useState } from "react";
+import React, { useCallback, useMemo, useRef } from "react";
 import { FormProvider, useFieldArray, useForm } from "react-hook-form"
 import { yupResolver } from "@hookform/resolvers/yup"
 import * as yup from "yup"
@@ -16,10 +16,7 @@ import { v4 as uuidv4 } from "uuid";
 import useKnownTypes from "@/dataflow/hooks/useKnownTypes";
 import { useRefSignalRender } from "react-refsignal";
 
-interface TypeDefNodeProps extends NodeProps {
-}
-
-export default function TypeDefNode({node}: TypeDefNodeProps) {
+export default function TypeDefNode({node}: NodeProps) {
     const {types} = useGraphContext();
     const {options: knownTypes} = useKnownTypes();
     const formRef = useRef<HTMLFormElement | null>(null);
@@ -35,9 +32,11 @@ export default function TypeDefNode({node}: TypeDefNodeProps) {
             })).required()
         });
     }, []);
+    const lastUpdated = types.lastUpdated;
     const type = useMemo((): GraphType | undefined => {
+        void lastUpdated;
         return types.current.find((type: GraphType) => type.id === node.id);
-    }, [node.id, types.lastUpdated]);
+    }, [node.id, types, lastUpdated]);
 
     const methods = useForm({
         resolver: yupResolver(schema),
@@ -55,7 +54,7 @@ export default function TypeDefNode({node}: TypeDefNodeProps) {
         }
     });
 
-    const { fields, append, remove, move } = useFieldArray({
+    const { fields, append, remove } = useFieldArray({
         control: methods.control,
         name: "properties",
     });
@@ -71,11 +70,11 @@ export default function TypeDefNode({node}: TypeDefNodeProps) {
         }
 
         types.notifyUpdate();
-    }, []);
+    }, [types]);
 
     const onBlur = useCallback(() => {
         formRef.current?.requestSubmit();
-    }, []);
+    }, [formRef]);
 
     const handleAddProperty = useCallback(() => {
         append({

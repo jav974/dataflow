@@ -10,19 +10,22 @@ interface StartConfigModalProps {
     isOpen: boolean;
     onClose: () => void;
     node: NodeConfig;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     context: Map<string, any>;
 }
 
 export default function StartConfigModal({isOpen, onClose, node, context}: StartConfigModalProps) {
     const {setOutputName, setNodeContext} = useGraphContext();
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const handleNameChange = useCallback((id: string, value: any) => {
         setOutputName(node.id, id, value[id]);
-    }, []);
+    }, [node.id, setOutputName]);
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const handleValueChange = useCallback((id: string, value: any) => {
         setNodeContext(node.id, context.set(id, value[id]));
-    }, [context]);
+    }, [node.id, context, setNodeContext]);
 
     return (
         <Modal title="Configure Start options" isOpen={isOpen}>

@@ -1,4 +1,4 @@
-import { Coordinates, InputConfig, NodeConfig, NodeType, OutputBranchConfig, OutputConfig } from '@/dataflow/config/schema';
+import { Coordinates, InputConfig, NodeConfig, OutputBranchConfig, OutputConfig } from '@/dataflow/config/schema';
 import { createContext, useContext, useState, useCallback } from 'react';
 import { useGraphContext } from './GraphContext';
 import { Size } from 'pixi.js';
@@ -110,11 +110,11 @@ export function NodeProvider({ children }: { children: React.ReactNode }) {
             nodes.current.set(node.id, createRefSignal<Node>(nodeData));
             nodes.notifyUpdate();
         }
-    }, []);
+    }, [nodes]);
 
     const isSelected = useCallback((id: string): boolean => {
         return selectedNodes.current.includes(id);
-    }, []);
+    }, [selectedNodes]);
 
     const updateNodePosition = useCallback((id: string, x: number, y: number) => {
         const nodeSignal = nodes.current.get(id);
@@ -126,7 +126,7 @@ export function NodeProvider({ children }: { children: React.ReactNode }) {
                 const deltaX = x - node.mutableNodeConfig.position.x;
                 const deltaY = y - node.mutableNodeConfig.position.y;
 
-                for (const [_, n] of nodes.current) {
+                for (const [, n] of nodes.current) {
                     if (isSelected(n.current.mutableNodeConfig.id)) {
                         n.current.mutableNodeConfig.position.x += deltaX;
                         n.current.mutableNodeConfig.position.y += deltaY;
@@ -140,7 +140,7 @@ export function NodeProvider({ children }: { children: React.ReactNode }) {
                 emitNodeUpdated(node.mutableNodeConfig.id);
             }
         }
-    }, []);
+    }, [nodes, isSelected]);
 
     const getConnectionInfo = useCallback((node: Node, connector: Connector): ConnectionInfo => {
         const predicate = (pin: Pin) => pin.id === connector.pin;
@@ -204,7 +204,7 @@ export function NodeProvider({ children }: { children: React.ReactNode }) {
             connector,
             info: getConnectionInfo(node, connector)
         };
-    }, []);
+    }, [nodes, getConnectionInfo]);
 
     const startConnectionDrag = useCallback((connector: Connector) => {
         const drag = buildConnectionDrag(connector);
@@ -219,15 +219,15 @@ export function NodeProvider({ children }: { children: React.ReactNode }) {
         // }
 
         connectionDrag.update(drag);
-    }, [removeConnections]);
+    }, [connectionDrag, buildConnectionDrag]);
 
     const stopConnectionDrag = useCallback(() => {
         connectionDrag.update(undefined);
-    }, []);
+    }, [connectionDrag]);
 
     const openContextMenu = useCallback((position: Coordinates) => {
         rightClickPosition.update(position);
-    }, []);
+    }, [rightClickPosition]);
 
     const onPointerUp = useCallback((e: PointerEvent) => {
         if (connectionDrag && e.id && connectionDrag.current && connectionDrag.current.connector.id !== e.id) {
@@ -249,16 +249,16 @@ export function NodeProvider({ children }: { children: React.ReactNode }) {
         }
 
         stopConnectionDrag();
-    }, [connectionDrag, addConnection, stopConnectionDrag, removeConnections, openContextMenu]);
+    }, [connectionDrag, addConnection, stopConnectionDrag, removeConnections, buildConnectionDrag, validateConnection]);
 
     const closeContextMenu = useCallback(() => {
         rightClickPosition.update(undefined);
-    }, []);
+    }, [rightClickPosition]);
 
     const setRenderTarget = useCallback((id: string, target: HTMLElement) => {
         renderTargets.current.set(id, target);
         renderTargets.notifyUpdate();
-    }, []);
+    }, [renderTargets]);
 
     const setSelected = useCallback((id: string, selected: boolean) => {
         if (selected && !selectedNodes.current.includes(id)) {
@@ -266,18 +266,18 @@ export function NodeProvider({ children }: { children: React.ReactNode }) {
         } else if (!selected) {
             selectedNodes.update(selectedNodes.current.filter((v) => v !== id));
         }
-    },  []);
+    }, [selectedNodes]);
 
     const startSelection = useCallback((coord: Coordinates) => {
         selectionStart.update(coord);
-    }, []);
+    }, [selectionStart]);
 
     const stopSelection = useCallback(() => {
         batch(() => {
             selectionStart.update(undefined);
             selectionArea.update(undefined);
         }, [selectionArea, selectionStart]);
-    }, []);
+    }, [selectionStart, selectionArea]);
 
     return (
         <NodeContext.Provider value={{

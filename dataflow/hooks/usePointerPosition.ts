@@ -14,7 +14,7 @@ export default function usePointerPosition(): UsePointerPositionReturn {
         position.current.x = e.clientX;
         position.current.y = e.clientY;
         position.notifyUpdate();
-    }, []);
+    }, [position]);
 
     useEffect(() => {
         window.addEventListener('pointermove', handlePointerMove);

@@ -2,16 +2,15 @@ import { useGraphContext } from "@/dataflow/contexts/GraphContext";
 import Node, { NodeProps } from "../../core/Node";
 import { useMemo } from "react";
 
-interface DebugVarNodeProps extends NodeProps {
-}
-
-export default function DebugVarNode({node}: DebugVarNodeProps) {
+export default function DebugVarNode({node}: NodeProps) {
     const {computedResult} = useGraphContext();
+    const lastUpdated = computedResult.lastUpdated;
 
-    const executionValue = useMemo((): any => {
+    const executionValue = useMemo((): unknown => {
+        void lastUpdated;
         const inputId = node.inputs ? node.inputs[0].id : '';
         return computedResult.current.get(node.id + ':' + inputId);
-    }, [computedResult.lastUpdated, node]);
+    }, [computedResult, lastUpdated, node]);
 
     return (
         <Node

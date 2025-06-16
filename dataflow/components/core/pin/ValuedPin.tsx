@@ -13,6 +13,7 @@ interface ValuedPinProps {
     required: boolean;
     defaultValue: string;
     removable: boolean;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     onSubmit: (data: any, event?: React.BaseSyntheticEvent) => void;
     onRemove?: () => void;
 }

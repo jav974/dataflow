@@ -4,6 +4,7 @@ import { useFormContext } from "react-hook-form";
 
 export interface OptionProps {
     name: string;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     value: any;
 }
 
@@ -31,7 +32,7 @@ export default function Select({id, name, className, classNameOverride, options,
     const handleChange = useCallback((e: React.SyntheticEvent<HTMLSelectElement>) => {
         registration.onChange(e);
         onBlur();
-    }, [registration.onChange, onBlur]);
+    }, [registration, onBlur]);
 
     return (
         <select

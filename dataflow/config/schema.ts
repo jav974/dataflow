@@ -130,7 +130,7 @@ interface InputConfig {
     name: string;
     type: ParameterType;
     required: boolean;
-    defaultValue?: any;
+    defaultValue?: unknown;
     editable?: boolean;
     isCollection?: boolean;
     typeEditable?: boolean;
@@ -154,6 +154,7 @@ function parseAppConfig(config: string): AppConfig {
     return parsedConfig;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 type ParameterValueType = any;
 
 export { NodeType, ParameterTypes, parseAppConfig };

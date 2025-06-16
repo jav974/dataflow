@@ -17,6 +17,7 @@ interface PinProps {
     required?: boolean;
     isInput: boolean;
     removable?: boolean;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     defaultValue?: any;
     editable?: boolean;
     isCollection?: boolean;
@@ -27,11 +28,11 @@ interface PinProps {
 
 function Pin({ nodeId, id, nodeType, name, type, required, isInput, onRef, removable = false, defaultValue, editable, isCollection = false, typeEditable = false, collectionEditable = false }: PinProps) {
     const {removeNodeInput, removeNodeOutput, setInputDefaultValue, setOutputName, setInputName, computedResult} = useGraphContext();
-    const {isConnected, onClick, handlePointerDown, handlePointerUp} = useLinkable(nodeId, id, isInput, !isInput);
+    const {isConnected, onClick, handlePointerDown, handlePointerUp} = useLinkable(nodeId, id, isInput);
     
     const onPinRef = useCallback((el: HTMLDivElement | null) => {
         onRef(id, el);
-    }, [nodeId, id, onRef]);
+    }, [id, onRef]);
     
     const handleRemoveInputPin = useCallback(() => {
         removeNodeInput(nodeId, id);
@@ -41,28 +42,34 @@ function Pin({ nodeId, id, nodeType, name, type, required, isInput, onRef, remov
         removeNodeOutput(nodeId, id);
     }, [nodeId, id, removeNodeOutput]);
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const handleInputSubmit = useCallback((data: any, event?: React.BaseSyntheticEvent) => {
         event?.preventDefault();
         setInputDefaultValue(nodeId, id, data[id]);
     }, [nodeId, id, setInputDefaultValue]);
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const handleOutputSubmit = useCallback((data: any, event?: React.BaseSyntheticEvent) => {
         event?.preventDefault();
         setOutputName(nodeId, id, data[id]);
     }, [nodeId, id, setOutputName]);
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const handleInputNameSubmit = useCallback((data: any, event?: React.BaseSyntheticEvent) => {
         event?.preventDefault();
         setInputName(nodeId, id, data[id]);
     }, [nodeId, id, setInputName]);
 
+    const lastUpdated = computedResult.lastUpdated;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const executionValue = useMemo((): any => {
+        void lastUpdated;
         if (computedResult.current.size === 0) return undefined;
         if (!computedResult.current.has(nodeId + ':' + id)) return undefined;
         
         const res = computedResult.current.get(nodeId + ':' + id);
         return JSON.stringify(res, null, 2);
-    }, [computedResult.lastUpdated, nodeId, id]);
+    }, [computedResult, lastUpdated, nodeId, id]);
 
     const pinContainerClass = "flex items-center gap-1" + (!isInput ? " flex-row-reverse" : "");
     const typeClass = isCollection ? "border-dotted" : "rounded-full";

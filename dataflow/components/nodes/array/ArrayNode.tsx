@@ -4,17 +4,14 @@ import { InputConfig, NodeConfig, NodeType } from "@/dataflow/config/schema";
 import { useGraphContext } from "@/dataflow/contexts/GraphContext";
 import { useRefSignalEffect } from "react-refsignal";
 
-interface ArrayNodeProps extends NodeProps {
-}
-
-export default function ArrayNode({node, ...props}: ArrayNodeProps) {
+export default function ArrayNode({node, ...props}: NodeProps) {
     const prevInputRef = useRef<InputConfig | undefined>(node.inputs ? {...node.inputs[0]} : undefined);
     const {setNodeInputs, setNodeOutputs, getConnectionInfo, connections} = useGraphContext();
     const arrayInput = useMemo(() => node.inputs ? node.inputs[0] : undefined, [node.inputs]);
     const connectionInfo = useMemo(() => {
         if (!arrayInput) return undefined;
         return getConnectionInfo(node.id, arrayInput);
-    }, [arrayInput]);
+    }, [arrayInput, node.id, getConnectionInfo]);
     const error = useMemo(() => {
         if (connectionInfo && !connectionInfo.target.isCollection) {
             return "Invalid Array input";
@@ -45,7 +42,7 @@ export default function ArrayNode({node, ...props}: ArrayNodeProps) {
                 return v;
             }) ?? []);
         }
-    }, []);
+    }, [setNodeInputs, setNodeOutputs]);
 
     // Update types of inputs/outputs after array input is connected
     // Update types of inputs/outputs after array input connection type changes
@@ -58,7 +55,7 @@ export default function ArrayNode({node, ...props}: ArrayNodeProps) {
                 updateType(node, connectionInfo.target.type);
             }
         }
-    }, [connections, connectionInfo?.node, arrayInput]);
+    }, [connections, connectionInfo?.node, arrayInput, getConnectionInfo]);
 
     // Update types of inputs/outputs after user changes type for array input
     useEffect(() => {
@@ -68,7 +65,7 @@ export default function ArrayNode({node, ...props}: ArrayNodeProps) {
             prevInputRef.current = arrayInput;
             updateType(node, arrayInput.type);
         }
-    }, [arrayInput]);
+    }, [node, arrayInput, node.inputs, updateType]);
 
     return (
         <Node

@@ -10,7 +10,7 @@ interface UseLinkableReturn {
     readonly handlePointerUp: (e: React.PointerEvent<HTMLDivElement>) => void;
 }
 
-export default function useLinkable(id: string, pin: string, isInput: boolean = false, isOutput: boolean = false): UseLinkableReturn {
+export default function useLinkable(id: string, pin: string, isInput: boolean = false): UseLinkableReturn {
     const { startConnectionDrag, onPointerUp } = useNodeContext();
     const { removeConnections, connections } = useGraphContext();
     const [isConnected, setIsConnected] = useState<boolean>(false);
@@ -22,7 +22,7 @@ export default function useLinkable(id: string, pin: string, isInput: boolean = 
                 return connection.from.id === id && connection.from.pin === pin;
             }
         }) !== undefined;
-    }, [id, pin, isInput, isOutput]);
+    }, [id, pin, isInput, connections]);
 
     useRefSignalEffect(() => {
         if (getIsConnected() !== isConnected) {
@@ -41,7 +41,7 @@ export default function useLinkable(id: string, pin: string, isInput: boolean = 
                 removeConnections({id, pin}, undefined);
             }
         }
-    }, [removeConnections, id, pin, isInput, isOutput]);
+    }, [removeConnections, id, pin, isInput]);
 
     const handlePointerDown = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
         e.preventDefault();

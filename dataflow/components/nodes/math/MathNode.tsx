@@ -1,10 +1,7 @@
 import { ParameterTypes } from "@/dataflow/config/schema";
 import Node, { NodeProps } from "@/dataflow/components/core/Node";
 
-export interface MathNodeProps extends NodeProps {
-}
-
-export default function MathNode({ node, ...props }: MathNodeProps) {
+export default function MathNode({ node, ...props }: NodeProps) {
     return (
         <Node
             node={node}

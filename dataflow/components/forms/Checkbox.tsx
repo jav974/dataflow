@@ -8,7 +8,7 @@ type InputProps = DetailedHTMLProps<InputHTMLAttributes<HTMLInputElement>, HTMLI
     onBlur: () => void;
 }
 
-export default function Checkbox({id, name, className, classNameOverride, onBlur, ...props}: InputProps) {
+export default function Checkbox({id, name, onBlur, ...props}: InputProps) {
     const {register, formState: {errors}} = useFormContext();
     const error = getValueByPath(errors, name);
     const colorClassName = error ? "border-red-500" : "border-blue-500";
@@ -21,7 +21,7 @@ export default function Checkbox({id, name, className, classNameOverride, onBlur
     const handleChange = useCallback((e: React.SyntheticEvent<HTMLInputElement>) => {
         registration.onChange(e);
         onBlur();
-    }, [registration.onChange, onBlur]);
+    }, [registration, onBlur]);
 
     return (
         <label>

@@ -9,7 +9,7 @@ type InputProps = DetailedHTMLProps<InputHTMLAttributes<HTMLInputElement>, HTMLI
     onBlur: () => void;
 }
 
-export default function Input({id, orientation, name, className, classNameOverride, ...props }: InputProps) {
+export default function Input({id, orientation, name, className, classNameOverride, onBlur, ...props }: InputProps) {
     const {register, formState: {errors}} = useFormContext();
     const error = getValueByPath(errors, name);
     const colorClassName = error ? "border-b-red-500/50 focus:border-b-red-500" : "border-b-blue-500/50 focus:border-b-blue-500";
@@ -23,8 +23,8 @@ export default function Input({id, orientation, name, className, classNameOverri
 
     const handleBlur = useCallback((e: React.SyntheticEvent<HTMLInputElement>) => {
         registration.onBlur(e);
-        props.onBlur();
-    }, [registration.onBlur, props.onBlur]);
+        onBlur();
+    }, [registration, onBlur]);
 
     return (
         <input

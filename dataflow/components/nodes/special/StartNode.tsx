@@ -6,10 +6,7 @@ import { batch } from "react-refsignal";
 import StartConfigModal from "./StartConfigModal";
 import { jsonToMap } from "@/dataflow/engine/utils";
 
-interface StartNodeProps extends NodeProps {
-}
-
-export default function StartNode({node}: StartNodeProps) {
+export default function StartNode({node}: NodeProps) {
     const {variables, setVariable, removeVariable, startParams} = useGraphContext();
     const outputs = useRef<OutputConfig[]>([...node.outputs ?? []]);
     const [configureModalOpen, setConfigureModalOpen] = useState<boolean>(false);
@@ -33,7 +30,7 @@ export default function StartNode({node}: StartNodeProps) {
 
             outputs.current = [...node.outputs ?? []];
         }, [variables]);
-    }, [node.outputs]);
+    }, [node.outputs, removeVariable, setVariable, variables]);
 
     useEffect(() => {
         startParams.current = {};
@@ -43,7 +40,7 @@ export default function StartNode({node}: StartNodeProps) {
         }
 
         startParams.notifyUpdate();
-    }, [context]);
+    }, [context, startParams]);
 
     return (
         <Node

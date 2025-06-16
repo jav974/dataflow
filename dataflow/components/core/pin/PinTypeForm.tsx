@@ -24,7 +24,7 @@ export default function PinTypeForm({nodeId, pinId, isInput, type, isCollection,
     const schema = useMemo(() => yup.object({
         type: yup.string().required(),
         isCollection: collectionEditable ? yup.boolean().required() : yup.boolean()
-    }), []);
+    }), [collectionEditable]);
     const methods = useForm({
         resolver: yupResolver(schema),
         defaultValues: {
@@ -32,6 +32,7 @@ export default function PinTypeForm({nodeId, pinId, isInput, type, isCollection,
             isCollection: isCollection ?? false
         }
     });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const onSubmit = useCallback((data: any) => {
         if (isInput) {
             updateNodeInput(nodeId, {id: pinId, type: data.type, isCollection: data.isCollection});

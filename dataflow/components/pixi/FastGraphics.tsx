@@ -4,7 +4,7 @@ import { Graphics } from "pixi.js";
 import { useCallback, useRef } from "react";
 
 interface FastGraphicsProps extends PixiReactElementProps<typeof Graphics> {
-    drawDependencies?: any[];
+    drawDependencies?: unknown[];
 }
 
 export default function FastGraphics({draw, drawDependencies, ...props}: FastGraphicsProps) {

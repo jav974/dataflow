@@ -1,9 +1,6 @@
 import Node, { NodeProps } from "@/dataflow/components/core/Node";
 
-interface ForeachNodeProps extends NodeProps {
-}
-
-export default function ForeachNode({node}: ForeachNodeProps) {
+export default function ForeachNode({node}: NodeProps) {
     return (
         <Node
             node={node}

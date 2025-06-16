@@ -24,7 +24,7 @@ export default function AppContainer() {
     }, []);
 
     // Close context menu on click anywhere
-    const handleClick = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    const handleClick = useCallback(() => {
         closeContextMenu();
     }, [closeContextMenu]);
 
@@ -39,18 +39,19 @@ export default function AppContainer() {
                 zoomOut();
             }
         }
-    }, []);
+    }, [zoomIn, zoomOut]);
 
     useEffect(() => {
         if (!canvasRef.current) return;
 
         // Prevent zoom
         canvasRef.current.addEventListener("wheel", handleWheel, { passive: false });
+        const currentCanvas = canvasRef.current;
 
         return () => {
-            canvasRef.current?.removeEventListener("wheel", handleWheel);
+            currentCanvas.removeEventListener("wheel", handleWheel);
         };
-    }, []);
+    }, [canvasRef, handleWheel]);
 
     // Load the graph when it changes (when user switches between graphs or at initial load)
     useEffect(() => {

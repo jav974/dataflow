@@ -37,6 +37,7 @@ export interface ExecutionGraph {
     branches: ExecutionBranch[];
     next: ExecutionGraph | null;
     visited: boolean;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     context: Map<string, any>;
 }
 

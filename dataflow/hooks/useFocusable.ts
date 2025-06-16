@@ -24,7 +24,7 @@ export default function useFocusable(elementRef: React.RefObject<HTMLElement | n
         if (elementRef.current && !elementRef.current.contains(event.target as Node)) {
             setIsFocused(false);
         }
-    }, []);
+    }, [elementRef]);
 
     const handlers = useMemo(() => ({
         onPointerDown,
@@ -42,7 +42,7 @@ export default function useFocusable(elementRef: React.RefObject<HTMLElement | n
             document.removeEventListener("mousedown", handleClickOutside);
             document.removeEventListener("contextmenu", handleClickOutside);
         };
-    }, [isFocused]);
+    }, [isFocused, handleClickOutside]);
 
     return {
         isFocused,

@@ -64,18 +64,18 @@ export default function Toolbar() {
 
     const handleResetView = useCallback(() => {
         canvasPosition.update({ x: 0, y: 0 });
-    }, []);
+    }, [canvasPosition]);
 
     const handleResetZoom = useCallback(() => {
         zoom.update(100);
-    }, []);
+    }, [zoom]);
 
     const handleChangeZoom = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
         const newZoom = parseInt(e.target.value);
         if (!isNaN(newZoom) && newZoom >= 2 && newZoom <= 200) {
             zoom.update(newZoom);
         }
-    }, []);
+    }, [zoom]);
 
     // Force re-render when zoom changes
     useRefSignalRender([zoom]);

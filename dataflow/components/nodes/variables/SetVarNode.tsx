@@ -11,10 +11,13 @@ import Tooltip from "@/dataflow/components/ui/Tooltip";
 import Checkbox from "@/dataflow/components/forms/Checkbox";
 import { useRefSignalRender } from "react-refsignal";
 
-interface SetVarNodeProps extends NodeProps {
+interface VarType {
+    name: string;
+    type: string;
+    isCollection: boolean;
 }
 
-export default function SetVarNode({node}: SetVarNodeProps) {
+export default function SetVarNode({node}: NodeProps) {
     const {setVariable, variables, types, setNodeInputs, setNodeOutputs} = useGraphContext();
     const {options} = useKnownTypes();
     const formRef = useRef<HTMLFormElement | null>(null);
@@ -23,10 +26,12 @@ export default function SetVarNode({node}: SetVarNodeProps) {
         type: yup.string().required(),
         isCollection: yup.boolean().required()
     }), []);
-    const variable = useMemo(
-        () => variables.current.find(v => v.id === node.id),
-        [node.id, variables.lastUpdated]
-    );
+    const lastUpdated = variables.lastUpdated;
+    const variable = useMemo(() => {
+        void lastUpdated;
+        return variables.current.find(v => v.id === node.id)
+    }, [node.id, variables, lastUpdated]);
+
     const methods = useForm({
         resolver: yupResolver(schema),
         defaultValues: {
@@ -35,7 +40,7 @@ export default function SetVarNode({node}: SetVarNodeProps) {
             isCollection: variable?.isCollection ?? false
         }
     });
-    const onSubmit = useCallback((data: any) => {
+    const onSubmit = useCallback((data: VarType) => {
         setVariable(node.id, data.name, data.type, data.isCollection);
         const input = node.inputs ? node.inputs[0] : undefined;
         const output = node.outputs ? node.outputs[0] : undefined;
@@ -47,15 +52,15 @@ export default function SetVarNode({node}: SetVarNodeProps) {
         if (output) {
             setNodeOutputs(node.id, [{...output, type: data.type, isCollection: data.isCollection}]);
         }
-    }, [node.id, setVariable, setNodeInputs, setNodeOutputs]);
+    }, [node.id, node.inputs, node.outputs, setVariable, setNodeInputs, setNodeOutputs]);
 
     const onBlur = useCallback(() => {
         formRef.current?.requestSubmit();
     }, []);
 
-    const inputClassName = methods.formState.errors["name"]
-        ? "p-1 outline outline-red-500/50 focus:outline-red-500 max-h-[30px] grow text-center"
-        : "p-1 outline outline-blue-500/50 focus:outline-blue-500 max-h-[30px] grow text-center";
+    // const inputClassName = methods.formState.errors["name"]
+    //     ? "p-1 outline outline-red-500/50 focus:outline-red-500 max-h-[30px] grow text-center"
+    //     : "p-1 outline outline-blue-500/50 focus:outline-blue-500 max-h-[30px] grow text-center";
 
     useRefSignalRender([variables, types]);
 

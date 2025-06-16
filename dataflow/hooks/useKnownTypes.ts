@@ -9,7 +9,12 @@ interface UseKnownTypesReturn {
 
 export default function useKnownTypes(): UseKnownTypesReturn {
     const {types} = useGraphContext();
+    const lastUpdated = types.lastUpdated;
+
     const options: OptionProps[] = useMemo((): OptionProps[] => {
+        // Reference lastUpdated to satisfy ESLint
+        void lastUpdated;
+
         const options: OptionProps[] = [
             {name: "any", value: "any"},
             {name: "boolean", value: "boolean"},
@@ -22,7 +27,7 @@ export default function useKnownTypes(): UseKnownTypesReturn {
         });
 
         return options;
-    }, [types.lastUpdated]);
+    }, [types, lastUpdated]);
 
     return {
         options

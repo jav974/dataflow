@@ -110,7 +110,7 @@ export default function Background() {
         }
 
         g.stroke(BACKGROUND_LINE_STYLE);
-    }, [backgroundFillSettings, backgroundSettings]);
+    }, [backgroundFillSettings, backgroundSettings, canvasPosition, canvasRect]);
 
     // Open context menu on right click
     const handleRightClick = useCallback((e: FederatedPointerEvent) => {
@@ -133,7 +133,7 @@ export default function Background() {
         } else {
             handlers.onPointerUp();
         }
-    }, [onPointerUp, selectionStart, handlers.onPointerUp]);
+    }, [onPointerUp, selectionStart, handlers, stopSelection]);
 
     // Either move the canvas or start selection rectangle on pointer down
     const handlePointerDown = useCallback((e: FederatedPointerEvent) => {
@@ -142,7 +142,7 @@ export default function Background() {
         } else {            // Create selection rectangle
             startSelection({...pointerPosition.current.global});
         }
-    }, [handlers.onPointerDown]);
+    }, [handlers, pointerPosition, startSelection]);
 
     // PIXI callback to draw selection rectangle
     const drawSelection = useCallback((g: Graphics) => {
@@ -159,7 +159,7 @@ export default function Background() {
             selectionArea.current.height,
         );
         g.fill(selectionFillSettings);
-    }, [selectionStart, selectionFillSettings]);
+    }, [selectionFillSettings, canvasRect, selectionArea]);
 
     return <pixiContainer
         eventMode="static"

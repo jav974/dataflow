@@ -1,4 +1,4 @@
-export function isNumeric(value: any): boolean {
+export function isNumeric(value: unknown): boolean {
     return typeof value === "number" || (typeof value === "string" && Number.isFinite(Number(value)));
 }
 

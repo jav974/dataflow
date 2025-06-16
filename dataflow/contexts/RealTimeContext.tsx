@@ -30,7 +30,7 @@ export function RealTimeProvider({ url, children }: RealTimeProviderProps) {
         return () => {
             socket.disconnect();
         };
-    }, [url]);
+    }, [url, socketRef]);
 
     return (
         <RealTimeContext.Provider value={{

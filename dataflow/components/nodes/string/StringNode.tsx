@@ -1,9 +1,6 @@
 import Node, { NodeProps } from "../../core/Node";
 
-interface StringNodeProps extends NodeProps {
-}
-
-export default function StringNode({ node, ...props }: StringNodeProps) {
+export default function StringNode({ node, ...props }: NodeProps) {
     return (
         <Node
             node={node}

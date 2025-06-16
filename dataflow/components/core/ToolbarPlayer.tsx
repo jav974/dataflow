@@ -51,13 +51,13 @@ export default function ToolbarPlayer() {
         } else if (isPlaying) {
             controller.pause(() => setIsPlaying(false));
         }
-    }, [graph, isPlaying, selectedExecutor, setGraphResult, toGraph, mode]);
+    }, [graph, isPlaying, selectedExecutor, setGraphResult, toGraph, mode, computedResult, logs, startParams]);
 
     const handleCancel = useCallback(() => {
         controller.cancel(() => {
             setIsPlaying(false);
         });
-    }, [mode]);
+    }, []);
 
     return (
         <>

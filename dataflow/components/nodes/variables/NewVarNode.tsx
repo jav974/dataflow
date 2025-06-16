@@ -5,10 +5,7 @@ import { useRefSignalEffect, useRefSignalMemo } from "react-refsignal";
 import { ParameterTypes } from "@/dataflow/config/schema";
 import { jsonToMap } from "@/dataflow/engine/utils";
 
-interface NewVarNodeProps extends NodeProps {
-}
-
-export default function NewVarNode({node}: NewVarNodeProps) {
+export default function NewVarNode({node}: NodeProps) {
     const {variables, updateNodeInput, setNodeContext} = useGraphContext();
     const variable = useRefSignalMemo(() =>
         variables.current.find((n) => n.id === node.id),
