@@ -6,7 +6,7 @@ import ContextMenu from "./ContextMenu";
 import React, { useCallback, useEffect } from "react";
 import { useNodeContext } from "@/dataflow/contexts/NodeContext";
 import Toolbar from "./Toolbar";
-import { useUserGraph } from "@/dataflow/contexts/UserGraphContext";
+import { useUserGraphContext } from "@/dataflow/contexts/UserGraphContext";
 import { useGraphContext } from "@/dataflow/contexts/GraphContext";
 import { useDashboardContext } from "@/dataflow/contexts/DashboardContext";
 import { useRefSignalRender } from "react-refsignal";
@@ -16,7 +16,7 @@ export default function AppContainer() {
     const {canvasRef, canvasRect} = useDashboardContext();
     const { closeContextMenu } = useNodeContext();
     const { loadGraph, zoomIn, zoomOut } = useGraphContext();
-    const { graph } = useUserGraph();
+    const { graph } = useUserGraphContext();
 
     // Disable right click default context menu (will be replaced)
     const handleContextMenu = useCallback((e: React.MouseEvent<HTMLDivElement>) => {

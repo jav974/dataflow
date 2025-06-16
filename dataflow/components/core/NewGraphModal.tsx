@@ -1,5 +1,5 @@
 import { useCallback, useState } from "react";
-import { useUserGraph } from "@/dataflow/contexts/UserGraphContext";
+import { useUserGraphContext } from "@/dataflow/contexts/UserGraphContext";
 import { AppConfig, NodeConfig, NodeType } from "@/dataflow/config/schema";
 import Modal from "./Modal";
 import registry from "../nodes/registry";
@@ -11,7 +11,7 @@ interface NewGraphModalProps {
 
 export default function NewGraphModal({ isOpen, onClose }: NewGraphModalProps) {
     const [graphName, setGraphName] = useState("");
-    const { saveGraph, loadGraph } = useUserGraph();
+    const { saveGraph, loadGraph } = useUserGraphContext();
 
     const handleSubmit = useCallback((e: React.FormEvent) => {
         e.preventDefault();

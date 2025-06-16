@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useState } from "react";
-import { useUserGraph } from "@/dataflow/contexts/UserGraphContext";
+import { useUserGraphContext } from "@/dataflow/contexts/UserGraphContext";
 import NewGraphButton from "../buttons/NewGraphButton";
 import NewGraphModal from "./NewGraphModal";
 import SaveButton from "../buttons/SaveButton";
@@ -14,7 +14,7 @@ import { useRefSignalRender } from "react-refsignal";
 import ToolbarPlayer from "./ToolbarPlayer";
 
 export default function Toolbar() {
-    const { graphs, loadGraph, graph, saveGraph, deleteGraph } = useUserGraph();
+    const { graphs, loadGraph, graph, saveGraph, deleteGraph } = useUserGraphContext();
     const { zoom, canvasPosition, toGraph } = useGraphContext();
     const [isNewModalOpen, setIsNewModalOpen] = useState(false);
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);

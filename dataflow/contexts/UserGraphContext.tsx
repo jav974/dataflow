@@ -75,7 +75,7 @@ export function UserGraphProvider({ children }: { children: React.ReactNode }) {
     </UserGraphContext.Provider>;
 }
 
-export function useUserGraph() {
+export function useUserGraphContext() {
     const context = useContext(UserGraphContext);
     if (!context) {
         throw new Error('useUserGraph must be used within a UserGraphProvider');
