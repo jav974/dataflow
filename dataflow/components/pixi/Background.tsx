@@ -3,7 +3,7 @@ import { Container, FederatedPointerEvent, Graphics } from 'pixi.js';
 import React, { useCallback, useMemo, useRef } from 'react';
 import FastGraphics from './FastGraphics';
 import useDraggable from '@/dataflow/hooks/useDraggable';
-import { PointerEventType, useNodes } from '@/dataflow/contexts/NodeContext';
+import { PointerEventType, useNodeContext } from '@/dataflow/contexts/NodeContext';
 import { useGraphContext } from '@/dataflow/contexts/GraphContext';
 import { BACKGROUND_LINE_STYLE, COLOR_BLUE } from '../../config/style';
 import { useRefSignalEffect } from 'react-refsignal';
@@ -15,7 +15,7 @@ export default function Background() {
     const { canvasRect, pointerPosition } = useDashboardContext();
     const { scale, canvasPosition } = useGraphContext();
     const { position, handlers } = useDraggable(canvasPosition.current);
-    const { onPointerUp, openContextMenu, selectionArea, selectionStart, startSelection, stopSelection } = useNodes();
+    const { onPointerUp, openContextMenu, selectionArea, selectionStart, startSelection, stopSelection } = useNodeContext();
     const prevScale = useRef<number>(scale.current);
 
     const backgroundSettings = useMemo(() => ({

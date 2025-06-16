@@ -1,6 +1,6 @@
 import { useCallback, useState } from "react";
 import { useGraphContext } from "@/dataflow/contexts/GraphContext";
-import { PointerEventType, useNodes } from "@/dataflow/contexts/NodeContext";
+import { PointerEventType, useNodeContext } from "@/dataflow/contexts/NodeContext";
 import { useRefSignalEffect } from "react-refsignal";
 
 interface UseLinkableReturn {
@@ -11,7 +11,7 @@ interface UseLinkableReturn {
 }
 
 export default function useLinkable(id: string, pin: string, isInput: boolean = false, isOutput: boolean = false): UseLinkableReturn {
-    const { startConnectionDrag, onPointerUp } = useNodes();
+    const { startConnectionDrag, onPointerUp } = useNodeContext();
     const { removeConnections, connections } = useGraphContext();
     const [isConnected, setIsConnected] = useState<boolean>(false);
     const getIsConnected = useCallback(() => {

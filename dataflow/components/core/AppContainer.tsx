@@ -4,7 +4,7 @@ import Background from "../pixi/Background";
 import ApplicationGraph from "./ApplicationGraph";
 import ContextMenu from "./ContextMenu";
 import React, { useCallback, useEffect } from "react";
-import { useNodes } from "@/dataflow/contexts/NodeContext";
+import { useNodeContext } from "@/dataflow/contexts/NodeContext";
 import Toolbar from "./Toolbar";
 import { useUserGraph } from "@/dataflow/contexts/UserGraphContext";
 import { useGraphContext } from "@/dataflow/contexts/GraphContext";
@@ -14,7 +14,7 @@ import Console from "./Console";
 
 export default function AppContainer() {
     const {canvasRef, canvasRect} = useDashboardContext();
-    const { closeContextMenu } = useNodes();
+    const { closeContextMenu } = useNodeContext();
     const { loadGraph, zoomIn, zoomOut } = useGraphContext();
     const { graph } = useUserGraph();
 

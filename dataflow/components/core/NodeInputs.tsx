@@ -7,7 +7,7 @@ import { AddCircleIcon } from "@hugeicons/core-free-icons";
 import { COLOR_BLUE } from "../../config/style";
 import { useGraphContext } from "@/dataflow/contexts/GraphContext";
 import { v4 as uuidv4 } from "uuid";
-import { OutputPin, useNodes } from "@/dataflow/contexts/NodeContext";
+import { OutputPin, useNodeContext } from "@/dataflow/contexts/NodeContext";
 
 interface NodeInputsProps {
     nodeId: string;
@@ -22,7 +22,7 @@ interface NodeInputsProps {
 export default function NodeInputs({nodeId, nodeType, inputs, onRef, multiple = false, minInputParams = 0, multipleType}: NodeInputsProps) {
     const {isHovered, handleMouseEnter, handleMouseLeave} = useHoverable();
     const {addNodeInput, addConnection} = useGraphContext();
-    const {nodes, connectionDrag, stopConnectionDrag} = useNodes();
+    const {nodes, connectionDrag, stopConnectionDrag} = useNodeContext();
     const inputParams = useMemo(() => inputs?.length ?? 0, [inputs]);
 
     const handleAddPin = useCallback(() => {

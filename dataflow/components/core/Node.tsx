@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { InputPin, OutputBranchPin, OutputPin, Pin as PinType, useNodes } from "@/dataflow/contexts/NodeContext";
+import { InputPin, OutputBranchPin, OutputPin, Pin as PinType, useNodeContext } from "@/dataflow/contexts/NodeContext";
 import PinExecute from "./pin/PinExecute";
 import PinContinue from "./pin/PinContinue";
 import { Delete02Icon } from "@hugeicons/core-free-icons";
@@ -40,7 +40,7 @@ export default function Node({
     const containerRef = useRef<HTMLDivElement | null>(null);
     const executeRef = useRef<HTMLDivElement | null>(null);
     const continueRef = useRef<HTMLDivElement | null>(null);
-    const { registerNode, stopConnectionDrag, selectionArea, setSelected, isSelected, stopSelection, selectedNodes } = useNodes();
+    const { registerNode, stopConnectionDrag, selectionArea, setSelected, isSelected, stopSelection, selectedNodes } = useNodeContext();
     const { removeNode, scale } = useGraphContext();
     const { isHovered, handleMouseEnter, handleMouseLeave } = useHoverable();
     const [selected, setSelectedState] = useState<boolean>(false);

@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Texture } from "pixi.js";
 import { ConnectorConfig, Coordinates, ParameterTypes } from "../../config/schema";
-import { Node, Pin, useNodes } from "@/dataflow/contexts/NodeContext";
+import { Node, Pin, useNodeContext } from "@/dataflow/contexts/NodeContext";
 import { LineTextures } from "./textures";
 import BezierCurve from "./BezierCurve";
 import { useNodeLastUpdated } from "@/dataflow/hooks/useLastUpdated";
@@ -13,7 +13,7 @@ interface ConnectionProps {
 }
 
 export default function Connection({from, to}: ConnectionProps) {
-    const { nodes } = useNodes();
+    const { nodes } = useNodeContext();
     const fromNode = useRef<RefSignal<Node> | undefined>(undefined);
     const toNode = useRef<RefSignal<Node> | undefined>(undefined);
     const trackedFrom = useRefSignal<Node | undefined>(undefined);

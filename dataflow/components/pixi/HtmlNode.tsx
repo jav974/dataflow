@@ -2,7 +2,7 @@ import { PixiReactElementProps, useExtend } from '@pixi/react';
 import { DOMContainer } from 'pixi.js';
 import useDraggable from '@/dataflow/hooks/useDraggable';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { useNodes } from '@/dataflow/contexts/NodeContext';
+import { useNodeContext } from '@/dataflow/contexts/NodeContext';
 import { Coordinates, NodeConfig } from '../../config/schema';
 import { NodePositionUpdateEvent } from '@/dataflow/events/events';
 import { useEvent } from '@/dataflow/hooks/useEvent';
@@ -16,7 +16,7 @@ export default function HtmlNode({ node, ...props }: HtmlNodeProps) {
     useExtend({DOMContainer});
 
     const pixiRef = useRef<DOMContainer | null>(null);
-    const { updateNodePosition, setRenderTarget } = useNodes();
+    const { updateNodePosition, setRenderTarget } = useNodeContext();
     const updatePosition = useCallback((position: Coordinates) => {
         if (pixiRef.current && (pixiRef.current.x !== position.x || pixiRef.current.y !== position.y)) {
             pixiRef.current.x = position.x;

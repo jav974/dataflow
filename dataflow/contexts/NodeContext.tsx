@@ -308,7 +308,7 @@ export function NodeProvider({ children }: { children: React.ReactNode }) {
     );
 }
 
-export function useNodes() {
+export function useNodeContext() {
     const context = useContext(NodeContext);
     if (!context) {
         throw new Error('useNodes must be used within a NodeProvider');

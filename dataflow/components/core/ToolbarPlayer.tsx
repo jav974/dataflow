@@ -1,7 +1,7 @@
 import { useUserGraph } from "@/dataflow/contexts/UserGraphContext";
 import PlayButton from "../buttons/PlayButton";
 import { useCallback, useState } from "react";
-import { useNodes } from "@/dataflow/contexts/NodeContext";
+import { useNodeContext } from "@/dataflow/contexts/NodeContext";
 import { useDashboardContext } from "@/dataflow/contexts/DashboardContext";
 import { useGraphContext } from "@/dataflow/contexts/GraphContext";
 import { useDataflowContext } from "@/dataflow/contexts/DataflowContext";
@@ -15,7 +15,7 @@ import { keyValueToMap } from "@/dataflow/engine/utils";
 export default function ToolbarPlayer() {
     const {graph} = useUserGraph();
     const [isPlaying, setIsPlaying] = useState<boolean>(false);
-    const {setGraphResult} = useNodes();
+    const {setGraphResult} = useNodeContext();
     const {logs} = useDashboardContext();
     const {computedResult, startParams, toGraph} = useGraphContext();
     const {selectedExecutor, mode} = useDataflowContext();

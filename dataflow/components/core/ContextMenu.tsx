@@ -1,4 +1,4 @@
-import { useNodes } from "@/dataflow/contexts/NodeContext";
+import { useNodeContext } from "@/dataflow/contexts/NodeContext";
 import { useCallback, useMemo } from "react";
 import { NodeType } from "../../config/schema";
 import { v4 as uuidv4 } from 'uuid';
@@ -33,7 +33,7 @@ function HorizontalMenu({menu}: {menu: MenuTree}) {
 }
 
 export default function ContextMenu() {
-    const { rightClickPosition } = useNodes();
+    const { rightClickPosition } = useNodeContext();
     const {canvasRect } = useDashboardContext();
     const { addNode, scale, canvasPosition, nodes } = useGraphContext();
 

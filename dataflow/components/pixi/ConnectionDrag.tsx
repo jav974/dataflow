@@ -1,6 +1,6 @@
 import { Container, Texture } from "pixi.js";
 import { useCallback, useMemo } from "react";
-import { useNodes, Node, PointerEventType, Pin } from "@/dataflow/contexts/NodeContext";
+import { useNodeContext, Node, PointerEventType, Pin } from "@/dataflow/contexts/NodeContext";
 import { useRefState } from "@/dataflow/hooks/useRefState";
 import { Coordinates } from "../../config/schema";
 import { LineTextures } from "./textures";
@@ -20,7 +20,7 @@ interface ConnectionOrigin {
 export default function ConnectionDrag() {
     useExtend({Container});
 
-    const { connectionDrag, nodes, onPointerUp } = useNodes();
+    const { connectionDrag, nodes, onPointerUp } = useNodeContext();
     const { pointerPosition } = useDashboardContext();
     const position = useRefState<Coordinates>({x: NaN, y: NaN});
     const origin = useMemo((): ConnectionOrigin | undefined => {
