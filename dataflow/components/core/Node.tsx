@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useCallback, useRef, useState } from "react";
 import { InputPin, OutputBranchPin, OutputPin, Pin as PinType, useNodeContext } from "@/dataflow/contexts/NodeContext";
 import PinExecute from "./pin/PinExecute";
 import PinContinue from "./pin/PinContinue";
@@ -54,8 +54,13 @@ export default function Node({
         }
     }, [scale]);
 
-    const getPin = useCallback((pinId: string, element: HTMLDivElement, containerRect: DOMRect, adjustments?: Coordinates): PinType => {
+    const getPin = useCallback((pinId: string, element: HTMLDivElement, containerRect: DOMRect, adjustments?: Coordinates): PinType | undefined => {
         const pinRect = element.getBoundingClientRect();
+
+        if (pinRect.width === 0 || pinRect.height === 0) {
+            return undefined;
+        }
+
         const position = getScaledRelativePosition(containerRect, pinRect, adjustments);
 
         return {
@@ -76,10 +81,12 @@ export default function Node({
 
         if (executeRef.current) {
             executePin = getPin("execute", executeRef.current, containerRect, {x: 8, y: 12});
+            if (!executePin) return ;
         }
 
         if (continueRef.current) {
             continuePin = getPin("continue", continueRef.current, containerRect, {x: 16, y: 12});
+            if (!continuePin) return ;
         }
 
         // Get input pin positions
@@ -87,7 +94,10 @@ export default function Node({
             const pinData = node.inputs?.find(input => input.id === key);
             
             if (pin && pinData) {
-                const data: InputPin = { ...getPin(key, pin, containerRect, {x: 4, y: 6}), ...pinData };
+                const inputPin = getPin(key, pin, containerRect, {x: 4, y: 6});
+                if (!inputPin) return ;
+
+                const data: InputPin = { ...inputPin, ...pinData };
                 inputPins.push(data);
             }
         }
@@ -97,7 +107,10 @@ export default function Node({
             const pinData = node.outputs?.find(output => output.id === key);
 
             if (pin && pinData) {
-                const data: OutputPin = { ...getPin(key, pin, containerRect, {x: 4, y: 6}), ...pinData };
+                const outputPin = getPin(key, pin, containerRect, {x: 4, y: 6});
+                if (!outputPin) return ;
+
+                const data: OutputPin = { ...outputPin, ...pinData };
                 outputPins.push(data);
             }
         }
@@ -107,7 +120,10 @@ export default function Node({
             const pinData = node.branches?.find(branch => branch.id === key);
 
             if (pin && pinData) {
-                const data: OutputBranchPin = { ...getPin(key, pin, containerRect, {x: 14, y: 10}), ...pinData };
+                const branchPin = getPin(key, pin, containerRect, {x: 14, y: 10});
+                if (!branchPin) return ;
+
+                const data: OutputBranchPin = { ...branchPin, ...pinData };
                 outputBranchPins.push(data);
             }
         }
@@ -116,15 +132,6 @@ export default function Node({
     }, [node, registerNode, getPin]);
 
     useResizeObserver(containerRef, measurePositions);
-
-    useEffect(() => {
-        // Initial measurement with delay
-        const timeout = setTimeout(measurePositions, 100);
-
-        return () => {
-            clearTimeout(timeout);
-        };
-    }, [measurePositions]);
 
     useRefSignalEffect(() => {
         if (isSelected(node.id) !== selected) {

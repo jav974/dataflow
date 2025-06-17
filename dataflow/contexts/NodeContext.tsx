@@ -1,5 +1,5 @@
 import { Coordinates, InputConfig, NodeConfig, OutputBranchConfig, OutputConfig } from '@/dataflow/config/schema';
-import { createContext, useContext, useState, useCallback } from 'react';
+import { createContext, useContext, useState, useCallback, useEffect } from 'react';
 import { useGraphContext } from './GraphContext';
 import { Size } from 'pixi.js';
 import { GraphResult } from '@/dataflow/engine/types';
@@ -94,11 +94,19 @@ export function NodeProvider({ children }: { children: React.ReactNode }) {
     const rightClickPosition = useRefSignal<Coordinates | undefined>(undefined);
     const selectionStart = useRefSignal<Coordinates | undefined>(undefined);
     const [graphResult, setGraphResult] = useState<GraphResult | undefined>(undefined);
-    const {addConnection, removeConnections} = useGraphContext();
+    const {addConnection, removeConnections, name} = useGraphContext();
     const nodes = useRefSignal<Map<string, RefSignal<Node>>>(new Map());
     const renderTargets = useRefSignal<Map<string, HTMLElement>>(new Map());
     const selectionArea = useRefSignal<(Coordinates & Size) | undefined>(undefined);
     const selectedNodes = useRefSignal<string[]>([]);
+
+    // Clear nodes and render targets when user switches graph
+    useEffect(() => {
+        batch(() => {
+            nodes.current.clear();
+            renderTargets.current.clear();
+        }, [nodes, renderTargets]);
+    }, [name, nodes, renderTargets]);
 
     const registerNode = useCallback((node: NodeConfig, inputs: InputPin[], outputs: OutputPin[], branches: OutputBranchPin[], executePin?: Pin, continuePin?: Pin) => {
         const nodeSignal = nodes.current.get(node.id);

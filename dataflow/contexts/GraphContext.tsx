@@ -22,6 +22,7 @@ interface GraphContextType {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     computedResult: RefState<Map<string, any>>;
     startParams: RefSignal<KeyValue>;
+    isLoading: RefSignal<boolean>;
     addNode: (node: NodeConfig) => void;
     updateNode: (node: NodeConfig) => void;
     removeNode: (id: string) => void;
@@ -70,6 +71,7 @@ export function GraphProvider({children}: GraphProviderProps) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const computedResult = useRefState<Map<string, any>>(new Map());
     const startParams = useRefSignal<KeyValue>(new Map());
+    const isLoading = useRefSignal<boolean>(false);
 
     useRefSignalEffect(() => {
         scale.update(zoom.current != 0 ? 1 / (zoom.current / 100) : 0);
@@ -320,17 +322,20 @@ export function GraphProvider({children}: GraphProviderProps) {
     }, [removeConnectionsByPredicate]);
 
     const loadGraph = useCallback((graph: AppConfig) => {
+        isLoading.update(true);
+
         batch(() => {
-            canvasPosition.update({x: 0, y: 0});
-            zoom.update(graph.zoom ?? 100);
+            variables.update(Array.isArray(graph.variables) ? graph.variables : []);
+            types.update(graph.types ?? []);
             nodes.update(graph.nodes.map(n => createRefSignal(n)));
             connections.update(graph.connections ?? []);
-            types.update(graph.types ?? []);
-            variables.update(Array.isArray(graph.variables) ? graph.variables : []);
+            canvasPosition.update({x: 0, y: 0});
+            zoom.update(graph.zoom ?? 100);
+            setName(graph.name);
         }, [canvasPosition, zoom, connections, types, variables, nodes]);
 
-        setName(graph.name);
-    }, [canvasPosition, zoom, connections, types, variables, nodes]);
+        isLoading.update(false);
+    }, [canvasPosition, zoom, connections, types, variables, nodes, isLoading]);
 
     const toGraph = useCallback((): AppConfig => {
         return {
@@ -416,6 +421,7 @@ export function GraphProvider({children}: GraphProviderProps) {
         types,
         computedResult,
         startParams,
+        isLoading,
         addNode,
         updateNode,
         removeNode,

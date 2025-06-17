@@ -61,7 +61,13 @@ export default function AppContainer() {
     }, [graph, loadGraph]);
 
     // Force re-render when canvasRect changes
-    useRefSignalRender([canvasRect]);
+    useRefSignalRender([canvasRect], () => {
+        return (
+            canvasRect.current !== undefined &&
+            canvasRef.current !== null &&
+            canvasRect.current.width !== canvasRef.current.getBoundingClientRect().width
+        );
+    });
 
     return (
         <div

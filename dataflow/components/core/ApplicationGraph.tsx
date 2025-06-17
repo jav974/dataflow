@@ -1,26 +1,33 @@
 import Connections from "../pixi/Connections";
 import { Container } from "pixi.js";
 import { useExtend } from "@pixi/react";
-import HtmlNode from "../pixi/HtmlNode";
 import ConnectionDrag from "../pixi/ConnectionDrag";
 import { useGraphContext } from "@/dataflow/contexts/GraphContext";
 import { useRef } from "react";
-import { useRefSignalEffect, useRefSignalRender } from "react-refsignal";
+import { useRefSignalEffect } from "react-refsignal";
+import Nodes from "../pixi/Nodes";
 
 export default function ApplicationGraph() {
     useExtend({Container});
 
     const pixiRef = useRef<Container | null>(null);
-    const { name, nodes, zoom, canvasPosition } = useGraphContext();
+    const { zoom, canvasPosition, isLoading } = useGraphContext();
 
+    // Hide everything if graph is loading
     useRefSignalEffect(() => {
         if (pixiRef.current) {
+            pixiRef.current.visible = !isLoading.current;
+        }
+    }, [isLoading]);
+
+    // Update pixiRef to match zoom and canvasPosition
+    useRefSignalEffect(() => {
+        // Do not update anything as long as we are loading the graph to avoid visual glitch
+        if (pixiRef.current && !isLoading.current) {
             pixiRef.current.scale = zoom.current / 100;
             pixiRef.current.position = {...canvasPosition.current};
         }
     }, [zoom, canvasPosition]);
-
-    useRefSignalRender([nodes]);
 
     return (
         <pixiContainer
@@ -28,10 +35,9 @@ export default function ApplicationGraph() {
             position={{...canvasPosition.current}}
             scale={zoom.current / 100}
             roundPixels={true}
+            visible={!isLoading.current}
         >
-            {nodes.current.map((nodeSignal) =>
-                <HtmlNode key={`${name}_${nodeSignal.current.id}`} node={nodeSignal.current} />
-            )}
+            <Nodes />
             <Connections />
             <ConnectionDrag />
         </pixiContainer>
