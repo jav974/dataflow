@@ -23,6 +23,7 @@ export default function ConnectionDrag() {
     const { pointerPosition } = useDashboardContext();
     const position = useRefSignal<Coordinates>({x: NaN, y: NaN});
     
+    // Computes origin when connectionDrag changes
     const origin = useRefSignalMemo((): ConnectionOrigin | undefined => {
         if (!connectionDrag.current) {
             position.current = {x: NaN, y: NaN};
@@ -80,20 +81,19 @@ export default function ConnectionDrag() {
         };
     }, [connectionDrag]);
 
+    // This component captures pointer up event, so forward it back
     const handlePointerUp = useCallback((e: PointerEvent) => {
         onPointerUp({ element: 'connection', x: e.clientX, y: e.clientY, type: PointerEventType.POINTER_UP });
     }, [onPointerUp]);
 
-    const updatePosition = useCallback(() => {
-        position.update({...pointerPosition.current.canvasScaled});
-    }, [position, pointerPosition]);
-
+    // Update position of drag cursor when origin is set and pointer position changes
     useRefSignalEffect(() => {
         if (origin.current) {
-            updatePosition();
+            position.update({...pointerPosition.current.canvasScaled});
         }
     }, [pointerPosition, origin]);
 
+    // Re-render when origin changes
     useRefSignalRender([origin]);
 
     if (!origin.current) {
