@@ -1,13 +1,12 @@
 import { Container, Texture } from "pixi.js";
-import { useCallback, useMemo } from "react";
+import { useCallback } from "react";
 import { useNodeContext, Node, PointerEventType, Pin } from "@/dataflow/contexts/NodeContext";
-import { useRefState } from "@/dataflow/hooks/useRefState";
 import { Coordinates } from "../../config/schema";
 import { LineTextures } from "./textures";
 import { useExtend } from "@pixi/react";
 import BezierCurve from "./BezierCurve";
 import { useDashboardContext } from "@/dataflow/contexts/DashboardContext";
-import { useRefSignalEffect, useRefSignalRender } from "react-refsignal";
+import { useRefSignal, useRefSignalEffect, useRefSignalMemo, useRefSignalRender } from "react-refsignal";
 
 interface ConnectionOrigin {
     node: Node;
@@ -22,13 +21,11 @@ export default function ConnectionDrag() {
 
     const { connectionDrag, nodes, onPointerUp } = useNodeContext();
     const { pointerPosition } = useDashboardContext();
-    const position = useRefState<Coordinates>({x: NaN, y: NaN});
-    const lastUpdated = connectionDrag.lastUpdated;
-
-    const origin = useMemo((): ConnectionOrigin | undefined => {
-        void lastUpdated;
-
+    const position = useRefSignal<Coordinates>({x: NaN, y: NaN});
+    
+    const origin = useRefSignalMemo((): ConnectionOrigin | undefined => {
         if (!connectionDrag.current) {
+            position.current = {x: NaN, y: NaN};
             return undefined;
         }
 
@@ -81,7 +78,7 @@ export default function ConnectionDrag() {
             },
             texture
         };
-    }, [connectionDrag, lastUpdated, nodes]);
+    }, [connectionDrag]);
 
     const handlePointerUp = useCallback((e: PointerEvent) => {
         onPointerUp({ element: 'connection', x: e.clientX, y: e.clientY, type: PointerEventType.POINTER_UP });
@@ -92,16 +89,14 @@ export default function ConnectionDrag() {
     }, [position, pointerPosition]);
 
     useRefSignalEffect(() => {
-        if (origin) {
-            requestAnimationFrame(updatePosition);
+        if (origin.current) {
+            updatePosition();
         }
     }, [pointerPosition, origin]);
 
-    useRefSignalRender([connectionDrag]);
+    useRefSignalRender([origin]);
 
-    if (!origin) {
-        position.current.x = NaN;
-        position.current.y = NaN;
+    if (!origin.current) {
         return null;
     }
 
@@ -111,11 +106,11 @@ export default function ConnectionDrag() {
             onPointerUp={handlePointerUp}
         >
             <BezierCurve
-                from={origin.isDst ? position.current : origin.pos}
-                to={origin.isDst ? origin.pos : position.current}
+                from={origin.current.isDst ? position : origin.current.pos}
+                to={origin.current.isDst ? origin.current.pos : position}
                 alpha={0.8}
                 controlPoints={100}
-                texture={origin.texture ?? undefined}
+                texture={origin.current.texture ?? undefined}
             />
         </pixiContainer>
     );

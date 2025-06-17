@@ -1,11 +1,11 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { Texture } from "pixi.js";
 import { ConnectorConfig, Coordinates, ParameterTypes } from "../../config/schema";
 import { Node, Pin, useNodeContext } from "@/dataflow/contexts/NodeContext";
 import { LineTextures } from "./textures";
 import BezierCurve from "./BezierCurve";
-import { useNodeLastUpdated } from "@/dataflow/hooks/useLastUpdated";
-import { useRefSignal, useRefSignalEffect, useRefSignalRender } from "react-refsignal";
+import { useNodeLastUpdatedEvent } from "@/dataflow/hooks/useLastUpdated";
+import { RefSignal, useRefSignal, useRefSignalEffect, useRefSignalRender } from "react-refsignal";
 
 interface ConnectionProps {
     from: ConnectorConfig;
@@ -18,11 +18,9 @@ export default function Connection({from, to}: ConnectionProps) {
     const toNode = useRefSignal<Node | undefined>(undefined);
     const fromPin = useRef<Pin | undefined>(undefined);
     const toPin = useRef<Pin | undefined>(undefined);
-    const fromPos = useRef<Coordinates | undefined>(undefined);
-    const toPos = useRef<Coordinates | undefined>(undefined);
+    const fromPos = useRefSignal<Coordinates | undefined>(undefined);
+    const toPos = useRefSignal<Coordinates | undefined>(undefined);
     const [texture, setTexture] = useState<Texture | null>(null);
-    const fromNodeUpdatedAt = useNodeLastUpdated(from.id);
-    const toNodeUpdatedAt = useNodeLastUpdated(to.id);
 
     // Re-render component when fromNode and toNode have been set/updated
     useRefSignalRender([fromNode, toNode], () =>
@@ -43,14 +41,14 @@ export default function Connection({from, to}: ConnectionProps) {
             if (fromPos.current?.x !== tmpFrom.x || fromPos.current?.y !== tmpFrom.y
                 || toPos.current?.x !== tmpTo.x || toPos.current?.y !== tmpTo.y
             ) {
-                fromPos.current = tmpFrom;
-                toPos.current = tmpTo;
+                fromPos.update(tmpFrom);
+                toPos.update(tmpTo);
             }
         } else {
             fromPos.current = undefined;
             toPos.current = undefined;
         }
-    }, [fromNode, toNode]);
+    }, [fromNode, toNode, fromPos, toPos]);
 
     const updateTrackedFrom = useCallback((value: Node) => {
         fromNode.update(value);
@@ -126,9 +124,12 @@ export default function Connection({from, to}: ConnectionProps) {
     }, [fromNode, toNode, computePositions]);
 
     // Recompute position after node movement
-    useEffect(() => {
+    useNodeLastUpdatedEvent(from.id, () => {
         computePositions();
-    }, [fromNodeUpdatedAt, toNodeUpdatedAt, computePositions]);
+    });
+    useNodeLastUpdatedEvent(to.id, () => {
+        computePositions();
+    });
 
     if (!fromPos.current || !toPos.current) {
         return null;
@@ -136,8 +137,8 @@ export default function Connection({from, to}: ConnectionProps) {
 
     return (
         <BezierCurve
-            from={fromPos.current}
-            to={toPos.current}
+            from={fromPos as RefSignal<Coordinates>}
+            to={toPos as RefSignal<Coordinates>}
             alpha={0.8}
             controlPoints={100}
             texture={texture ?? undefined}
