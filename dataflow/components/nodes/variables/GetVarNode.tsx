@@ -45,7 +45,7 @@ export default function GetVarNode({node}: NodeProps) {
 
     useEffect(() => {
         if (!context?.get('var')) {
-            setNodeContext(node.id, (new Map(context)).set('var', variables.current[0].id));
+            setNodeContext(node.id, (new Map(context)).set('var', variables.current[0]?.id));
         }
     }, [node.id, context, setNodeContext, variables]);
 

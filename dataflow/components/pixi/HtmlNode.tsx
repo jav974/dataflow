@@ -17,6 +17,7 @@ export default function HtmlNode({ node, ...props }: HtmlNodeProps) {
 
     const pixiRef = useRef<DOMContainer | null>(null);
     const { updateNodePosition, setRenderTarget } = useNodeContext();
+    // Updates position of pixi dom container, and the node's position in GraphContext
     const updatePosition = useCallback((position: Coordinates) => {
         if (pixiRef.current && (pixiRef.current.x !== position.x || pixiRef.current.y !== position.y)) {
             pixiRef.current.x = position.x;
@@ -30,6 +31,7 @@ export default function HtmlNode({ node, ...props }: HtmlNodeProps) {
     const { position, handlers } = useDraggable(node.position);
     const [layout, setLayout] = useState<HTMLElement | undefined>(undefined);
     
+    // Listen to position updates of useDraggable (ie: user is dragging the node) and call local updatePosition
     useRefSignalEffect(() => {
         updatePosition(position.current);
     }, [position, updatePosition]);
@@ -43,6 +45,7 @@ export default function HtmlNode({ node, ...props }: HtmlNodeProps) {
         updatePosition(node.position);
     });
 
+    // Effect on mount: Creates the layout (html div element) for the node
     useEffect(() => {
         const _layout = document.createElement('div');
         _layout.id = node.id;
@@ -58,17 +61,7 @@ export default function HtmlNode({ node, ...props }: HtmlNodeProps) {
         }
     }, [node.id, handlers.onPointerDown, setRenderTarget]);
 
-    useEffect(() => {
-        if (!layout) {
-            return;
-        }
-
-        setRenderTarget(node.id, layout);
-    }, [layout, node.id, setRenderTarget]);
-
     if (!layout) return null;
-
-    // console.log("Rendering HtmlNode", node.id);
 
     return (
         <pixiDOMContainer
