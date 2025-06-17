@@ -21,6 +21,10 @@ export default function ArrayNode({node, ...props}: NodeProps) {
 
     const updateType = useCallback((node: NodeConfig, type: string) => {
         setNodeInputs(node.id, node.inputs?.map((v) => {
+            if (node.type === NodeType.ARRAY_CONCAT) {
+                return {...v, type};
+            }
+
             switch (v.id) {
                 case 'array':
                 case 'value':
@@ -32,6 +36,10 @@ export default function ArrayNode({node, ...props}: NodeProps) {
 
         if (node.type !== NodeType.ARRAY_LENGTH) {
             setNodeOutputs(node.id, node.outputs?.map((v) => {
+                if (node.type === NodeType.ARRAY_CONCAT) {
+                    return {...v, type};
+                }
+
                 switch (v.id) {
                     case 'result':
                     case 'element':
@@ -70,8 +78,8 @@ export default function ArrayNode({node, ...props}: NodeProps) {
     return (
         <Node
             node={node}
-            hasExecute={true}
-            hasContinue={true}
+            hasExecute={false}
+            hasContinue={false}
             size={{ width: 200, height: 100 }}
             {...props}
         >

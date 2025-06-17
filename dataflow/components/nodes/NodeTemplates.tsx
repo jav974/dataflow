@@ -470,7 +470,7 @@ registry.set(NodeType.ARRAY_AT, {
     builder: (node: NodeConfig) => <ArrayNode node={node} />,
     config: {
         type: NodeType.ARRAY_AT,
-        executable: true,
+        executable: false,
         name: "Array At",
         inputs: [
             {id: "array", name: "Array", type: ParameterTypes.ANY, required: true, editable: false, isCollection: true, typeEditable: true},
@@ -486,10 +486,10 @@ registry.set(NodeType.ARRAY_CONCAT, {
     builder: (node: NodeConfig) => <ArrayNode node={node} inputMultiple={true} minInputParams={2} />,
     config: {
         type: NodeType.ARRAY_CONCAT,
-        executable: true,
+        executable: false,
         name: "Array Concat",
         inputs: [
-            {id: "array_a", name: "A", type: ParameterTypes.ANY, required: true, editable: false, isCollection: true},
+            {id: "array_a", name: "A", type: ParameterTypes.ANY, required: true, editable: false, isCollection: true, typeEditable: true},
             {id: "array_b", name: "B", type: ParameterTypes.ANY, required: true, editable: false, isCollection: true},
         ],
         outputs: [
@@ -499,7 +499,7 @@ registry.set(NodeType.ARRAY_CONCAT, {
 });
 
 registry.set(NodeType.ARRAY_FILL, {
-    builder: (node: NodeConfig) => <ArrayNode node={node} />,
+    builder: (node: NodeConfig) => <ArrayNode hasContinue={true} hasExecute={true} node={node} />,
     config: {
         type: NodeType.ARRAY_FILL,
         executable: true,
@@ -517,7 +517,7 @@ registry.set(NodeType.ARRAY_FILL, {
 });
 
 registry.set(NodeType.ARRAY_SHIFT, {
-    builder: (node: NodeConfig) => <ArrayNode node={node} />,
+    builder: (node: NodeConfig) => <ArrayNode hasContinue={true} hasExecute={true} node={node} />,
     config: {
         type: NodeType.ARRAY_SHIFT,
         executable: true,
@@ -533,7 +533,7 @@ registry.set(NodeType.ARRAY_SHIFT, {
 });
 
 registry.set(NodeType.ARRAY_UNSHIFT, {
-    builder: (node: NodeConfig) => <ArrayNode node={node} />,
+    builder: (node: NodeConfig) => <ArrayNode hasContinue={true} hasExecute={true} node={node} />,
     config: {
         type: NodeType.ARRAY_UNSHIFT,
         executable: true,
@@ -553,7 +553,7 @@ registry.set(NodeType.ARRAY_SLICE, {
     builder: (node: NodeConfig) => <ArrayNode node={node} />,
     config: {
         type: NodeType.ARRAY_SLICE,
-        executable: true,
+        executable: false,
         name: "Array Slice",
         inputs: [
             {id: "array", name: "Array", type: ParameterTypes.ANY, required: true, editable: false, isCollection: true, typeEditable: true},
@@ -567,7 +567,7 @@ registry.set(NodeType.ARRAY_SLICE, {
 });
 
 registry.set(NodeType.ARRAY_SPLICE, {
-    builder: (node: NodeConfig) => <ArrayNode node={node} />,
+    builder: (node: NodeConfig) => <ArrayNode hasContinue={true} hasExecute={true} node={node} />,
     config: {
         type: NodeType.ARRAY_SPLICE,
         executable: true,
@@ -585,7 +585,7 @@ registry.set(NodeType.ARRAY_SPLICE, {
 });
 
 registry.set(NodeType.ARRAY_POP, {
-    builder: (node: NodeConfig) => <ArrayNode node={node} />,
+    builder: (node: NodeConfig) => <ArrayNode hasContinue={true} hasExecute={true} node={node} />,
     config: {
         type: NodeType.ARRAY_POP,
         executable: true,
@@ -601,7 +601,7 @@ registry.set(NodeType.ARRAY_POP, {
 });
 
 registry.set(NodeType.ARRAY_PUSH, {
-    builder: (node: NodeConfig) => <ArrayNode node={node} />,
+    builder: (node: NodeConfig) => <ArrayNode hasContinue={true} hasExecute={true} node={node} />,
     config: {
         type: NodeType.ARRAY_PUSH,
         executable: true,
@@ -620,7 +620,7 @@ registry.set(NodeType.ARRAY_REVERSE, {
     builder: (node: NodeConfig) => <ArrayNode node={node} />,
     config: {
         type: NodeType.ARRAY_REVERSE,
-        executable: true,
+        executable: false,
         name: "Array Reverse",
         inputs: [
             {id: "array", name: "Array", type: ParameterTypes.ANY, required: true, editable: false, isCollection: true, typeEditable: true},
@@ -635,7 +635,7 @@ registry.set(NodeType.ARRAY_LENGTH, {
     builder: (node: NodeConfig) => <ArrayNode node={node} />,
     config: {
         type: NodeType.ARRAY_LENGTH,
-        executable: true,
+        executable: false,
         name: "Array Length",
         inputs: [
             {id: "array", name: "Array", type: ParameterTypes.ANY, required: true, editable: false, isCollection: true},
