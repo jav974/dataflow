@@ -332,7 +332,7 @@ registry.set(NodeType.STRING_TRIM, {
     config: {
         type: NodeType.STRING_TRIM,
         name: "Trim",
-        executable: true,
+        executable: false,
         inputs: [
             {id: "value", name: "Value", type: ParameterTypes.STRING, required: true, editable: true, defaultValue: ""},
             {id: "left", name: "ltrim", type: ParameterTypes.BOOLEAN, required: true, editable: true, defaultValue: true},
@@ -345,7 +345,7 @@ registry.set(NodeType.STRING_TRIM, {
 });
 
 registry.set(NodeType.STRING_CONCAT, {
-    builder: (node: NodeConfig) => <StringNode hasExecute={false} hasContinue={false} node={node} inputMultiple={true} inputMultipleType={ParameterTypes.STRING} />,
+    builder: (node: NodeConfig) => <StringNode node={node} inputMultiple={true} inputMultipleType={ParameterTypes.STRING} />,
     config: {
         type: NodeType.STRING_CONCAT,
         name: "Concatenate",
@@ -364,7 +364,7 @@ registry.set(NodeType.STRING_SPLIT, {
     config: {
         type: NodeType.STRING_SPLIT,
         name: "Split",
-        executable: true,
+        executable: false,
         inputs: [
             {id: "value", name: "Value", type: ParameterTypes.STRING, required: true, editable: true, defaultValue: ""},
             {id: "separator", name: "Separator", type: ParameterTypes.STRING, required: false, editable: true, defaultValue: ""}
@@ -380,7 +380,7 @@ registry.set(NodeType.STRING_REPLACE, {
     config: {
         type: NodeType.STRING_REPLACE,
         name: "Replace",
-        executable: true,
+        executable: false,
         inputs: [
             {id: "value", name: "Value", type: ParameterTypes.STRING, required: true, editable: true, defaultValue: ""},
             {id: "search", name: "Search", type: ParameterTypes.STRING, required: true, editable: true, defaultValue: ""},
@@ -399,7 +399,7 @@ registry.set(NodeType.STRING_LENGTH, {
     config: {
         type: NodeType.STRING_LENGTH,
         name: "Length",
-        executable: true,
+        executable: false,
         inputs: [
             {id: "value", name: "Value", type: ParameterTypes.STRING, required: true, editable: true, defaultValue: ""}
         ],
@@ -414,7 +414,7 @@ registry.set(NodeType.STRING_TO_UPPER, {
     config: {
         type: NodeType.STRING_TO_UPPER,
         name: "To Upper Case",
-        executable: true,
+        executable: false,
         inputs: [
             {id: "value", name: "Value", type: ParameterTypes.STRING, required: true, editable: true, defaultValue: ""}
         ],
@@ -429,7 +429,7 @@ registry.set(NodeType.STRING_TO_LOWER, {
     config: {
         type: NodeType.STRING_TO_LOWER,
         name: "To Lower Case",
-        executable: true,
+        executable: false,
         inputs: [
             {id: "value", name: "Value", type: ParameterTypes.STRING, required: true, editable: true, defaultValue: ""}
         ],

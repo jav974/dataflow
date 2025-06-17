@@ -4,8 +4,8 @@ export default function StringNode({ node, ...props }: NodeProps) {
     return (
         <Node
             node={node}
-            hasExecute={true}
-            hasContinue={true}
+            hasExecute={false}
+            hasContinue={false}
             size={{ width: 200, height: 100 }}
             {...props}
         />
