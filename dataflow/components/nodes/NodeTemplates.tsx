@@ -18,6 +18,8 @@ import NewVarNode from "./variables/NewVarNode";
 import ArrayNode from "./array/ArrayNode";
 import IONode from "./io/IONode";
 import Node from "../core/Node";
+import { LogicalNode } from "./logical/LogicalNode";
+import { BitwiseNode } from "./bitwise/BitwiseNode";
 
 registry.set(NodeType.START, {
     builder: (node: NodeConfig) => <StartNode node={node} />,
@@ -673,6 +675,164 @@ registry.set(NodeType.DELAY, {
         ],
         outputs: [
             {id: "awaited", name: "Awaited", type: ParameterTypes.NUMBER}
+        ]
+    }
+});
+
+registry.set(NodeType.BITWISE_AND, {
+    builder: (node: NodeConfig) => <BitwiseNode node={node} />,
+    config: {
+        type: NodeType.BITWISE_AND,
+        executable: false,
+        name: "AND",
+        inputs: [
+            {id: "input_a", name: "A", type: ParameterTypes.NUMBER, required: true, editable: true},
+            {id: "input_b", name: "B", type: ParameterTypes.NUMBER, required: true, editable: true},
+        ],
+        outputs: [
+            {id: "result", name: "result", type: ParameterTypes.NUMBER}
+        ]
+    }
+});
+
+registry.set(NodeType.BITWISE_OR, {
+    builder: (node: NodeConfig) => <BitwiseNode node={node} />,
+    config: {
+        type: NodeType.BITWISE_OR,
+        executable: false,
+        name: "OR",
+        inputs: [
+            {id: "input_a", name: "A", type: ParameterTypes.NUMBER, required: true, editable: true},
+            {id: "input_b", name: "B", type: ParameterTypes.NUMBER, required: true, editable: true},
+        ],
+        outputs: [
+            {id: "result", name: "result", type: ParameterTypes.NUMBER}
+        ]
+    }
+});
+
+registry.set(NodeType.BITWISE_XOR, {
+    builder: (node: NodeConfig) => <BitwiseNode node={node} />,
+    config: {
+        type: NodeType.BITWISE_XOR,
+        executable: false,
+        name: "XOR",
+        inputs: [
+            {id: "input_a", name: "A", type: ParameterTypes.NUMBER, required: true, editable: true},
+            {id: "input_b", name: "B", type: ParameterTypes.NUMBER, required: true, editable: true},
+        ],
+        outputs: [
+            {id: "result", name: "result", type: ParameterTypes.NUMBER}
+        ]
+    }
+});
+
+registry.set(NodeType.BITWISE_NOT, {
+    builder: (node: NodeConfig) => <BitwiseNode node={node} />,
+    config: {
+        type: NodeType.BITWISE_NOT,
+        executable: false,
+        name: "NOT",
+        inputs: [
+            {id: "input", name: "number", type: ParameterTypes.NUMBER, required: true, editable: true},
+        ],
+        outputs: [
+            {id: "result", name: "result", type: ParameterTypes.NUMBER}
+        ]
+    }
+});
+
+registry.set(NodeType.BITWISE_LSHIFT, {
+    builder: (node: NodeConfig) => <BitwiseNode node={node} />,
+    config: {
+        type: NodeType.BITWISE_LSHIFT,
+        executable: false,
+        name: "LSHIFT",
+        inputs: [
+            {id: "input_a", name: "A", type: ParameterTypes.NUMBER, required: true, editable: true},
+            {id: "input_b", name: "B", type: ParameterTypes.NUMBER, required: true, editable: true},
+        ],
+        outputs: [
+            {id: "result", name: "result", type: ParameterTypes.NUMBER}
+        ]
+    }
+});
+
+registry.set(NodeType.BITWISE_RSHIFT, {
+    builder: (node: NodeConfig) => <BitwiseNode node={node} />,
+    config: {
+        type: NodeType.BITWISE_RSHIFT,
+        executable: false,
+        name: "RSHIFT",
+        inputs: [
+            {id: "input_a", name: "A", type: ParameterTypes.NUMBER, required: true, editable: true},
+            {id: "input_b", name: "B", type: ParameterTypes.NUMBER, required: true, editable: true},
+        ],
+        outputs: [
+            {id: "result", name: "result", type: ParameterTypes.NUMBER}
+        ]
+    }
+});
+
+registry.set(NodeType.BITWISE_URSHIFT, {
+    builder: (node: NodeConfig) => <BitwiseNode node={node} />,
+    config: {
+        type: NodeType.BITWISE_URSHIFT,
+        executable: false,
+        name: "URSHIFT",
+        inputs: [
+            {id: "input_a", name: "A", type: ParameterTypes.NUMBER, required: true, editable: true},
+            {id: "input_b", name: "B", type: ParameterTypes.NUMBER, required: true, editable: true},
+        ],
+        outputs: [
+            {id: "result", name: "result", type: ParameterTypes.NUMBER}
+        ]
+    }
+});
+
+registry.set(NodeType.LOGICAL_AND, {
+    builder: (node: NodeConfig) => <LogicalNode node={node} inputMultiple={true} minInputParams={2} inputMultipleType={ParameterTypes.ANY} />,
+    config: {
+        type: NodeType.LOGICAL_AND,
+        executable: false,
+        name: "Operator &&",
+        inputs: [
+            {id: "input_a", name: "A", type: ParameterTypes.ANY, required: true, editable: false},
+            {id: "input_b", name: "B", type: ParameterTypes.ANY, required: true, editable: false},
+        ],
+        outputs: [
+            {id: "result", name: "result", type: ParameterTypes.BOOLEAN}
+        ]
+    }
+});
+
+registry.set(NodeType.LOGICAL_OR, {
+    builder: (node: NodeConfig) => <LogicalNode node={node} inputMultiple={true} minInputParams={2} inputMultipleType={ParameterTypes.ANY} />,
+    config: {
+        type: NodeType.LOGICAL_OR,
+        executable: false,
+        name: "Operator ||",
+        inputs: [
+            {id: "input_a", name: "A", type: ParameterTypes.ANY, required: true, editable: false},
+            {id: "input_b", name: "B", type: ParameterTypes.ANY, required: true, editable: false},
+        ],
+        outputs: [
+            {id: "result", name: "result", type: ParameterTypes.BOOLEAN}
+        ]
+    }
+});
+
+registry.set(NodeType.LOGICAL_NOT, {
+    builder: (node: NodeConfig) => <LogicalNode node={node} />,
+    config: {
+        type: NodeType.LOGICAL_NOT,
+        executable: false,
+        name: "Operator !",
+        inputs: [
+            {id: "input", name: "value", type: ParameterTypes.ANY, required: true, editable: false},
+        ],
+        outputs: [
+            {id: "result", name: "result", type: ParameterTypes.BOOLEAN}
         ]
     }
 });

@@ -7,6 +7,7 @@ import ValuedPin from "./ValuedPin";
 import Tooltip from "@/dataflow/components/ui/Tooltip";
 import { PinStyle } from "@/dataflow/config/style";
 import PinTypeForm from "./PinTypeForm";
+import UneditablePin from "./UneditablePin";
 
 interface PinProps {
     nodeId: string;
@@ -96,7 +97,8 @@ function Pin({ nodeId, id, nodeType, name, type, required, isInput, onRef, remov
                         <NamedPin id={id} value={name} removable={true} onSubmit={handleOutputSubmit} onRemove={handleRemoveOutputPin}/>
                     }
 
-                    {isInput && !editable && name}
+                    {isInput && !editable && <UneditablePin name={name} removable={removable} onRemove={handleRemoveInputPin} />}
+                    
                     {isInput && editable && !isConnected && nodeType !== NodeType.RETURN &&
                         <ValuedPin id={id} name={name} type={type} defaultValue={defaultValue} required={required ?? false} removable={removable} onSubmit={handleInputSubmit} onRemove={handleRemoveInputPin} />
                     }

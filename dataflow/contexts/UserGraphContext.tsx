@@ -26,6 +26,7 @@ export function UserGraphProvider({ children }: { children: React.ReactNode }) {
         
         if (graph) {
             setGraph(JSON.parse(graph));
+            localStorage.setItem("dataflow-last-graph", name);
         }
     }, [getLocalStorageGraphKey]);
 
@@ -60,7 +61,8 @@ export function UserGraphProvider({ children }: { children: React.ReactNode }) {
         setGraphs(savedGraphs);
 
         if (savedGraphs.length > 0) {
-            loadGraph(savedGraphs[0]);
+            const lastGraph = localStorage.getItem("dataflow-last-graph");
+            loadGraph(lastGraph ?? savedGraphs[0]);
         }
     }, [loadGraph]);
 

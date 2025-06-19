@@ -3,6 +3,8 @@ import registry, { NodeExecContext, NodeExecParams, NodeExecutor } from "./regis
 import { isNumeric, math_add, math_div, math_mod, math_mul, math_sub } from "./lib";
 import executionContext from "./context";
 import "./handlers/array";
+import "./handlers/bitwise";
+import "./handlers/logical";
 import { eventBus } from "../events/events";
 import { Log } from "./types";
 
@@ -321,6 +323,8 @@ const handleDelay: NodeExecutor = async (inputs: NodeExecParams): Promise<NodeEx
 
     return result.set('awaited', after - before);
 }
+
+
 
 registry.set(NodeType.START, handleStart);
 registry.set(NodeType.RETURN, handleReturn);

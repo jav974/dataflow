@@ -51,7 +51,19 @@ enum NodeType {
 
     IO_WRITE = "io_write",
     IO_READ = "io_read",
-    DELAY = "delay"
+    DELAY = "delay",
+
+    BITWISE_AND = "bitwise_and", // &
+    BITWISE_OR = "bitwise_or", // |
+    BITWISE_XOR = "bitwise_xor", // ^
+    BITWISE_NOT = "bitwise_not", // ~
+    BITWISE_LSHIFT = "bitwise_lshift", // <<
+    BITWISE_RSHIFT = "bitwise_rshift", // >>
+    BITWISE_URSHIFT = "bitwise_urshift", // >>>
+
+    LOGICAL_AND = "logical_and", // &&
+    LOGICAL_OR = "logical_or", // ||
+    LOGICAL_NOT = "logical_not", // !
 }
 
 enum ParameterTypes {

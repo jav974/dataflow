@@ -100,6 +100,26 @@ export default function ContextMenu() {
                     ]
                 },
                 {
+                    name: "Logical",
+                    children: [
+                        createNodeMenuEntry("And ( && )", NodeType.LOGICAL_AND),
+                        createNodeMenuEntry("Or ( || )", NodeType.LOGICAL_OR),
+                        createNodeMenuEntry("Not ( ! )", NodeType.LOGICAL_NOT),
+                    ]
+                },
+                {
+                    name: "Bitwise",
+                    children: [
+                        createNodeMenuEntry("AND", NodeType.BITWISE_AND),
+                        createNodeMenuEntry("OR", NodeType.BITWISE_OR),
+                        createNodeMenuEntry("XOR", NodeType.BITWISE_XOR),
+                        createNodeMenuEntry("NOT", NodeType.BITWISE_NOT),
+                        createNodeMenuEntry("LSHIFT", NodeType.BITWISE_LSHIFT),
+                        createNodeMenuEntry("RSHIFT", NodeType.BITWISE_RSHIFT),
+                        createNodeMenuEntry("URSHIFT", NodeType.BITWISE_URSHIFT),
+                    ]
+                },
+                {
                     name: "Loops",
                     children: [
                         createNodeMenuEntry("For", NodeType.FOR),

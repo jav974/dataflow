@@ -1,14 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
 import { executeGraph } from "@/actions/graph";
-import controller from "@/dataflow/engine/controller";
 
 export async function POST(req: NextRequest) {
-    const { graph, params } = await req.json();
+    const { graph, params, clientSocketId } = await req.json();
     let result = undefined;
     let status = 200;
 
     try {
-        result = await controller.start(executeGraph, graph, params);
+        if (!clientSocketId) {
+            throw new Error("Client Socket ID is missing for remote execution");
+        }
+
+        result = await executeGraph(graph, params, clientSocketId);
         
         // Removes circular dependencies by removing the graph itself.
         if (result) {

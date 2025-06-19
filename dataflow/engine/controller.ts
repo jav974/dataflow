@@ -7,12 +7,12 @@ import { KeyValue } from "./context";
 
 type Callback = () => void;
 type ExecutorReturn = Promise<GraphResult | undefined>;
-type Executor = (graph: AppConfig, params?: KeyValue) => ExecutorReturn;
+type Executor = (graph: AppConfig, params?: KeyValue, clientSocketId?: string) => ExecutorReturn;
 
 export interface IExecutionController {
     started: boolean;
     paused: boolean;
-    start(executor: Executor, graph: AppConfig, params?: KeyValue): ExecutorReturn;
+    start(executor: Executor, graph: AppConfig, params?: KeyValue, clientSocketId?: string): ExecutorReturn;
     pause(onPaused?: Callback): void;
     resume(onResumed?: Callback): void;
     cancel(onCanceled?: Callback): void;
@@ -60,25 +60,33 @@ export class LocalExecutionController implements IExecutionController {
     }
 }
 
-export class RemoteExecutionController implements IExecutionController {
-    started = false;
+export class WorkerExecutionController implements IExecutionController {
+    started = true;
     paused = false;
     private socket: Socket<ServerToClientEvents, ClientToServerEvents> | null = null;
+    private clientSocketId: string | undefined;
 
-    constructor(websocketServerUrl: string = "ws://localhost:3001") {
+    constructor(websocketServerUrl: string = "ws://localhost:3001", clientSocketId?: string) {
         this.initSocket(websocketServerUrl);
+        this.clientSocketId = clientSocketId;
     }
 
     private initSocket(websocketServerUrl: string) {
         this.socket = io(websocketServerUrl, { path: "/ws" });
 
         this.socket.on("connect", () => {
-            if (typeof window === "undefined") {
-                console.log("ExecutionController connected to WebSocket server");
-                // Register as executor with a unique ID (could be hostname, PID, etc.)
-                const executorId = process.env.EXECUTOR_ID || `executor-${process.pid}`;
-                this.socket?.emit("registerExecutor", { executorId });
+            if (!this.clientSocketId) {
+                throw new Error("Missing client socket id");
             }
+
+            console.log("ExecutionController connected to WebSocket server");
+            // Register as executor with a unique ID (could be hostname, PID, etc.)
+            const executorId = process.env.EXECUTOR_ID || `executor-${process.pid}`;
+            this.socket?.emit("registerExecutor", { executorId, clientSocketId: this.clientSocketId });
+        });
+
+        this.socket.on("hello", (id) => {
+            if (typeof window !== "undefined") this.clientSocketId = id;
         });
 
         this.socket.on("paused", () => {
@@ -94,20 +102,83 @@ export class RemoteExecutionController implements IExecutionController {
         });
 
         this.socket.on("disconnect", () => {
-            console.log("ExecutionController disconnected from WebSocket server");
+            console.log("WorkerExecutionController disconnected from WebSocket server");
         });
 
-        if (typeof window === "undefined") {
-            // Forward IO writes to websocket server
-            eventBus.on('io_write', (log: Log) => {
-                this.socket?.emit("writeTo", log);
-            });
-        }
+        // Forward IO writes to websocket server
+        eventBus.on('io_write', (log: Log) => {
+            this.socket?.emit("writeTo", log);
+        });
     }
 
     start(executor: Executor, graph: AppConfig, params?: KeyValue): ExecutorReturn {
+        throw new Error();
+    }
+
+    pause(onPaused?: Callback): void {
+        throw new Error();
+    }
+
+    resume(onResumed?: Callback): void {
+        throw new Error();
+    }
+
+    cancel(onCanceled?: Callback): void {
+        throw new Error();
+    }
+
+    clear(): void {
+        this.started = false;
+        this.paused = false;
+    }
+
+    async waitIfPaused(): Promise<void> {
+        while (this.paused) {
+            await new Promise(resolve => setTimeout(resolve, 50));
+        }
+    }
+}
+
+export class RemoteExecutionController implements IExecutionController {
+    started = false;
+    paused = false;
+    private socket: Socket<ServerToClientEvents, ClientToServerEvents> | null = null;
+    private clientSocketId: string | undefined;
+    
+    constructor(websocketServerUrl: string = "ws://localhost:3001") {
+        this.initSocket(websocketServerUrl);
+    }
+
+    private initSocket(websocketServerUrl: string) {
+        this.socket = io(websocketServerUrl, { path: "/ws" });
+
+        this.socket.on("connect", () => {
+            console.log("Connected to remote WS server");
+        });
+
+        this.socket.on("hello", (id) => {
+            this.clientSocketId = id;
+        });
+
+        this.socket.on("disconnect", () => {
+            console.log("RemoteExecutionController disconnected from WebSocket server");
+        });
+
+        this.socket.on("writeTo", (data) => {
+            eventBus.emit<Log>("io_write", data);
+        });
+    }
+
+    async waitForClientSocketId() {
+        while (!this.clientSocketId) {
+            await new Promise(resolve => setTimeout(resolve, 50));
+        }
+    }
+
+    async start(executor: Executor, graph: AppConfig, params?: KeyValue): ExecutorReturn {
         this.started = true;
-        return executor(graph, params).finally(() => this.clear());
+        await this.waitForClientSocketId();
+        return executor(graph, params, this.clientSocketId).finally(() => this.clear());
     }
 
     clear(): void {
@@ -147,13 +218,13 @@ class ExecutionController implements IExecutionController {
     private controller: IExecutionController | null = null;
     private mode: "local" | "remote" = "local";
 
-    private getController(): IExecutionController {
+    private getController() {
         if (this.controller) return this.controller;
 
-        return this.controller = (this.mode === "local"
+        return this.controller = this.mode === "local"
             ? new LocalExecutionController()
             : new RemoteExecutionController()
-        );
+        ;
     }
 
     get started() { return this.getController().started; }
@@ -192,9 +263,5 @@ class ExecutionController implements IExecutionController {
 }
 
 const controller = new ExecutionController();
-
-if (typeof window === "undefined") {
-    controller.setMode("remote");
-}
 
 export default controller;

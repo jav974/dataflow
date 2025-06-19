@@ -9,6 +9,6 @@ export async function getExecutionGraph(graph: AppConfig): Promise<ExecutionGrap
     return buildExecutionGraph(graph);
 }
 
-export async function executeGraph(graph: AppConfig, params?: KeyValue): Promise<GraphResult | undefined> {
-    return runGraph(graph, params);
+export async function executeGraph(graph: AppConfig, params?: KeyValue, clientSocketId?: string): Promise<GraphResult | undefined> {
+    return runGraph(graph, params, clientSocketId);
 }

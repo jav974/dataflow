@@ -34,7 +34,7 @@ export default function NodeInputs({nodeId, nodeType, inputs, onRef, multiple = 
                 name: "",
                 type: multipleType ?? ParameterTypes.STRING,
                 required: true,
-                editable: true
+                editable: multipleType !== ParameterTypes.ANY
             });
         } else {
             addNodeInput(nodeId, {

@@ -39,6 +39,7 @@ export interface ExecutionGraph {
     visited: boolean;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     context: Map<string, any>;
+    pos: number;
 }
 
 export interface GraphResult {

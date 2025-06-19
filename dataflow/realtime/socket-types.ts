@@ -1,6 +1,7 @@
 import { Log } from "../engine/types";
 
 export interface ServerToClientEvents {
+    hello: (id: string) => void;
     writeTo: (data: Log) => void;
     paused: () => void;
     resumed: () => void;
@@ -8,7 +9,7 @@ export interface ServerToClientEvents {
 }
 
 export interface ClientToServerEvents {
-    registerExecutor: (data: { executorId: string }) => void;
+    registerExecutor: (data: { executorId: string, clientSocketId: string }) => void;
     pause: (callback: () => void) => void;
     resume: (callback: () => void) => void;
     cancel: (callback: () => void) => void;
