@@ -20,6 +20,8 @@ import IONode from "./io/IONode";
 import Node from "../core/Node";
 import { LogicalNode } from "./logical/LogicalNode";
 import { BitwiseNode } from "./bitwise/BitwiseNode";
+import BreakTypeNode from "./type/BreakTypeNode";
+import UpdateVarNode from "./variables/UpdateVarNode";
 
 registry.set(NodeType.START, {
     builder: (node: NodeConfig) => <StartNode node={node} />,
@@ -168,7 +170,7 @@ registry.set(NodeType.MATH_SQRT, {
 });
 
 registry.set(NodeType.SET, {
-    builder: (node: NodeConfig) => <SetVarNode node={node} />,
+    builder: (node: NodeConfig) => <UpdateVarNode node={node} />,
     config: {
         type: NodeType.SET,
         name: "Set variable",
@@ -833,6 +835,21 @@ registry.set(NodeType.LOGICAL_NOT, {
         ],
         outputs: [
             {id: "result", name: "result", type: ParameterTypes.BOOLEAN}
+        ]
+    }
+});
+
+registry.set(NodeType.BREAK_TYPE, {
+    builder: node => <BreakTypeNode node={node} />,
+    config: {
+        type: NodeType.BREAK_TYPE,
+        executable: false,
+        name: "Break Type",
+        inputs: [
+            {id: "value", name: "value", type: ParameterTypes.ANY, required: true, editable: false}
+        ],
+        outputs: [
+            {id: "result", name: "value", type: ParameterTypes.ANY}
         ]
     }
 });

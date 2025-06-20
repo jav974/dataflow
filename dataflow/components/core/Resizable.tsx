@@ -50,6 +50,8 @@ export default function Resizable({ children, directions, className, minSize, ma
     }, [resizeDirection]);
 
     const startResize = useCallback((event: React.PointerEvent<HTMLDivElement>) => {
+        // event.preventDefault();
+        // event.stopPropagation();
         resizeDirection.current = ((event.target) as HTMLElement).dataset.direction as Direction;
         window.addEventListener("pointerup", onPointerUp);
     }, [onPointerUp]);

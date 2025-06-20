@@ -172,6 +172,7 @@ export default function ContextMenu() {
                         createNodeMenuEntry("Write", NodeType.IO_WRITE)
                     ]
                 },
+                createNodeMenuEntry("Break Type", NodeType.BREAK_TYPE),
                 createNodeMenuEntry("Delay", NodeType.DELAY),
                 createNodeMenuEntry("Sequence", NodeType.SEQUENCE),
                 createNodeMenuEntry("Fetch", NodeType.FETCH),

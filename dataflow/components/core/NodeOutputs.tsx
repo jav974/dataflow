@@ -20,7 +20,7 @@ export default function NodeOutputs({nodeId, nodeType, outputs, onOutputRef, onB
     }
 
     return (
-        <div>
+        <div className="flex flex-col grow">
             <NodeBranchOutputs nodeId={nodeId} multiple={branchMultiple} onRef={onBranchRef} branches={branches} minBranches={minBranches}/>
             <NodeValueOutputs nodeId={nodeId} multiple={multiple} nodeType={nodeType} onRef={onOutputRef} outputs={outputs} />
         </div>

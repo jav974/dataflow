@@ -16,7 +16,7 @@ export default function NewVarNode({node}: NodeProps) {
         const _var = variable.current;
         if (!_var) return ;
         const input = node.inputs ? node.inputs[0] : undefined;
-        if (!input) return ;
+        if (!input || input.id !== "default" || (node.inputs?.length ?? 0) > 1) return ;
         const primitives = [ParameterTypes.BOOLEAN, ParameterTypes.NUMBER, ParameterTypes.STRING] as string[];
 
         if (_var.isCollection || !primitives.includes(_var.type)) {

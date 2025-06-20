@@ -1,5 +1,5 @@
 import { AppConfig, ConnectionConfig, InputConfig, NodeConfig, NodeType, OutputBranchConfig, OutputConfig, ParameterValueType } from "@/dataflow/config/schema";
-import registry from "./registry";
+import registry, { NodeExecParams, NodeExecutor } from "./registry";
 import { getIOValues, jsonToMap, mapToKeyValue, Stack } from "./utils";
 import executionContext, { KeyValue } from "./context";
 import { ExecutionBranch, ExecutionGraph, ExecutionInput, ExecutionOutput, GraphResult } from "./types";
@@ -221,8 +221,11 @@ class Graph {
         // Handle iterable objects (Array, Map, Set)
         if (Symbol.iterator in target) {
             for (const [key, value] of target.entries()) {
-                foreachGraph.outputs[0].value = key;
-                foreachGraph.outputs[1].value = value;
+                const iterationInput = new Map<string, any>()
+                    .set('index', key)
+                    .set('item', value)
+                ;
+                await this.executeHandler(foreachGraph, iterationInput, registry.get(NodeType.FOREACH) as NodeExecutor);
                 graph = await this.resolveExecutionGraph(graph, true, foreachGraph.pos);
 
                 while (this.stack.pop() !== foreachGraph);
@@ -234,8 +237,11 @@ class Graph {
             const entries = Object.entries(target);
 
             for (const [key, value] of entries) {
-                foreachGraph.outputs[0].value = key;
-                foreachGraph.outputs[1].value = value;
+                const iterationInput = new Map<string, any>()
+                    .set('index', key)
+                    .set('item', value)
+                ;
+                await this.executeHandler(foreachGraph, iterationInput, registry.get(NodeType.FOREACH) as NodeExecutor);
                 graph = await this.resolveExecutionGraph(graph, true, foreachGraph.pos);
 
                 while (this.stack.pop() !== foreachGraph);
@@ -247,6 +253,22 @@ class Graph {
         return graph;
     }
 
+    async executeHandler(graph: ExecutionGraph, inputs: Map<string, any>, executor: NodeExecutor): Promise<NodeExecParams> {
+        const result = await executor(inputs, graph.context);
+
+        // Map executor result to graph outputs
+        graph.outputs = graph.outputs.map((output: ExecutionOutput) => {
+            if (result.has(output.outputId)) {
+                output.value = result.get(output.outputId);
+            } else {
+                console.log("Missing output key", output.outputId, "on", graph.nodeType, "(", graph.nodeId, ")");
+            }
+            return output;
+        });
+
+        return result;
+    }
+
     async handleExecution(graph: ExecutionGraph, revisit: boolean = false, revisitPos: number = 0): Promise<ExecutionGraph> {
         await this.waitOrCancel();
 
@@ -254,17 +276,7 @@ class Graph {
 
         if (executor) {
             const rawInputs = await this.resolveInputs(graph, revisit, revisitPos);
-            const result = await executor(rawInputs, graph.context);
-
-            // Map executor result to graph outputs
-            graph.outputs = graph.outputs.map((output: ExecutionOutput) => {
-                if (result.has(output.outputId)) {
-                    output.value = result.get(output.outputId);
-                } else {
-                    console.log("Missing output key", output.outputId, "on", graph.nodeType, "(", graph.nodeId, ")");
-                }
-                return output;
-            });
+            const result = await this.executeHandler(graph, rawInputs, executor);
 
             if (graph.branches.length > 0) {
                 switch (graph.nodeType) {
@@ -331,6 +343,9 @@ class Graph {
         this.graphs.clear();
         this.stack.clear();
         this.nodePos = 0;
+
+        executionContext.types = {};
+        graph.types?.forEach(type => executionContext.types[type.id] = type);
 
         return this.nodeConfigToExecutionGraph(startingNode, graph);
     }

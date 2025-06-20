@@ -1,11 +1,12 @@
 import { NodeType } from "@/dataflow/config/schema";
-import registry, { NodeExecParams, NodeExecutor } from "../registry";
+import registry, { NodeExecContext, NodeExecParams, NodeExecutor } from "../registry";
+import { appendResult } from "../utils";
 
-const handleArrayAt: NodeExecutor = async (inputs: NodeExecParams): Promise<NodeExecParams> => {
+const handleArrayAt: NodeExecutor = async (inputs: NodeExecParams, context: NodeExecContext): Promise<NodeExecParams> => {
     const array: unknown[] = inputs.get('array');
-    const index: number = inputs.get('index');
+    const index: number = inputs.get('index') ?? 0;
 
-    return new Map().set('result', array[index]);
+    return appendResult('result', array[index], context, 'element');
 }
 
 const handleArrayConcat: NodeExecutor = async (inputs: NodeExecParams): Promise<NodeExecParams> => {
@@ -31,11 +32,14 @@ const handleArrayFill: NodeExecutor = async (inputs: NodeExecParams): Promise<No
     return new Map().set('result', array.fill(value, start, end));
 }
 
-const handleArrayShift: NodeExecutor = async (inputs: NodeExecParams): Promise<NodeExecParams> => {
+const handleArrayShift: NodeExecutor = async (inputs: NodeExecParams, context: NodeExecContext): Promise<NodeExecParams> => {
     const array: unknown[] = inputs.get('array');
     const firstElement = array.shift();
+    const result: NodeExecParams = new Map();
 
-    return new Map().set('result', array).set('element', firstElement);
+    result.set('result', array);
+    
+    return appendResult('element', firstElement, context, 'element', result);
 };
 
 const handleArrayUnshift: NodeExecutor = async (inputs: NodeExecParams): Promise<NodeExecParams> => {
@@ -55,20 +59,26 @@ const handleArraySlice: NodeExecutor = async (inputs: NodeExecParams): Promise<N
     return new Map().set('result', slice);
 };
 
-const handleArraySplice: NodeExecutor = async (inputs: NodeExecParams): Promise<NodeExecParams> => {
+const handleArraySplice: NodeExecutor = async (inputs: NodeExecParams, context: NodeExecContext): Promise<NodeExecParams> => {
     const array: unknown[] = inputs.get('array');
     const start: number = inputs.get('start');
     const count: number = inputs.get('count');
     const removed = array.splice(start, count);
+    const result: NodeExecParams = new Map();
 
-    return new Map().set('result', array).set('removed', removed);
+    result.set('result', array);
+
+    return appendResult('removed', removed, context, 'removed', result);
 };
 
-const handleArrayPop: NodeExecutor = async (inputs: NodeExecParams): Promise<NodeExecParams> => {
+const handleArrayPop: NodeExecutor = async (inputs: NodeExecParams, context: NodeExecContext): Promise<NodeExecParams> => {
     const array: unknown[] = inputs.get('array');
     const removed = array.pop();
+    const result: NodeExecParams = new Map();
 
-    return new Map().set('result', array).set('removed', removed);
+    result.set('result', array);
+
+    return appendResult('removed', removed, context, 'removed', result);
 };
 
 const handleArrayPush: NodeExecutor = async (inputs: NodeExecParams): Promise<NodeExecParams> => {

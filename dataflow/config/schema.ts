@@ -64,6 +64,8 @@ enum NodeType {
     LOGICAL_AND = "logical_and", // &&
     LOGICAL_OR = "logical_or", // ||
     LOGICAL_NOT = "logical_not", // !
+
+    BREAK_TYPE = "break_type",
 }
 
 enum ParameterTypes {
@@ -169,5 +171,7 @@ function parseAppConfig(config: string): AppConfig {
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type ParameterValueType = any;
 
-export { NodeType, ParameterTypes, parseAppConfig };
+const PrimitiveTypes = [ParameterTypes.BOOLEAN, ParameterTypes.NUMBER, ParameterTypes.STRING];
+
+export { NodeType, ParameterTypes, parseAppConfig, PrimitiveTypes };
 export type { GraphType, TypeDefinition, TypeProperty, AppConfig, NodeConfig, InputConfig, OutputConfig, ConnectorConfig, ConnectionConfig, Coordinates, ParameterValueType, OutputBranchConfig, VariableConfig, ParameterType };

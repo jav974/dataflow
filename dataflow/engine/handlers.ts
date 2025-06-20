@@ -1,12 +1,13 @@
 import { NodeType, ParameterTypes, ParameterValueType } from "@/dataflow/config/schema";
 import registry, { NodeExecContext, NodeExecParams, NodeExecutor } from "./registry";
 import { isNumeric, math_add, math_div, math_mod, math_mul, math_sub } from "./lib";
-import executionContext from "./context";
+import executionContext, { KeyValue } from "./context";
 import "./handlers/array";
 import "./handlers/bitwise";
 import "./handlers/logical";
 import { eventBus } from "../events/events";
 import { Log } from "./types";
+import { appendResult, createVariable, destructure, getValueByPath, setValueByPath } from "./utils";
 
 type SimpleMathContext = Map<string, (...numbers: number[]) => number>;
 
@@ -105,26 +106,39 @@ const handleCompare: NodeExecutor = async (inputs: NodeExecParams): Promise<Node
 };
 
 const handleSetVar: NodeExecutor = async (inputs: NodeExecParams, context: NodeExecContext): Promise<NodeExecParams> => {
-    const result: NodeExecParams = new Map();
-    const value = inputs.get('value');
+    const inputMap: Map<string, string> = context.get('_inputMap');
+    const varName = context.get('var') as string;
+    const nodeId = context.get('_node_id') as string;
+    let value: unknown;
 
-    result.set('result', value);
-    executionContext.variables[context.get('_node_id')] = value;
+    if (inputMap.size === 1) {
+        value = inputs.get('value');
+    } else if (inputMap.size > 1) {
+        const res: KeyValue = {};
 
-    return result;
+        for (const [key, _path] of inputMap) {
+            const path = _path.replace(/^value\./, "");
+            const inputValue = inputs.get(key);
+
+            setValueByPath(res, path, inputValue);
+        }
+
+        value = res;
+    }
+
+    executionContext.variables[nodeId] = value;
+    executionContext.variables[varName] = value;
+
+    return appendResult('result', value, context, 'result');
 }
 
 const handleGetVar: NodeExecutor = async (_: NodeExecParams, context: NodeExecContext): Promise<NodeExecParams> => {
-    const result: NodeExecParams = new Map();
     const value = executionContext.variables[context.get('var')];
 
-    result.set('value', value);
-
-    return result;
+    return appendResult('value', value, context, 'value');
 };
 
 const handleNewVar: NodeExecutor = async (inputs: NodeExecParams, context: NodeExecContext): Promise<NodeExecParams> => {
-    const result: NodeExecParams = new Map();
     const value = inputs.get('defaultValue');
     let defaultValue: unknown;
 
@@ -135,7 +149,9 @@ const handleNewVar: NodeExecutor = async (inputs: NodeExecParams, context: NodeE
         if (context.get('_isCollection')) {
             defaultValue = [];
         } else {
-            switch (context.get('_type')) {
+            const type = context.get('_type');
+
+            switch (type) {
                 case ParameterTypes.BOOLEAN:
                     defaultValue = false;
                     break ;
@@ -146,16 +162,15 @@ const handleNewVar: NodeExecutor = async (inputs: NodeExecParams, context: NodeE
                     defaultValue = '';
                     break ;
                 default:
-                    defaultValue = new Map();
+                    defaultValue = createVariable(type, inputs, 'defaultValue');
                     break ;
             }
         }
     }
 
-    result.set('result', defaultValue);
     executionContext.variables[context.get('_node_id')] = defaultValue;
 
-    return result;
+    return appendResult('result', defaultValue, context, 'var');
 }
 
 const handleStart: NodeExecutor = async (_: NodeExecParams, context: NodeExecContext): Promise<NodeExecParams> => {
@@ -197,8 +212,9 @@ const handleFor: NodeExecutor = async (inputs: NodeExecParams): Promise<NodeExec
     return (new Map()).set('index', Number(inputs.get('first')));
 };
 
-const handleForeach: NodeExecutor = async (): Promise<NodeExecParams> => {
-    return (new Map()).set('index', undefined).set('item', undefined);
+const handleForeach: NodeExecutor = async (inputs: NodeExecParams, context: NodeExecContext): Promise<NodeExecParams> => {
+    return appendResult('item', inputs.get('item'), context, 'item')
+        .set('index', inputs.get('index'));
 };
 
 const handleStringTrim: NodeExecutor = async (inputs: NodeExecParams): Promise<NodeExecParams> => {
@@ -324,8 +340,18 @@ const handleDelay: NodeExecutor = async (inputs: NodeExecParams): Promise<NodeEx
     return result.set('awaited', after - before);
 }
 
+const handleBreakType: NodeExecutor = async (inputs: NodeExecParams, context: NodeExecContext): Promise<NodeExecParams> => {
+    const input = inputs.get('value');
+    const result: NodeExecParams = new Map();
 
+    for (const [key, value] of context.get('_outputMap')) {
+        result.set(key, getValueByPath(input, value));
+    }
 
+    return result;
+}
+
+registry.set(NodeType.DEBUG, dummyExecutor);
 registry.set(NodeType.START, handleStart);
 registry.set(NodeType.RETURN, handleReturn);
 
@@ -358,3 +384,5 @@ registry.set(NodeType.STRING_TO_LOWER, handleStringToLower);
 
 registry.set(NodeType.IO_WRITE, handleIOWrite);
 registry.set(NodeType.DELAY, handleDelay);
+
+registry.set(NodeType.BREAK_TYPE, handleBreakType);

@@ -191,7 +191,7 @@ export default function Node({
             onContextMenu={onContextMenu}
         >
             <div
-                className={`bg-gray-800 rounded-lg p-1 ${selected ? 'outline-4 rounded outline-blue-500' : ''} ${isFocused ? 'outline-2 rounded outline-orange-500' : ''}`}
+                className={`flex flex-col bg-gray-800 rounded-lg p-1 ${selected ? 'outline-4 rounded outline-blue-500' : ''} ${isFocused ? 'outline-2 rounded outline-orange-500' : ''}`}
                 style={{opacity: 0.9, minWidth: `${size?.width}px`}}
             >
                 <div className="flex w-full border-b-1 border-b-gray-700 mb-2">
@@ -206,7 +206,7 @@ export default function Node({
 
                 {children}
 
-                <div className={`${node.inputs && (node.outputs || node.branches) ? 'grid-cols-2' : 'grid-cols-1'} grid gap-1`}>
+                <div className={`flex grow gap-2`}>
                     <NodeInputs
                         nodeId={node.id}
                         nodeType={node.type}

@@ -1,11 +1,11 @@
 import React, { createContext, useCallback, useContext, useState } from "react";
-import { AppConfig, ConnectionConfig, ConnectorConfig, Coordinates, GraphType, InputConfig, NodeConfig, NodeType, OutputBranchConfig, OutputConfig, VariableConfig } from "@/dataflow/config/schema";
+import { AppConfig, ConnectionConfig, ConnectorConfig, Coordinates, GraphType, InputConfig, NodeConfig, NodeType, OutputBranchConfig, OutputConfig, ParameterType, ParameterTypes, PrimitiveTypes, VariableConfig } from "@/dataflow/config/schema";
 import { RefState, useRefState } from "@/dataflow/hooks/useRefState";
 import { filterObject } from "@/dataflow/engine/utils";
 import { useRefSignal, useRefSignalEffect, RefSignal, batch, createRefSignal } from "react-refsignal";
 import { KeyValue } from "../engine/context";
 
-interface ConnectionInfo {
+export interface ConnectionInfo {
     node: RefSignal<NodeConfig>;
     target: InputConfig | OutputConfig;
 }
@@ -51,6 +51,8 @@ interface GraphContextType {
     setOutputName: (nodeId: string, outputId: string, name: string) => void;
     setInputName: (nodeId: string, inputId: string, name: string) => void;
     getConnectionInfo: (nodeId: string, src: InputConfig | OutputConfig) => ConnectionInfo | undefined;
+    splitInputParam: (nodeId: string, inputId: string) => void;
+    splitOutputParam: (nodeId: string, outputId: string) => void;
 }
 
 const GraphContext = createContext<GraphContextType | null>(null);
@@ -113,20 +115,28 @@ export function GraphProvider({children}: GraphProviderProps) {
         }
     }, [variables]);
 
+    const removeType = useCallback((typeId: string) => {
+        types.update(types.current.filter(type => type.id !== typeId ));
+    }, [types]);
+
     const removeNode = useCallback((id: string) => {
         const index = nodes.current.findIndex((n: RefSignal<NodeConfig>) => n.current.id === id);
 
         if (index !== -1) {
             batch(() => {
-                if (nodes.current[index].current.type === NodeType.SET) {
+                if (nodes.current[index].current.type === NodeType.NEW) {
                     removeVariable(id);
+                }
+
+                if (nodes.current[index].current.type === NodeType.TYPEDEF) {
+                    removeType(id);
                 }
 
                 nodes.current.splice(index, 1);
                 removeConnectionsByPredicate(conn => (conn.from.id === id || conn.to.id === id));
             }, [nodes, connections, variables]);
         }
-    }, [nodes, connections, removeVariable, removeConnectionsByPredicate, variables]);
+    }, [nodes, connections, removeVariable, removeConnectionsByPredicate, variables, removeType]);
 
     const addNodeInput = useCallback((id: string, input: InputConfig) => {
         const nodeSignal = nodes.current.find((n: RefSignal<NodeConfig>) => n.current.id === id);
@@ -410,6 +420,66 @@ export function GraphProvider({children}: GraphProviderProps) {
         }
     }, [connections, nodes]);
 
+    const splitInputParam = useCallback((nodeId: string, inputId: string) => {
+        const node = nodes.current.find(node => node.current.id === nodeId);
+        if (!node) return;
+        const input = node.current.inputs?.find(input => input.id === inputId);
+        if (!input) return;
+
+        const graphType = types.current.find(graphType => graphType.id === input.type);
+        const inputs = graphType?.properties.map((graphType): InputConfig => {
+            return {
+                id: `${inputId}_${graphType.id}`,
+                name: `${input.name}.${graphType.name}`,
+                type: graphType.type,
+                isCollection: graphType.isCollection,
+                required: false,
+                editable: PrimitiveTypes.includes(graphType.type as ParameterTypes)
+            };
+        }) ?? [];
+
+        let newInputs: InputConfig[] = [];
+
+        for (const _input of node.current.inputs ?? []) {
+            if (_input.id !== inputId) {
+                newInputs.push(_input);
+            } else {
+                newInputs = newInputs.concat(inputs);
+            }
+        }
+
+        setNodeInputs(node.current.id, newInputs);
+    }, [nodes, setNodeInputs]);
+
+    const splitOutputParam = useCallback((nodeId: string, outputId: string) => {
+        const node = nodes.current.find(node => node.current.id === nodeId);
+        if (!node) return;
+        const output = node.current.outputs?.find(output => output.id === outputId);
+        if (!output) return;
+
+        const graphType = types.current.find(graphType => graphType.id === output.type);
+        const outputs = graphType?.properties.map((graphType): OutputConfig => {
+            return {
+                id: `${outputId}_${graphType.id}`,
+                name: `${output.name}.${graphType.name}`,
+                type: graphType.type,
+                isCollection: graphType.isCollection,
+            };
+        }) ?? [];
+
+        let newOutputs: OutputConfig[] = [];
+
+        for (const _output of node.current.outputs ?? []) {
+            if (_output.id !== outputId) {
+                newOutputs.push(_output);
+            } else {
+                newOutputs = newOutputs.concat(outputs);
+            }
+        }
+
+        setNodeOutputs(node.current.id, newOutputs);
+    }, [nodes, setNodeOutputs]);
+
     return <GraphContext.Provider value={{
         name,
         nodes,
@@ -448,7 +518,9 @@ export function GraphProvider({children}: GraphProviderProps) {
         setNodeContext,
         setOutputName,
         setInputName,
-        getConnectionInfo
+        getConnectionInfo,
+        splitInputParam,
+        splitOutputParam,
     }}>
         {children}
     </GraphContext.Provider>

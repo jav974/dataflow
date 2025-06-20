@@ -34,7 +34,7 @@ export default function NodeValueOutputs({nodeId, nodeType, outputs, onRef, mult
 
     return (
         <div
-            className={`space-y-2 pb-2 pt-2 border-2 border-transparent ${multiple ? 'hover:border-gray-500 hover:border-dashed' : ''}`}
+            className={`flex flex-col grow space-y-2 pb-2 pt-2 border-2 border-transparent ${multiple ? 'hover:border-gray-500 hover:border-dashed' : ''}`}
             onPointerEnter={handleMouseEnter}
             onPointerLeave={handleMouseLeave}
         >
