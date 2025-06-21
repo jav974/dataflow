@@ -17,13 +17,8 @@ Dataflow allows developers to build functional logic through an intuitive graph 
 First, run the development server:
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm i && npm run dev
+# or use yarn, pnpm or bun
 ```
 
 Open [http://localhost:3000/editor](http://localhost:3000/editor) with your browser to see the result.
