@@ -220,8 +220,8 @@ const handleForeach: NodeExecutor = async (inputs: NodeExecParams, context: Node
 const handleStringTrim: NodeExecutor = async (inputs: NodeExecParams): Promise<NodeExecParams> => {
     const result: NodeExecParams = new Map();
     const value = inputs.get('value')?.toString() ?? '';
-    const ltrim = inputs.get('ltrim') ?? true;
-    const rtrim = inputs.get('rtrim') ?? true;
+    const ltrim = inputs.has('left') ? inputs.get('left') as boolean : true;
+    const rtrim = inputs.has('right') ? inputs.get('right') as boolean : true;
 
     result.set('result', value);
 

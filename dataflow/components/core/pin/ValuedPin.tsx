@@ -93,9 +93,9 @@ export default function ValuedPin({id, name, type, required, defaultValue, remov
                     {inputType !== "checkbox" &&
                         <Input className="grow" id={id} name={id} onBlur={onBlur} placeholder={name} styling="outline" type={inputType} />
                     }
+                    <span className={`${required ? 'visible' : 'invisible'} text-red-500 ml-1`}>*</span>
                 </div>
-                <span className={`${required ? 'visible' : 'invisible'} text-red-500 ml-1`}>*</span>
-                <span className={`${removable && isHovered ? 'visible' : 'invisible'} text-red-500 ml-1 cursor-pointer`} onClick={onRemove}>[x]</span>
+                {removable && <span className={`${isHovered ? 'visible' : 'invisible'} text-red-500 ml-1 cursor-pointer`} onClick={onRemove}>[x]</span>}
             </form>
         </FormProvider>
     );

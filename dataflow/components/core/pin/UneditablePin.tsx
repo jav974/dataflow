@@ -25,7 +25,7 @@ export default function UneditablePin({name, type, isCollection, isInput, remova
     }, [type]);
 
     return (
-        <div className={`flex grow ${!isInput ? 'justify-end' : ''}`} onPointerEnter={handleMouseEnter} onPointerLeave={handleMouseLeave}>
+        <div className={`flex ${!isInput ? 'justify-end' : ''}`} onPointerEnter={handleMouseEnter} onPointerLeave={handleMouseLeave}>
             {name}
             {customType && !isCollection &&
                 <Tooltip tooltip="Expand">
