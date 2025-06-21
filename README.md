@@ -61,4 +61,4 @@ This project is licensed under the Business Source License 1.1 (BSL-1.1).
 - Non-commercial use is allowed for development, education, and personal experimentation.
 - Commercial use requires a separate license. Please contact [jeremyvienne@gmail.com] for licensing inquiries.
 - License change date: On June 21, 2030, this project will automatically transition to the MIT License.
-You can view the full BSL-1.1 license text here, or see the LICENSE.txt file in this repository.
+You can view the full BSL-1.1 license text [here](https://spdx.org/licenses/BUSL-1.1.html), or see the [LICENSE](LICENSE) file in this repository.
