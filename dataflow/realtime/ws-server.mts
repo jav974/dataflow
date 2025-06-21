@@ -3,10 +3,11 @@ import type { ServerToClientEvents, ClientToServerEvents } from "./socket-types"
 
 const io = new Server<ClientToServerEvents, ServerToClientEvents>(3001, {
     path: "/ws",
-    cors: { origin: "*" }, // Adjust for your needs
+    cors: { origin: "*" },
 });
 
-const executorMap: Map<string, string> = new Map();
+const clientToExecutor = new Map<string, string>();
+const executorToClient = new Map<string, string>();
 
 io.on("connection", (socket) => {
     console.log("Client connected:", socket.id);
@@ -14,14 +15,15 @@ io.on("connection", (socket) => {
     socket.emit("hello", socket.id);
 
     socket.on("registerExecutor", (data) => {
-        console.log("Register executor", data.executorId, socket.id, "for client", data.clientSocketId);
-        executorMap.set(data.clientSocketId, socket.id);
+        console.log("Register", data.executorId, socket.id, "for client", data.clientSocketId);
+        clientToExecutor.set(data.clientSocketId, socket.id);
+        executorToClient.set(socket.id, data.clientSocketId);
     });
 
     // Listen for events from client
     socket.on("pause", (ack) => {
         console.log("Received pause from react client");
-        const executorSocketId = executorMap.get(socket.id);
+        const executorSocketId = clientToExecutor.get(socket.id);
         
         if (executorSocketId) {
             io.to(executorSocketId).emit("paused");
@@ -31,7 +33,7 @@ io.on("connection", (socket) => {
 
     socket.on("resume", (ack) => {
         console.log("Received resume from react client");
-        const executorSocketId = executorMap.get(socket.id);
+        const executorSocketId = clientToExecutor.get(socket.id);
         
         if (executorSocketId) {
             io.to(executorSocketId).emit("resumed");
@@ -41,7 +43,7 @@ io.on("connection", (socket) => {
 
     socket.on("cancel", (ack) => {
         console.log("Received cancel from react client");
-        const executorSocketId = executorMap.get(socket.id);
+        const executorSocketId = clientToExecutor.get(socket.id);
         
         if (executorSocketId) {
             io.to(executorSocketId).emit("canceled");
@@ -50,24 +52,25 @@ io.on("connection", (socket) => {
     });
 
     socket.on("writeTo", (data) => {
-        for (const [clientSocketId, executorSocketId] of executorMap) {
-            if (executorSocketId === socket.id) {
-                io.to(clientSocketId).emit("writeTo", data);
-                break ;
-            }
+        const clientSocketId = executorToClient.get(socket.id);
+
+        if (clientSocketId) {
+            io.to(clientSocketId).emit("writeTo", data);
         }
     });
 
     socket.on("disconnect", () => {
         console.log("Client disconnected:", socket.id);
         
-        for (const [key, value] of executorMap.entries()) {
+        for (const [key, value] of clientToExecutor.entries()) {
             if (value === socket.id) {
                 console.log("Executor disconnected");
-                executorMap.delete(key);
+                clientToExecutor.delete(key);
                 break ;
             }
         }
+
+        executorToClient.delete(socket.id);
     });
 });
 

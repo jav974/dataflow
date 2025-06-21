@@ -296,7 +296,7 @@ const handleStringToLower: NodeExecutor = async (inputs: NodeExecParams): Promis
     return result;
 };
 
-const handleIOWrite: NodeExecutor = async (inputs: NodeExecParams): Promise<NodeExecParams> => {
+const handleIOWrite: NodeExecutor = async (inputs: NodeExecParams, context: NodeExecContext): Promise<NodeExecParams> => {
     const result: NodeExecParams = new Map();
     const fd = inputs.get('fd') as number;
     const content = inputs.get('content') as string;
@@ -315,7 +315,10 @@ const handleIOWrite: NodeExecutor = async (inputs: NodeExecParams): Promise<Node
     // TODO: Really handle fd server side
 
     // Emit an event for client display
-    eventBus.emit<Log>('io_write', {
+    const clientSocketId = context.get('_clientSocketId');
+    const eventName = !clientSocketId ? 'io_write' : 'io_write_' + clientSocketId;
+
+    eventBus.emit<Log>(eventName, {
         type,
         createdAt: Date.now(),
         message: content

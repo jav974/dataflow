@@ -65,7 +65,7 @@ enum NodeType {
     LOGICAL_OR = "logical_or", // ||
     LOGICAL_NOT = "logical_not", // !
 
-    BREAK_TYPE = "break_type",
+    BREAK_TYPE = "break_type", // To expand/acess properties of a type
 }
 
 enum ParameterTypes {

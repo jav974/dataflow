@@ -64,21 +64,21 @@ export class WorkerExecutionController implements IExecutionController {
     started = true;
     paused = false;
     private socket: Socket<ServerToClientEvents, ClientToServerEvents> | null = null;
-    private clientSocketId: string | undefined;
+    private clientSocketId: string;
 
-    constructor(websocketServerUrl: string = "ws://localhost:3001", clientSocketId?: string) {
-        this.initSocket(websocketServerUrl);
+    private forwardIOWrites = (log: Log) => {
+        this.socket?.emit("writeTo", log);
+    };
+
+    constructor(websocketServerUrl: string = "ws://localhost:3001", clientSocketId: string) {
         this.clientSocketId = clientSocketId;
+        this.initSocket(websocketServerUrl);
     }
 
     private initSocket(websocketServerUrl: string) {
         this.socket = io(websocketServerUrl, { path: "/ws" });
 
         this.socket.on("connect", () => {
-            if (!this.clientSocketId) {
-                throw new Error("Missing client socket id");
-            }
-
             console.log("ExecutionController connected to WebSocket server");
             // Register as executor with a unique ID (could be hostname, PID, etc.)
             const executorId = process.env.EXECUTOR_ID || `executor-${process.pid}`;
@@ -106,9 +106,7 @@ export class WorkerExecutionController implements IExecutionController {
         });
 
         // Forward IO writes to websocket server
-        eventBus.on('io_write', (log: Log) => {
-            this.socket?.emit("writeTo", log);
-        });
+        eventBus.on('io_write_' + this.clientSocketId, this.forwardIOWrites);
     }
 
     start(executor: Executor, graph: AppConfig, params?: KeyValue): ExecutorReturn {
@@ -128,8 +126,10 @@ export class WorkerExecutionController implements IExecutionController {
     }
 
     clear(): void {
+        eventBus.off('io_write_' + this.clientSocketId, this.forwardIOWrites);
         this.started = false;
         this.paused = false;
+        this.socket?.disconnect();
     }
 
     async waitIfPaused(): Promise<void> {
@@ -144,13 +144,14 @@ export class RemoteExecutionController implements IExecutionController {
     paused = false;
     private socket: Socket<ServerToClientEvents, ClientToServerEvents> | null = null;
     private clientSocketId: string | undefined;
-    
+    private wsUrl: string | undefined;
+
     constructor(websocketServerUrl: string = "ws://localhost:3001") {
-        this.initSocket(websocketServerUrl);
+        this.wsUrl = websocketServerUrl;
     }
 
-    private initSocket(websocketServerUrl: string) {
-        this.socket = io(websocketServerUrl, { path: "/ws" });
+    private initSocket() {
+        this.socket = io(this.wsUrl, { path: "/ws" });
 
         this.socket.on("connect", () => {
             console.log("Connected to remote WS server");
@@ -176,6 +177,14 @@ export class RemoteExecutionController implements IExecutionController {
     }
 
     async start(executor: Executor, graph: AppConfig, params?: KeyValue): ExecutorReturn {
+        if (!this.socket) {
+            this.clientSocketId = undefined;
+            this.initSocket();
+        } else if (!this.socket.connected) {
+            this.clientSocketId = undefined;
+            this.socket?.connect();
+        }
+
         this.started = true;
         await this.waitForClientSocketId();
         return executor(graph, params, this.clientSocketId).finally(() => this.clear());
@@ -184,6 +193,8 @@ export class RemoteExecutionController implements IExecutionController {
     clear(): void {
         this.started = false;
         this.paused = false;
+        this.clientSocketId = undefined;
+        this.socket?.disconnect();
     }
 
     pause(onPaused?: Callback) {

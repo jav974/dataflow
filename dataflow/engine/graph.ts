@@ -11,9 +11,11 @@ class Graph {
     private graphs: Map<string, ExecutionGraph> = new Map();
     private stack: Stack<ExecutionGraph> = new Stack();
     private nodePos: number = 0;
+    private clientSocketId: string | undefined;
 
     constructor(clientSocketId?: string) {
         if (clientSocketId) {
+            this.clientSocketId = clientSocketId;
             this.controller = new WorkerExecutionController(undefined, clientSocketId);
         } else {
             this.controller = controller;
@@ -95,6 +97,7 @@ class Graph {
         context.set('_node_id', node.id);
         context.set('_inputMap', new Map<string, string>());
         context.set('_outputMap', new Map<string, string>());
+        context.set('_clientSocketId', this.clientSocketId);
 
         executionGraph = {
             pos: this.nodePos++,
@@ -361,6 +364,8 @@ class Graph {
         }
 
         executionGraph = await this.resolveExecutionGraph(executionGraph);
+        this.controller.clear();
+
         let iterator = executionGraph;
 
         while (iterator.next) {
