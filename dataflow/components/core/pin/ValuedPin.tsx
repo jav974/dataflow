@@ -5,6 +5,7 @@ import { FormProvider, useForm } from "react-hook-form"
 import { yupResolver } from "@hookform/resolvers/yup"
 import * as yup from "yup"
 import Input from "@/dataflow/components/forms/Input";
+import Checkbox from "../../forms/Checkbox";
 
 interface ValuedPinProps {
     id: string;
@@ -44,19 +45,20 @@ export default function ValuedPin({id, name, type, required, defaultValue, remov
         return yup.object({[id]: fieldSchema});
     }, [id, type, required]);
 
-    const defaultPinValue = useMemo(() => {
-        switch (type) {
-            case ParameterTypes.NUMBER:
-                return defaultValue ?? 0;
-            case ParameterTypes.BOOLEAN:
-                return defaultValue ?? "false";
-            case ParameterTypes.ANY:
-                return defaultValue;
-            case ParameterTypes.STRING:
-            default:
-                return defaultValue ?? "";
-        }
-    }, [type, defaultValue]);
+    // const defaultPinValue = useMemo(() => {
+    //     switch (type) {
+    //         case ParameterTypes.NUMBER:
+    //             return defaultValue;
+    //         case ParameterTypes.BOOLEAN:
+    //             return defaultValue ?? "false";
+    //         case ParameterTypes.ANY:
+    //             return defaultValue;
+    //         case ParameterTypes.STRING:
+    //         default:
+    //             return defaultValue ?? "";
+    //     }
+    // }, [type, defaultValue]);
+    const defaultPinValue = defaultValue;
 
     const methods = useForm({
         resolver: yupResolver(schema),
@@ -69,15 +71,31 @@ export default function ValuedPin({id, name, type, required, defaultValue, remov
         formRef.current?.requestSubmit();
     }, []);
 
+    const inputType = useMemo(() => {
+        switch (type) {
+            case ParameterTypes.BOOLEAN:
+                return "checkbox";
+            case ParameterTypes.NUMBER:
+                return "number";
+            default:
+                return "text";
+        }
+    }, [type]);
+
     return (
         <FormProvider {...methods}>
             <form ref={formRef} onSubmit={methods.handleSubmit(onSubmit)} onPointerEnter={handleMouseEnter} onPointerLeave={handleMouseLeave} className="flex grow">
-                <div className="flex flex-col grow">
-                    {name}
-                    <Input className="grow" id={id} name={id} onBlur={onBlur} placeholder={name}/>
+                <div className="flex grow">
+                    {name}&nbsp;
+                    {inputType === "checkbox" &&
+                        <Checkbox id={id} name={id} onBlur={onBlur} styling="solid" />
+                    }
+                    {inputType !== "checkbox" &&
+                        <Input className="grow" id={id} name={id} onBlur={onBlur} placeholder={name} styling="outline" type={inputType} />
+                    }
                 </div>
-                {removable && isHovered && <span className="text-red-500 ml-1 cursor-pointer" onClick={onRemove}>[x]</span>}
                 <span className={`${required ? 'visible' : 'invisible'} text-red-500 ml-1`}>*</span>
+                <span className={`${removable && isHovered ? 'visible' : 'invisible'} text-red-500 ml-1 cursor-pointer`} onClick={onRemove}>[x]</span>
             </form>
         </FormProvider>
     );

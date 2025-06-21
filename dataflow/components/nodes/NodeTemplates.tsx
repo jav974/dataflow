@@ -65,8 +65,8 @@ registry.set(NodeType.MATH_ADD, {
         name: "Add",
         executable: false,
         inputs: [
-            {id: "num_a", name: "A", type: ParameterTypes.NUMBER, required: true, editable: true, defaultValue: 0},
-            {id: "num_b", name: "B", type: ParameterTypes.NUMBER, required: true, editable: true, defaultValue: 0},
+            {id: "num_a", name: "", type: ParameterTypes.NUMBER, required: true, editable: true, defaultValue: 0},
+            {id: "num_b", name: "", type: ParameterTypes.NUMBER, required: true, editable: true, defaultValue: 0},
         ],
         outputs: [
             {id: "result", name: "result", type: ParameterTypes.NUMBER}
@@ -81,8 +81,8 @@ registry.set(NodeType.MATH_SUB, {
         name: "Subtract",
         executable: false,
         inputs: [
-            {id: "num_a", name: "A", type: ParameterTypes.NUMBER, required: true, editable: true, defaultValue: 0},
-            {id: "num_b", name: "B", type: ParameterTypes.NUMBER, required: true, editable: true, defaultValue: 0},
+            {id: "num_a", name: "", type: ParameterTypes.NUMBER, required: true, editable: true, defaultValue: 0},
+            {id: "num_b", name: "", type: ParameterTypes.NUMBER, required: true, editable: true, defaultValue: 0},
         ],
         outputs: [
             {id: "result", name: "result", type: ParameterTypes.NUMBER}
@@ -97,8 +97,8 @@ registry.set(NodeType.MATH_MUL, {
         name: "Multiply",
         executable: false,
         inputs: [
-            {id: "num_a", name: "A", type: ParameterTypes.NUMBER, required: true, editable: true, defaultValue: 1},
-            {id: "num_b", name: "B", type: ParameterTypes.NUMBER, required: true, editable: true, defaultValue: 1},
+            {id: "num_a", name: "", type: ParameterTypes.NUMBER, required: true, editable: true, defaultValue: 1},
+            {id: "num_b", name: "", type: ParameterTypes.NUMBER, required: true, editable: true, defaultValue: 1},
         ],
         outputs: [
             {id: "result", name: "result", type: ParameterTypes.NUMBER}
@@ -113,8 +113,8 @@ registry.set(NodeType.MATH_DIV, {
         name: "Divide",
         executable: false,
         inputs: [
-            {id: "num_a", name: "A", type: ParameterTypes.NUMBER, required: true, editable: true, defaultValue: 1},
-            {id: "num_b", name: "B", type: ParameterTypes.NUMBER, required: true, editable: true, defaultValue: 1},
+            {id: "num_a", name: "", type: ParameterTypes.NUMBER, required: true, editable: true, defaultValue: 1},
+            {id: "num_b", name: "", type: ParameterTypes.NUMBER, required: true, editable: true, defaultValue: 1},
         ],
         outputs: [
             {id: "result", name: "result", type: ParameterTypes.NUMBER}
@@ -129,8 +129,8 @@ registry.set(NodeType.MATH_MOD, {
         name: "Modulo",
         executable: false,
         inputs: [
-            {id: "num_a", name: "A", type: ParameterTypes.NUMBER, required: true, editable: true, defaultValue: 0},
-            {id: "num_b", name: "B", type: ParameterTypes.NUMBER, required: true, editable: true, defaultValue: 0},
+            {id: "num_a", name: "", type: ParameterTypes.NUMBER, required: true, editable: true, defaultValue: 0},
+            {id: "num_b", name: "", type: ParameterTypes.NUMBER, required: true, editable: true, defaultValue: 0},
         ],
         outputs: [
             {id: "result", name: "result", type: ParameterTypes.NUMBER}
@@ -355,7 +355,7 @@ registry.set(NodeType.STRING_CONCAT, {
         name: "Concatenate",
         executable: false,
         inputs: [
-            {id: "value", name: "Value", type: ParameterTypes.STRING, required: true, editable: true, defaultValue: ""}
+            {id: "value", name: "", type: ParameterTypes.STRING, required: true, editable: true, defaultValue: ""}
         ],
         outputs: [
             {id: "result", name: "result", type: ParameterTypes.STRING}
@@ -657,7 +657,7 @@ registry.set(NodeType.IO_WRITE, {
         executable: true,
         name: "IO Write",
         inputs: [
-            {id: "fd", name: "File descriptor", type: ParameterTypes.NUMBER, required: true, editable: true, defaultValue: 1},
+            {id: "fd", name: "FD", type: ParameterTypes.NUMBER, required: true, editable: true, defaultValue: 1},
             {id: "content", name: "Content", type: ParameterTypes.STRING, required: true, editable: true}
         ],
         outputs: [

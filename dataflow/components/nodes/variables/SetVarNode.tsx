@@ -58,10 +58,6 @@ export default function SetVarNode({node}: NodeProps) {
         formRef.current?.requestSubmit();
     }, []);
 
-    // const inputClassName = methods.formState.errors["name"]
-    //     ? "p-1 outline outline-red-500/50 focus:outline-red-500 max-h-[30px] grow text-center"
-    //     : "p-1 outline outline-blue-500/50 focus:outline-blue-500 max-h-[30px] grow text-center";
-
     useRefSignalRender([variables, types]);
 
     return (
