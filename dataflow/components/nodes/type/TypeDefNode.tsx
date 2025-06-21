@@ -101,7 +101,7 @@ export default function TypeDefNode({node}: NodeProps) {
             hasExecute={false}
         >
             <FormProvider {...methods}>
-                <form ref={formRef} onSubmit={methods.handleSubmit(onSubmit)} className="flex flex-col justify-center">
+                <form ref={formRef} onSubmit={methods.handleSubmit(onSubmit)} className="flex flex-col grow justify-center">
                     <Input className="text-center self-center" placeholder="Typename" name="name" onBlur={onBlur}/>
 
                     <div className="pt-4">

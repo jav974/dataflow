@@ -1,4 +1,4 @@
-import React, { useCallback, useRef, useState } from "react";
+import React, { useCallback, useMemo, useRef, useState } from "react";
 import { InputPin, OutputBranchPin, OutputPin, Pin as PinType, useNodeContext } from "@/dataflow/contexts/NodeContext";
 import PinExecute from "./pin/PinExecute";
 import PinContinue from "./pin/PinContinue";
@@ -28,12 +28,14 @@ export interface NodeProps {
     outputMultiple?: boolean;
     branchMultiple?: boolean;
     minBranches?: number;
+    headClassName?: string;
 }
 
 export default function Node({
     node, children, size, hasExecute = true, hasContinue = true,
     inputMultiple = false, minInputParams = 0, inputMultipleType,
-    outputMultiple = false, branchMultiple = false, minBranches = 0
+    outputMultiple = false, branchMultiple = false, minBranches = 0,
+    headClassName
  }: NodeProps) {
     const inputPinsRef = useRef<Map<string, HTMLDivElement | null>>(new Map());
     const outputPinsRef = useRef<Map<string, HTMLDivElement | null>>(new Map());
@@ -181,6 +183,20 @@ export default function Node({
         stopSelection();
     }, [stopConnectionDrag, stopSelection]);
 
+    const finalHeadClassName = useMemo(() => {
+        if (headClassName) return headClassName;
+
+        if (hasExecute && hasContinue) {
+            return "bg-green-800/80";
+        } else if (hasExecute) {
+            return "bg-indigo-900";
+        } else if (hasContinue) {
+            return "bg-indigo-900";
+        } else {
+            return "bg-red-800/60";
+        }
+    }, [headClassName, hasExecute, hasContinue]);
+
     return (
         <div
             ref={containerRef}
@@ -191,12 +207,12 @@ export default function Node({
             onContextMenu={onContextMenu}
         >
             <div
-                className={`flex flex-col bg-gray-800 rounded-lg p-1 ${selected ? 'outline-4 rounded outline-blue-500' : ''} ${isFocused ? 'outline-2 rounded outline-orange-500' : ''}`}
+                className={`flex flex-col bg-gray-800 rounded-lg ${selected ? 'outline-4 rounded outline-blue-500' : ''} ${isFocused ? 'outline-2 rounded outline-orange-500' : ''}`}
                 style={{opacity: 0.9, minWidth: `${size?.width}px`}}
             >
-                <div className="flex w-full border-b-1 border-b-gray-700 mb-2">
+                <div className={`flex w-full border-b-1 rounded-t-lg border-b-gray-700 p-1 mb-2 ${finalHeadClassName}`}>
                     {hasExecute && <PinExecute id={node.id} onRef={onPinExecuteRef} /> || <div></div>}
-                    <div className="w-full text-center text-white font-semibold mb-2">{node.name || 'Unnamed Node'}</div>
+                    <div className="w-full text-center text-white font-semibold">{node.name || 'Unnamed Node'}</div>
                     {hasContinue && <PinContinue id={node.id} onRef={onPinContinueRef} /> || <div></div>}
                 </div>
 
@@ -204,9 +220,11 @@ export default function Node({
                     <div className="text-gray-400 text-sm mb-4">{node.description}</div>
                 )}
 
-                {children}
+                <div className="flex flex-col grow pl-1 pr-1">
+                    {children}
+                </div>
 
-                <div className={`flex grow gap-2`}>
+                <div className={`flex grow gap-2 pl-1 pr-1`}>
                     <NodeInputs
                         nodeId={node.id}
                         nodeType={node.type}

@@ -17,7 +17,7 @@ interface VarType {
     isCollection: boolean;
 }
 
-export default function SetVarNode({node}: NodeProps) {
+export default function SetVarNode({node, ...props}: NodeProps) {
     const {setVariable, variables, types, setNodeInputs, setNodeOutputs} = useGraphContext();
     const {options} = useKnownTypes();
     const formRef = useRef<HTMLFormElement | null>(null);
@@ -66,9 +66,10 @@ export default function SetVarNode({node}: NodeProps) {
             hasExecute={true}
             hasContinue={true}
             size={{width: 200, height: 100}}
+            {...props}
         >
             <FormProvider {...methods}>
-                <form ref={formRef} className="flex flex-nowrap items-end gap-1" onSubmit={methods.handleSubmit(onSubmit)}>
+                <form ref={formRef} className="flex grow flex-nowrap items-end gap-1" onSubmit={methods.handleSubmit(onSubmit)}>
                     <Select name="type" onBlur={onBlur} options={options}/>
                     <Input className="grow text-center" name="name" placeholder="Variable name" onBlur={onBlur} />
                     <Tooltip tooltip="Collection?">
