@@ -26,6 +26,7 @@ interface GraphContextType {
     addNode: (node: NodeConfig) => void;
     updateNode: (node: NodeConfig) => void;
     removeNode: (id: string) => void;
+    removeNodes: (ids: string[]) => void;
     addNodeInput: (id: string, input: InputConfig) => void;
     updateNodeInput: (id: string, input: Partial<InputConfig>) => void;
     removeNodeInput: (nodeId: string, inputId: string) => void;
@@ -53,6 +54,11 @@ interface GraphContextType {
     getConnectionInfo: (nodeId: string, src: InputConfig | OutputConfig) => ConnectionInfo | undefined;
     splitInputParam: (nodeId: string, inputId: string) => void;
     splitOutputParam: (nodeId: string, outputId: string) => void;
+    addType: (type: GraphType) => void;
+    removeType: (id: string) => void;
+    updateType: (type: GraphType) => void;
+    addVariable: (variable: VariableConfig) => void;
+    updateVariable: (variable: VariableConfig) => void;
 }
 
 const GraphContext = createContext<GraphContextType | null>(null);
@@ -134,9 +140,17 @@ export function GraphProvider({children}: GraphProviderProps) {
 
                 nodes.current.splice(index, 1);
                 removeConnectionsByPredicate(conn => (conn.from.id === id || conn.to.id === id));
-            }, [nodes, connections, variables]);
+            }, [nodes, connections, variables, types]);
         }
-    }, [nodes, connections, removeVariable, removeConnectionsByPredicate, variables, removeType]);
+    }, [nodes, connections, removeVariable, removeConnectionsByPredicate, variables, removeType, types]);
+
+    const removeNodes = useCallback((ids: string[]) => {
+        if (ids.length === 0) return ;
+        
+        batch(() => {
+            ids.forEach(id => removeNode(id));
+        }, [nodes, connections, variables, types]);
+    }, [removeNode, nodes, connections, variables, types]);
 
     const addNodeInput = useCallback((id: string, input: InputConfig) => {
         const nodeSignal = nodes.current.find((n: RefSignal<NodeConfig>) => n.current.id === id);
@@ -480,6 +494,28 @@ export function GraphProvider({children}: GraphProviderProps) {
         setNodeOutputs(node.current.id, newOutputs);
     }, [nodes, setNodeOutputs]);
 
+    const addType = useCallback((type: GraphType) => {
+        if (!types.current.find(_type => _type.id === type.id)) {
+            types.current.push(type);
+            types.notifyUpdate();
+        }
+    }, [types]);
+
+    const addVariable = useCallback((variable: VariableConfig) => {
+        if (!variables.current.find(_variable => _variable.id === variable.id)) {
+            variables.current.push(variable);
+            variables.notifyUpdate();
+        }
+    }, [variables]);
+
+    const updateType = useCallback((type: GraphType) => {
+        types.update(types.current.map(_type => _type.id === type.id ? type : _type));
+    }, [types]);
+
+    const updateVariable = useCallback((variable: VariableConfig) => {
+        variables.update(variables.current.map(_variable => _variable.id === variable.id ? variable : _variable));
+    }, [variables]);
+
     return <GraphContext.Provider value={{
         name,
         nodes,
@@ -495,6 +531,7 @@ export function GraphProvider({children}: GraphProviderProps) {
         addNode,
         updateNode,
         removeNode,
+        removeNodes,
         addNodeInput,
         updateNodeInput,
         setNodeInputs,
@@ -521,6 +558,11 @@ export function GraphProvider({children}: GraphProviderProps) {
         getConnectionInfo,
         splitInputParam,
         splitOutputParam,
+        addType,
+        removeType,
+        addVariable,
+        updateType,
+        updateVariable
     }}>
         {children}
     </GraphContext.Provider>

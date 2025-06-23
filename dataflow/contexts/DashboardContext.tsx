@@ -1,11 +1,15 @@
 import React, { createContext, useCallback, useContext, useEffect, useRef } from "react";
-import { Coordinates } from "../config/schema";
-import { useRefSignal, RefSignal } from "react-refsignal";
+import { AppConfig, Coordinates } from "../config/schema";
+import { useRefSignal, RefSignal, batch } from "react-refsignal";
 import { useGraphContext } from "./GraphContext";
 import useResizeObserver from "../hooks/useResizeObserver";
 import { Log } from "../engine/types";
 import { useEvent } from "../hooks/useEvent";
 import useWebSocketEvent from "../hooks/useWebSocketEvent";
+import { useNodeContext } from "./NodeContext";
+import { isEditableElement } from "../utils/utils";
+import { getPartialGraph, pastePartialGraph } from "../utils/graph_knife";
+import { useClipboard } from "../hooks/useClipboard";
 
 interface PointerPosition {
     global: Coordinates;
@@ -28,7 +32,8 @@ interface DashboardProviderProps {
 }
 
 export function DashboardProvider({children}: DashboardProviderProps) {
-    const {scale, canvasPosition} = useGraphContext();
+    const { scale, canvasPosition, toGraph, nodes, connections, types, variables, addNode, addConnection, addType, addVariable, removeNodes } = useGraphContext();
+    const { selectedNodes } = useNodeContext();
     const canvasRef = useRef<HTMLDivElement | null>(null);
     const canvasRect = useRefSignal<DOMRect | undefined>(undefined);
     const pointerPosition = useRefSignal<PointerPosition>({
@@ -38,6 +43,23 @@ export function DashboardProvider({children}: DashboardProviderProps) {
         canvasScaled: {x: 0, y: 0},
     });
     const logs = useRefSignal<Log[]>([]);
+
+    const { copyPartial, cutPartial, paste } = useClipboard<AppConfig>((payload) => {
+        if (payload.type === 'full-graph') {
+            //loadGraph(payload.data);
+        } else {
+            const graph = pastePartialGraph(payload.data, pointerPosition.current.canvasScaled, payload.kind);
+
+            batch(() => {
+                graph.nodes.forEach(node => addNode(node));
+                graph.connections?.forEach(conn => addConnection(conn));
+                graph.types?.forEach(type => addType(type));
+                graph.variables.forEach(variable => addVariable(variable));
+                // Select copied nodes by default
+                selectedNodes.current = graph.nodes.map(node => node.id);
+            }, [nodes, connections, variables, types, selectedNodes]);
+        }
+    });
 
     useResizeObserver(canvasRef, (entry) => {
         canvasRect.update(canvasRef.current?.getBoundingClientRect() ?? entry.contentRect);
@@ -70,6 +92,51 @@ export function DashboardProvider({children}: DashboardProviderProps) {
         logs.current.push(log);
         logs.notifyUpdate();
     });
+
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (isEditableElement(document.activeElement)) return;
+
+            const isMac = navigator.platform.includes('Mac');
+            const ctrlKey = isMac ? e.metaKey : e.ctrlKey;
+
+            if (e.key === 'Delete' || e.key === 'Backspace') {
+                e.preventDefault();
+                removeNodes(selectedNodes.current);
+                return ;
+            }
+
+            if (!ctrlKey) return;
+            let partialGraph: AppConfig | undefined;
+
+            switch (e.key.toLowerCase()) {
+                case 'c':
+                    e.preventDefault();
+                    partialGraph = getPartialGraph(toGraph(), selectedNodes.current);
+
+                    if (partialGraph) {
+                        copyPartial(partialGraph);
+                    }
+                    break;
+                case 'x':
+                    e.preventDefault();
+                    partialGraph = getPartialGraph(toGraph(), selectedNodes.current);
+
+                    if (partialGraph) {
+                        cutPartial(partialGraph);
+                        removeNodes(selectedNodes.current);
+                    }
+                    break;
+                case 'v':
+                    e.preventDefault();
+                    paste();
+                    break;
+            }
+        };
+
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, []);
 
     return <DashboardContext.Provider value={{
         pointerPosition,

@@ -15,3 +15,11 @@ export function createUrlGraphExecutor(serverUrl: string): GraphExecutor {
         return response;
     };
 }
+
+export function isEditableElement(el: Element | null): boolean {
+    return (
+        el instanceof HTMLInputElement ||
+        el instanceof HTMLTextAreaElement ||
+        (el instanceof HTMLElement && el.isContentEditable)
+    );
+};
