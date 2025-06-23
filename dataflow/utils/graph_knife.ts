@@ -10,8 +10,13 @@ export function remapGraphIds(graph: AppConfig): AppConfig {
     const newGraph = structuredClone(graph);
     const nodeConnectionsMap = getNodeConnectionsMap(newGraph);
 
-    // Update the node ids (each node must have a unique id)
+    // Update the node ids (each node must have a unique id, except for START, RETURN and TRIGGER node types)
     newGraph.nodes.forEach(node => {
+        // Do not update ids of special nodes
+        if (node.type === NodeType.START || node.type === NodeType.RETURN || node.type === NodeType.TRIGGER) {
+            return ;
+        }
+
         const newId = uuidv4();
 
         // Update node connections from old id to new id

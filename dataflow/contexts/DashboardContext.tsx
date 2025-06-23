@@ -1,5 +1,5 @@
 import React, { createContext, useCallback, useContext, useEffect, useRef } from "react";
-import { AppConfig, Coordinates } from "../config/schema";
+import { AppConfig, Coordinates, NodeType } from "../config/schema";
 import { useRefSignal, RefSignal, batch } from "react-refsignal";
 import { useGraphContext } from "./GraphContext";
 import useResizeObserver from "../hooks/useResizeObserver";
@@ -32,7 +32,7 @@ interface DashboardProviderProps {
 }
 
 export function DashboardProvider({children}: DashboardProviderProps) {
-    const { scale, canvasPosition, toGraph, nodes, connections, types, variables, addNode, addConnection, addType, addVariable, removeNodes } = useGraphContext();
+    const { scale, canvasPosition, toGraph, loadGraph, nodes, connections, types, variables, addNode, addConnection, addType, addVariable, removeNodes } = useGraphContext();
     const { selectedNodes } = useNodeContext();
     const canvasRef = useRef<HTMLDivElement | null>(null);
     const canvasRect = useRefSignal<DOMRect | undefined>(undefined);
@@ -46,16 +46,39 @@ export function DashboardProvider({children}: DashboardProviderProps) {
 
     const { copyPartial, cutPartial, paste } = useClipboard<AppConfig>((payload) => {
         if (payload.type === 'full-graph') {
-            //loadGraph(payload.data);
+            loadGraph(payload.data);
         } else {
             const graph = pastePartialGraph(payload.data, pointerPosition.current.canvasScaled, payload.kind);
+            let hasStartNode = false;
+            let hasReturnNode = false;
+            let hasTriggerNode = false;
+
+            nodes.current.forEach(node => {
+                if (node.current.type === NodeType.START) {
+                    hasStartNode = true;
+                } else if (node.current.type === NodeType.RETURN) {
+                    hasReturnNode = true;
+                } else if (node.current.type === NodeType.TRIGGER) {
+                    hasTriggerNode = true;
+                }
+            });
 
             batch(() => {
                 graph.nodes.forEach(node => addNode(node));
-                graph.connections?.forEach(conn => addConnection(conn));
+                graph.connections?.forEach(conn => {
+                    // Strip connections from/to start/return/trigger nodes if they already exist in current graph
+                    if (
+                        hasStartNode && conn.from.id === "start"
+                        || hasTriggerNode && conn.from.id === "trigger"
+                        || hasReturnNode && conn.to.id === "return"
+                    ) {
+                        return ;
+                    }
+                    addConnection(conn);
+                });
                 graph.types?.forEach(type => addType(type));
                 graph.variables.forEach(variable => addVariable(variable));
-                // Select copied nodes by default
+                // Select pasted nodes by default
                 selectedNodes.current = graph.nodes.map(node => node.id);
             }, [nodes, connections, variables, types, selectedNodes]);
         }
@@ -93,50 +116,54 @@ export function DashboardProvider({children}: DashboardProviderProps) {
         logs.notifyUpdate();
     });
 
-    useEffect(() => {
-        const handleKeyDown = (e: KeyboardEvent) => {
-            if (isEditableElement(document.activeElement)) return;
+    const handleKeyDown = useCallback((e: KeyboardEvent) => {
+        if (isEditableElement(document.activeElement)) return;
 
-            const isMac = navigator.platform.includes('Mac');
-            const ctrlKey = isMac ? e.metaKey : e.ctrlKey;
+        const isMac = navigator.platform.includes('Mac');
+        const ctrlKey = isMac ? e.metaKey : e.ctrlKey;
 
-            if (e.key === 'Delete' || e.key === 'Backspace') {
+        if (e.key === 'Delete' || e.key === 'Backspace') {
+            e.preventDefault();
+            removeNodes(selectedNodes.current);
+            return ;
+        }
+
+        if (!ctrlKey) return;
+        let partialGraph: AppConfig | undefined;
+
+        switch (e.key.toLowerCase()) {
+            case 'a':
                 e.preventDefault();
-                removeNodes(selectedNodes.current);
-                return ;
-            }
+                selectedNodes.update(nodes.current.map(node => node.current.id));
+                break ;
+            case 'c':
+                e.preventDefault();
+                partialGraph = getPartialGraph(toGraph(), selectedNodes.current);
 
-            if (!ctrlKey) return;
-            let partialGraph: AppConfig | undefined;
+                if (partialGraph) {
+                    copyPartial(partialGraph);
+                }
+                break;
+            case 'x':
+                e.preventDefault();
+                partialGraph = getPartialGraph(toGraph(), selectedNodes.current);
 
-            switch (e.key.toLowerCase()) {
-                case 'c':
-                    e.preventDefault();
-                    partialGraph = getPartialGraph(toGraph(), selectedNodes.current);
+                if (partialGraph) {
+                    cutPartial(partialGraph);
+                    removeNodes(selectedNodes.current);
+                }
+                break;
+            case 'v':
+                e.preventDefault();
+                paste();
+                break;
+        }
+    }, [selectedNodes, toGraph, removeNodes, copyPartial, cutPartial, paste]);
 
-                    if (partialGraph) {
-                        copyPartial(partialGraph);
-                    }
-                    break;
-                case 'x':
-                    e.preventDefault();
-                    partialGraph = getPartialGraph(toGraph(), selectedNodes.current);
-
-                    if (partialGraph) {
-                        cutPartial(partialGraph);
-                        removeNodes(selectedNodes.current);
-                    }
-                    break;
-                case 'v':
-                    e.preventDefault();
-                    paste();
-                    break;
-            }
-        };
-
+    useEffect(() => {
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
-    }, []);
+    }, [handleKeyDown]);
 
     return <DashboardContext.Provider value={{
         pointerPosition,

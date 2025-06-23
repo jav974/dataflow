@@ -13,6 +13,8 @@ import { isOverlapping } from "../pixi/functions";
 import useFocusable from "@/dataflow/hooks/useFocusable";
 import { useRefSignalEffect } from "react-refsignal";
 import useResizeObserver from "@/dataflow/hooks/useResizeObserver";
+import { isEditableElement } from "@/dataflow/utils/utils";
+import { useRefState } from "@/dataflow/hooks/useRefState";
 
 export interface NodeProps {
     node: NodeConfig;
@@ -46,7 +48,7 @@ export default function Node({
     const { registerNode, stopConnectionDrag, selectionArea, setSelected, isSelected, stopSelection, selectedNodes } = useNodeContext();
     const { removeNode, scale } = useGraphContext();
     const { isHovered, handleMouseEnter, handleMouseLeave } = useHoverable();
-    const [selected, setSelectedState] = useState<boolean>(false);
+    const selected = useRefState<boolean>(false);
     const {isFocused, handlers: { onPointerDown, onContextMenu }} = useFocusable(containerRef);
 
     const getScaledRelativePosition = useCallback((outerRect: DOMRect, innerRect: DOMRect, adjustments?: Coordinates): Coordinates => {
@@ -136,8 +138,8 @@ export default function Node({
     useResizeObserver(containerRef, measurePositions);
 
     useRefSignalEffect(() => {
-        if (isSelected(node.id) !== selected) {
-            setSelectedState(!selected);
+        if (isSelected(node.id) !== selected.current) {
+            selected.update(!selected.current);
         }
     }, [node.id, selectedNodes, selected, isSelected]);
 
@@ -149,7 +151,7 @@ export default function Node({
             containerRef.current.getBoundingClientRect()
         );
 
-        if (overlapping !== selected) {
+        if (overlapping !== selected.current) {
             setSelected(node.id, overlapping);
         }
     }, [node.id, selectionArea, selected]);
@@ -197,6 +199,12 @@ export default function Node({
         }
     }, [headClassName, hasExecute, hasContinue]);
 
+    const handleClick = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
+        if ((e.ctrlKey || e.metaKey) && !isEditableElement(document.activeElement)) {
+            setSelected(node.id, !selected.current);
+        }
+    }, [selected, setSelected]);
+
     return (
         <div
             ref={containerRef}
@@ -205,9 +213,10 @@ export default function Node({
             onPointerUp={onPointerUp}
             onPointerDown={onPointerDown}
             onContextMenu={onContextMenu}
+            onClick={handleClick}
         >
             <div
-                className={`flex flex-col bg-gray-800 rounded-lg ${selected ? 'outline-4 rounded outline-blue-500' : ''} ${isFocused ? 'outline-2 rounded outline-orange-500' : ''}`}
+                className={`flex flex-col bg-gray-800 rounded-lg ${selected.current ? 'outline-4 rounded outline-blue-500' : ''} ${isFocused ? 'outline-2 rounded outline-orange-500' : ''}`}
                 style={{opacity: 0.9, minWidth: `${size?.width}px`}}
             >
                 <div className={`flex w-full border-b-1 rounded-t-lg border-b-gray-700 p-1 mb-2 ${finalHeadClassName}`}>
