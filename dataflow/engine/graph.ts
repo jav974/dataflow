@@ -16,7 +16,7 @@ class Graph {
     constructor(clientSocketId?: string) {
         if (clientSocketId) {
             this.clientSocketId = clientSocketId;
-            this.controller = new WorkerExecutionController(undefined, clientSocketId);
+            this.controller = new WorkerExecutionController(clientSocketId);
         } else {
             this.controller = controller;
         }
@@ -363,7 +363,16 @@ class Graph {
             });
         }
 
+        if (this.clientSocketId) {
+            await (this.controller as WorkerExecutionController).waitForWorkerSocketId();
+        }
+
         executionGraph = await this.resolveExecutionGraph(executionGraph);
+
+        if (this.clientSocketId) {
+            await (this.controller as WorkerExecutionController).waitForPendingLogs();
+        }
+
         this.controller.clear();
 
         let iterator = executionGraph;

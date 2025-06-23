@@ -1,5 +1,10 @@
 import { Log } from "../engine/types";
 
+export type AckResponse = {
+    status: "ok" | "error";
+    message?: string;
+}
+
 export interface ServerToClientEvents {
     hello: (id: string) => void;
     writeTo: (data: Log) => void;
@@ -13,5 +18,5 @@ export interface ClientToServerEvents {
     pause: (callback: () => void) => void;
     resume: (callback: () => void) => void;
     cancel: (callback: () => void) => void;
-    writeTo: (data: Log) => void;
+    writeTo: (data: Log, ack: (ack: AckResponse) => void) => void;
 }

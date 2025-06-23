@@ -12,6 +12,7 @@ import ResetViewButton from "../buttons/ResetViewButton";
 import ZoomResetButton from "../buttons/ZoomResetButton";
 import { useRefSignalRender } from "react-refsignal";
 import ToolbarPlayer from "./ToolbarPlayer";
+import TopbarUserMenu from "../ui/TopbarUserMenu";
 
 export default function Toolbar() {
     const { graphs, loadGraph, graph, saveGraph, deleteGraph } = useUserGraphContext();
@@ -128,6 +129,7 @@ export default function Toolbar() {
                     {graph && <SaveButton onClick={onSaveGraphClick} />}
                     {graph && <DeleteGraphButton onClick={onDeleteGraphClick} />}
                     <NewGraphButton onClick={onNewGraphClick} />
+                    <TopbarUserMenu />
                 </div>
             </div>
             <NewGraphModal isOpen={isNewModalOpen} onClose={() => setIsNewModalOpen(false)} />

@@ -4,6 +4,7 @@ import { GraphResult, Log } from "./types";
 import { ClientToServerEvents, ServerToClientEvents } from "../realtime/socket-types";
 import { AppConfig } from "../config/schema";
 import { KeyValue } from "./context";
+import { ReliableEmitter } from "../realtime/emitter";
 
 type Callback = () => void;
 type ExecutorReturn = Promise<GraphResult | undefined>;
@@ -20,6 +21,9 @@ export interface IExecutionController {
     waitIfPaused(): Promise<void>;
 }
 
+/**
+ * Used in clientside react app to control the flow execution of graph
+ */
 export class LocalExecutionController implements IExecutionController {
     started = false;
     paused = false;
@@ -60,33 +64,35 @@ export class LocalExecutionController implements IExecutionController {
     }
 }
 
+/**
+ * Used in serverside nodejs app to control flow execution of graph
+ * 
+ * Sends "writeTo" event to WS server
+ * Receives "paused" | "resumed" | "canceled" events from WS server
+ * 
+ * Reflects state based on WS server events received
+ */
 export class WorkerExecutionController implements IExecutionController {
     started = true;
     paused = false;
-    private socket: Socket<ServerToClientEvents, ClientToServerEvents> | null = null;
+    private socket: Socket<ServerToClientEvents, ClientToServerEvents>;
     private clientSocketId: string;
+    private workerSocketId: string | undefined;
+    private emitter: ReliableEmitter<Log>;
 
-    private forwardIOWrites = (log: Log) => {
-        this.socket?.emit("writeTo", log);
-    };
-
-    constructor(websocketServerUrl: string = "ws://localhost:3001", clientSocketId: string) {
+    constructor(clientSocketId: string) {
         this.clientSocketId = clientSocketId;
-        this.initSocket(websocketServerUrl);
-    }
-
-    private initSocket(websocketServerUrl: string) {
-        this.socket = io(websocketServerUrl, { path: "/ws" });
+        this.socket = io(process.env.NEXT_PUBLIC_WEBSOCKET_SERVER_URL, { path: "/ws" });
 
         this.socket.on("connect", () => {
             console.log("ExecutionController connected to WebSocket server");
             // Register as executor with a unique ID (could be hostname, PID, etc.)
             const executorId = process.env.EXECUTOR_ID || `executor-${process.pid}`;
-            this.socket?.emit("registerExecutor", { executorId, clientSocketId: this.clientSocketId });
+            this.socket.emit("registerExecutor", { executorId, clientSocketId: this.clientSocketId });
         });
 
         this.socket.on("hello", (id) => {
-            if (typeof window !== "undefined") this.clientSocketId = id;
+            this.workerSocketId = id;
         });
 
         this.socket.on("paused", () => {
@@ -105,9 +111,15 @@ export class WorkerExecutionController implements IExecutionController {
             console.log("WorkerExecutionController disconnected from WebSocket server");
         });
 
+        this.emitter = new ReliableEmitter(this.socket, "writeTo", (log) => log.createdAt.toString());
+
         // Forward IO writes to websocket server
         eventBus.on('io_write_' + this.clientSocketId, this.forwardIOWrites);
     }
+
+    private forwardIOWrites = (log: Log) => {
+        this.emitter.enqueue(log);
+    };
 
     start(executor: Executor, graph: AppConfig, params?: KeyValue): ExecutorReturn {
         throw new Error();
@@ -129,29 +141,48 @@ export class WorkerExecutionController implements IExecutionController {
         eventBus.off('io_write_' + this.clientSocketId, this.forwardIOWrites);
         this.started = false;
         this.paused = false;
-        this.socket?.disconnect();
+        this.socket.disconnect();
+    }
+
+    wait(timeout: number = 50) {
+        return new Promise(resolve => setTimeout(resolve, timeout));
     }
 
     async waitIfPaused(): Promise<void> {
         while (this.paused) {
-            await new Promise(resolve => setTimeout(resolve, 50));
+            await this.wait();
+        }
+    }
+
+    async waitForWorkerSocketId() {
+        while (!this.workerSocketId) {
+            await this.wait();
+        }
+    }
+
+    async waitForPendingLogs() {
+        while (!this.emitter.isEmpty()) {
+            await this.wait();
         }
     }
 }
 
+/**
+ * Used in client side react app to control flow execution of graph
+ * 
+ * Sends "pause" | "resume" | "cancel" events to WS server
+ * Receives "writeTo" event from WS server
+ * 
+ * Waits for WS server to acknowledge each event before proceeding to local state update
+ */
 export class RemoteExecutionController implements IExecutionController {
     started = false;
     paused = false;
     private socket: Socket<ServerToClientEvents, ClientToServerEvents> | null = null;
     private clientSocketId: string | undefined;
-    private wsUrl: string | undefined;
-
-    constructor(websocketServerUrl: string = "ws://localhost:3001") {
-        this.wsUrl = websocketServerUrl;
-    }
 
     private initSocket() {
-        this.socket = io(this.wsUrl, { path: "/ws" });
+        this.socket = io(process.env.NEXT_PUBLIC_WEBSOCKET_SERVER_URL, { path: "/ws" });
 
         this.socket.on("connect", () => {
             console.log("Connected to remote WS server");
@@ -225,6 +256,13 @@ export class RemoteExecutionController implements IExecutionController {
     }
 }
 
+/**
+ * Used in clientside react app to control flow execution of graph
+ * 
+ * Returns the appropriate controller based on user preference:
+ *  - LocalExecutionController when mode = "local"
+ *  - RemoteExecutionController when mode = "remote"
+ */
 class ExecutionController implements IExecutionController {
     private controller: IExecutionController | null = null;
     private mode: "local" | "remote" = "local";

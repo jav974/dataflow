@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev:next": "next dev --turbopack",
-    "dev:ws": "nodemon --watch dataflow/realtime/ws-server.mts --exec \"node --loader ts-node/esm dataflow/realtime/ws-server.mts\"",
+    "dev:ws": "nodemon --watch dataflow/realtime/ws-server.mts --exec \"node --import ./register-loader.mjs dataflow/realtime/ws-server.mts\"",
     "dev": "concurrently \"npm run dev:next\" \"npm run dev:ws\"",
     "build": "next build",
     "start": "next start",
@@ -16,6 +16,7 @@
     "@hugeicons/react": "^1.0.5",
     "@pixi/react": "^8.0.0-beta.25",
     "next": "15.3.0",
+    "next-auth": "^4.24.11",
     "pixi.js": "^8.9.1",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",

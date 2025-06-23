@@ -1,5 +1,10 @@
 import { Server } from "socket.io";
 import type { ServerToClientEvents, ClientToServerEvents } from "./socket-types";
+import pkg from '@next/env';
+const { loadEnvConfig } = pkg;
+
+const projectDir = process.cwd();
+loadEnvConfig(projectDir);
 
 const io = new Server<ClientToServerEvents, ServerToClientEvents>(3001, {
     path: "/ws",
@@ -51,12 +56,14 @@ io.on("connection", (socket) => {
         ack();
     });
 
-    socket.on("writeTo", (data) => {
+    socket.on("writeTo", (data, ack) => {
         const clientSocketId = executorToClient.get(socket.id);
 
         if (clientSocketId) {
             io.to(clientSocketId).emit("writeTo", data);
         }
+
+        ack({status: "ok"});
     });
 
     socket.on("disconnect", () => {
@@ -74,4 +81,6 @@ io.on("connection", (socket) => {
     });
 });
 
-console.log("Socket.IO server running at ws://localhost:3001/ws");
+const websocketServerUrl = process.env.NEXT_PUBLIC_WEBSOCKET_SERVER_URL;
+
+console.log(`Socket.IO server running at ${websocketServerUrl}/ws`);

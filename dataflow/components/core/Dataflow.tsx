@@ -29,7 +29,7 @@ export default function Dataflow({ localExecutor = runGraph, remoteExecutor, ser
                 localExecutor={localExecutor}
                 serverUrl={serverUrl}
             >
-                <RealTimeProvider url="ws://localhost:3001">
+                <RealTimeProvider url={process.env.NEXT_PUBLIC_WEBSOCKET_SERVER_URL}>
                     <UserGraphProvider>
                         <GraphProvider>
                             <NodeProvider>
