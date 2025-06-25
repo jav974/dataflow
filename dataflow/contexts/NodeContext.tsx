@@ -94,7 +94,7 @@ export function NodeProvider({ children }: { children: React.ReactNode }) {
     const rightClickPosition = useRefSignal<Coordinates | undefined>(undefined);
     const selectionStart = useRefSignal<Coordinates | undefined>(undefined);
     const [graphResult, setGraphResult] = useState<GraphResult | undefined>(undefined);
-    const {addConnection, removeConnections, name} = useGraphContext();
+    const {addConnection, removeConnections, id} = useGraphContext();
     const nodes = useRefSignal<Map<string, RefSignal<Node>>>(new Map());
     const renderTargets = useRefSignal<Map<string, HTMLElement>>(new Map());
     const selectionArea = useRefSignal<(Coordinates & Size) | undefined>(undefined);
@@ -106,7 +106,7 @@ export function NodeProvider({ children }: { children: React.ReactNode }) {
             nodes.current.clear();
             renderTargets.current.clear();
         }, [nodes, renderTargets]);
-    }, [name, nodes, renderTargets]);
+    }, [id.current, nodes, renderTargets]);
 
     const registerNode = useCallback((node: NodeConfig, inputs: InputPin[], outputs: OutputPin[], branches: OutputBranchPin[], executePin?: Pin, continuePin?: Pin) => {
         const nodeSignal = nodes.current.get(node.id);

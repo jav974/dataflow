@@ -1,5 +1,6 @@
 import { RefSignal, useRefSignalEffect, useRefSignalMemo } from "react-refsignal";
-import { ConnectionInfo, useGraphContext } from "../contexts/GraphContext";
+import { useGraphContext } from "../contexts/GraphContext";
+import { ConnectionInfo } from "../contexts/types";
 
 export default function useObservableInput(nodeId: string, inputId: string): RefSignal<ConnectionInfo | undefined> {
     const { nodes, connections, getConnectionInfo } = useGraphContext();

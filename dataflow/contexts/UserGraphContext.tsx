@@ -1,8 +1,9 @@
 import { AppConfig } from "@/dataflow/config/schema";
 import { createContext, useCallback, useContext, useEffect, useState } from "react";
+import { jsonToMap, mapToJson } from "../engine/utils";
 
 interface UserGraphContextType {
-    graphs: string[] | null;
+    graphs: Map<string, string>;
     graph: AppConfig | null;
     loadGraph: (name: string) => void;
     saveGraph: (name: string, graph: AppConfig) => void;
@@ -12,44 +13,45 @@ interface UserGraphContextType {
 export const UserGraphContext = createContext<UserGraphContextType | null>(null);
 
 export function UserGraphProvider({ children }: { children: React.ReactNode }) {
-    const [graphs, setGraphs] = useState<string[] | null>(null);
+    const [graphs, setGraphs] = useState<Map<string, string> | null>(null);
     const [graph, setGraph] = useState<AppConfig | null>(null);
 
     const getLocalStorageGraphKey = useCallback((name: string) => {
         // Replace any non-alphanumeric characters with hyphens and convert to lowercase
-        const safeName = name.toLowerCase().replace(/[^a-z0-9]/g, '-');
+        const safeName = name.toLowerCase().replace(/[^a-z0-9_-]/g, '-');
         return `dataflow-graph-${safeName}`;
     }, []);
     
-    const loadGraph = useCallback((name: string) => {
-        const graph = localStorage.getItem(getLocalStorageGraphKey(name));
-        
+    const loadGraph = useCallback((id: string) => {
+        const graph = localStorage.getItem(getLocalStorageGraphKey(id));
+
         if (graph) {
             setGraph(JSON.parse(graph));
-            localStorage.setItem("dataflow-last-graph", name);
+            localStorage.setItem("dataflow-last-graph", id);
         }
     }, [getLocalStorageGraphKey]);
 
-    const saveGraph = useCallback((name: string, graph: AppConfig) => {
-        if (graphs === null) return;
-        
-        localStorage.setItem(getLocalStorageGraphKey(name), JSON.stringify(graph));
+    const saveGraph = useCallback((id: string, graph: AppConfig) => {
+        localStorage.setItem(getLocalStorageGraphKey(id), JSON.stringify(graph));
 
-        if (!graphs.includes(name)) {
-            setGraphs([...graphs, name]);
+        if (!graphs) {
+            setGraphs(new Map().set(id, graph.name));
+        } else if (!graphs.has(id)) {
+            setGraphs(new Map(graphs).set(id, graph.name));
         }
     }, [getLocalStorageGraphKey, graphs]);
 
-    const deleteGraph = useCallback((name: string) => {
-        if (graphs === null) return;
+    const deleteGraph = useCallback((id: string) => {
+        localStorage.removeItem(getLocalStorageGraphKey(id));
+        const filteredGraphs = new Map(graphs);
+        filteredGraphs.delete(id);
 
-        localStorage.removeItem(getLocalStorageGraphKey(name));
-        const filteredGraphs = graphs.filter((graph) => graph !== name);
         setGraphs(filteredGraphs);
         
-        if (graph?.name === name) {
-            if (filteredGraphs.length) {
-                loadGraph(filteredGraphs[0]);
+        if (graph?.id === id) {
+            if (filteredGraphs.size > 0) {
+                const graph = filteredGraphs.entries().next().value!;
+                loadGraph(graph[0]);
             } else {
                 setGraph(null);
             }
@@ -57,22 +59,23 @@ export function UserGraphProvider({ children }: { children: React.ReactNode }) {
     }, [getLocalStorageGraphKey, graphs, graph, loadGraph]);
 
     useEffect(() => {
-        const savedGraphs = JSON.parse(localStorage.getItem("dataflow-graphs") || "[]");
+        const savedGraphs = jsonToMap<string>(localStorage.getItem("dataflow-graphs") ?? "{}");
+
         setGraphs(savedGraphs);
 
-        if (savedGraphs.length > 0) {
+        if (savedGraphs.size > 0) {
             const lastGraph = localStorage.getItem("dataflow-last-graph");
-            loadGraph(lastGraph ?? savedGraphs[0]);
+            loadGraph(lastGraph ?? savedGraphs.entries().next().value![0]);
         }
     }, [loadGraph]);
 
     useEffect(() => {
-        if (graphs === null) return;
-
-        localStorage.setItem("dataflow-graphs", JSON.stringify(graphs));
+        if (graphs) {
+            localStorage.setItem("dataflow-graphs", mapToJson(graphs));
+        }
     }, [graphs]);
     
-    return <UserGraphContext.Provider value={{ graphs, graph, loadGraph, saveGraph, deleteGraph }}>
+    return <UserGraphContext.Provider value={{ graphs: graphs ?? new Map(), graph, loadGraph, saveGraph, deleteGraph }}>
         {children}
     </UserGraphContext.Provider>;
 }

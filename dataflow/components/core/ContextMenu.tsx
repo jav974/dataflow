@@ -1,10 +1,10 @@
 import { useNodeContext } from "@/dataflow/contexts/NodeContext";
-import { useCallback, useMemo } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import { NodeType } from "../../config/schema";
 import { v4 as uuidv4 } from 'uuid';
 import { useGraphContext } from "@/dataflow/contexts/GraphContext";
 import registry from "../nodes/registry";
-import { useRefSignalRender } from "react-refsignal";
+import { useRefSignalEffect, useRefSignalRender } from "react-refsignal";
 import { useDashboardContext } from "@/dataflow/contexts/DashboardContext";
 
 interface MenuTree {
@@ -33,7 +33,9 @@ function HorizontalMenu({menu}: {menu: MenuTree}) {
 }
 
 export default function ContextMenu() {
+    const menuRef = useRef<HTMLDivElement>(null);
     const { rightClickPosition } = useNodeContext();
+    const [position, setPosition] = useState<{top: number|undefined, left: number|undefined}>({ top: rightClickPosition.current?.y, left: rightClickPosition.current?.x});
     const {canvasRect } = useDashboardContext();
     const { addNode, scale, canvasPosition, nodes } = useGraphContext();
 
@@ -181,16 +183,33 @@ export default function ContextMenu() {
         }
     }, [createNodeMenuEntry, nodes, lastUpdated]);
 
-    useRefSignalRender([rightClickPosition]);
+    useRefSignalEffect(() => {
+        if (rightClickPosition.current && menuRef.current) {
+            const { offsetHeight, offsetWidth } = menuRef.current;
+            const viewportHeight = window.innerHeight;
+            const viewportWidth = window.innerWidth;
 
-    if (!rightClickPosition.current) {
-        return null;
-    }
+            let top = rightClickPosition.current.y;
+            let left = rightClickPosition.current.x;
+
+            if (top + offsetHeight > viewportHeight) {
+                top = Math.max(0, viewportHeight - offsetHeight);
+            }
+
+            if (left + offsetWidth > viewportWidth) {
+                left = Math.max(0, viewportWidth - offsetWidth);
+            }
+
+            setPosition({ top, left });
+        }
+    }, [rightClickPosition]);
 
     return (
         <div
-            className="absolute bg-black/50 p-1 shadow-lg z-100000 text-white"
-            style={{top: rightClickPosition.current.y, left: rightClickPosition.current.x}}
+            ref={menuRef}
+            id="context-menu"
+            className={`${rightClickPosition.current ? 'visible' : 'hidden'} absolute bg-black/50 p-1 shadow-lg z-100000 text-white`}
+            style={position}
         >
             <HorizontalMenu menu={menu} />
         </div>

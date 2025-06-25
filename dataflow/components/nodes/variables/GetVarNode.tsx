@@ -44,8 +44,8 @@ export default function GetVarNode({node}: NodeProps) {
     }, [variables, lastUpdated, contextVar]);
 
     useEffect(() => {
-        if (!context?.get('var')) {
-            setNodeContext(node.id, (new Map(context)).set('var', variables.current[0]?.id));
+        if (!context?.has('var') && variables.current.length > 0) {
+            setNodeContext(node.id, (new Map(context)).set('var', variables.current[0].id));
         }
     }, [node.id, context, setNodeContext, variables]);
 

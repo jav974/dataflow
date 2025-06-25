@@ -44,7 +44,7 @@ export default function SetVarNode({node, ...props}: NodeProps) {
         setVariable(node.id, data.name, data.type, data.isCollection);
         
         setNodeInputs(node.id, [{
-            id: 'defaultValue',
+            id: 'default',
             name: 'default',
             required: false,
             type: data.type,

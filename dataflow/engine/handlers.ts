@@ -139,7 +139,7 @@ const handleGetVar: NodeExecutor = async (_: NodeExecParams, context: NodeExecCo
 };
 
 const handleNewVar: NodeExecutor = async (inputs: NodeExecParams, context: NodeExecContext): Promise<NodeExecParams> => {
-    const value = inputs.get('defaultValue');
+    const value = inputs.get('default');
     let defaultValue: unknown;
 
     // Use provided value
@@ -162,7 +162,7 @@ const handleNewVar: NodeExecutor = async (inputs: NodeExecParams, context: NodeE
                     defaultValue = '';
                     break ;
                 default:
-                    defaultValue = createVariable(type, inputs, 'defaultValue');
+                    defaultValue = createVariable(type, inputs, 'default');
                     break ;
             }
         }

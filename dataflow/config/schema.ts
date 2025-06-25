@@ -102,6 +102,7 @@ interface VariableConfig {
 }
 
 interface AppConfig {
+    id: string;
     name: string;
     nodes: NodeConfig[];
     connections?: ConnectionConfig[];

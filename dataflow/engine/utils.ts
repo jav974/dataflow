@@ -13,6 +13,10 @@ export function jsonToMap<V = unknown>(json: string | null | undefined): Map<str
     return map;
 }
 
+export function mapToJson<T = unknown>(map: Map<string, T>): string {
+    return JSON.stringify(Object.fromEntries(map));
+}
+
 export function getValueByPath<T>(obj: T, path: string): unknown {
     return path
         .replace(/\[(["']?)([^"\]]+)\1\]/g, '.$2') // Convert bracket notation to dot notation while handling quoted keys

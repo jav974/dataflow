@@ -24,8 +24,10 @@ export function useRefState<T>(initialValue: T | null | undefined): RefState<T |
     }, [notify]);
 
     const update = useCallback((value: T | null | undefined): void => {
-        ref.current.current = value;
-        notifyUpdate();
+        if (value !== ref.current.current) {
+            ref.current.current = value;
+            notifyUpdate();
+        }
     }, [notifyUpdate]);
 
     const ref = useRef<RefState<T | null | undefined>>({

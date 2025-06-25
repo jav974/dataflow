@@ -3,6 +3,8 @@ import { useUserGraphContext } from "@/dataflow/contexts/UserGraphContext";
 import { AppConfig, NodeConfig, NodeType } from "@/dataflow/config/schema";
 import Modal from "./Modal";
 import registry from "../nodes/registry";
+import { v4 } from "uuid";
+import { useDashboardContext } from "@/dataflow/contexts/DashboardContext";
 
 interface NewGraphModalProps {
     isOpen: boolean;
@@ -12,6 +14,7 @@ interface NewGraphModalProps {
 export default function NewGraphModal({ isOpen, onClose }: NewGraphModalProps) {
     const [graphName, setGraphName] = useState("");
     const { saveGraph, loadGraph } = useUserGraphContext();
+    const { canvasRect } = useDashboardContext();
 
     const handleSubmit = useCallback((e: React.FormEvent) => {
         e.preventDefault();
@@ -22,12 +25,15 @@ export default function NewGraphModal({ isOpen, onClose }: NewGraphModalProps) {
         let nodes: NodeConfig[] = [];
 
         if (startNodeConfig && returnNodeConfig) {
-            const startNode = {id: 'start', ...startNodeConfig, position: startNodeConfig.position ?? {x: 500, y: 500}};
-            const returnNode = {id: 'return', ...returnNodeConfig, position: returnNodeConfig.position ?? {x: 500, y: 500}};
+            const width = canvasRect.current?.width ?? 0;
+            const height = canvasRect.current?.height ?? 0;
+            const startNode = {id: 'start', ...startNodeConfig, position: {x: 100, y: height / 3 - 100}};
+            const returnNode = {id: 'return', ...returnNodeConfig, position: {x: width - 300, y: height / 3 - 100}};
             nodes = [startNode, returnNode];
         }
 
         const newGraph: AppConfig = {
+            id: v4(),
             name: graphName,
             nodes,
             connections: [],
@@ -36,11 +42,11 @@ export default function NewGraphModal({ isOpen, onClose }: NewGraphModalProps) {
             zoom: 100
         };
 
-        saveGraph(graphName, newGraph);
+        saveGraph(newGraph.id, newGraph);
         setGraphName("");
-        loadGraph(graphName);
+        loadGraph(newGraph.id);
         onClose();
-    }, [graphName, saveGraph, onClose, loadGraph]);
+    }, [graphName, canvasRect, saveGraph, onClose, loadGraph]);
 
     return (
         <Modal title="Create New Graph" isOpen={isOpen}>

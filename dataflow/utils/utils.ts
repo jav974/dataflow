@@ -1,4 +1,4 @@
-import { AppConfig } from "../config/schema";
+import { AppConfig, ConnectionConfig, ConnectorConfig } from "../config/schema";
 import { KeyValue } from "../engine/context";
 import { GraphExecutor, GraphResult } from "../engine/types";
 
@@ -23,3 +23,17 @@ export function isEditableElement(el: Element | null): boolean {
         (el instanceof HTMLElement && el.isContentEditable)
     );
 };
+
+export function getRemoveConnectionsPredicate(from?: ConnectorConfig, to?: ConnectorConfig) {
+    let predicate: ((conn: ConnectionConfig) => boolean) | undefined;
+
+    if (from && to) {
+        predicate = (conn: ConnectionConfig): boolean => (conn.from.id === from.id && conn.from.pin === from.pin && conn.to.id === to.id && conn.to.pin === to.pin);
+    } else if (from) {
+        predicate = (conn: ConnectionConfig): boolean => (conn.from.id === from.id && conn.from.pin === from.pin);
+    } else if (to) {
+        predicate = (conn: ConnectionConfig) => (conn.to.id === to.id && conn.to.pin === to.pin);
+    }
+
+    return predicate;
+}

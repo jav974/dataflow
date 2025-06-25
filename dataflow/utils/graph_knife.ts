@@ -13,7 +13,7 @@ export function remapGraphIds(graph: AppConfig): AppConfig {
     // Update the node ids (each node must have a unique id, except for START, RETURN and TRIGGER node types)
     newGraph.nodes.forEach(node => {
         // Do not update ids of special nodes
-        if (node.type === NodeType.START || node.type === NodeType.RETURN || node.type === NodeType.TRIGGER) {
+        if (node.type === NodeType.START || node.type === NodeType.RETURN || node.type === NodeType.TRIGGER || node.type === NodeType.TYPEDEF) {
             return ;
         }
 

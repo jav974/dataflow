@@ -7,10 +7,9 @@ import { jsonToMap } from "@/dataflow/engine/utils";
 
 export default function NewVarNode({node}: NodeProps) {
     const {variables, updateNodeInput, setNodeContext} = useGraphContext();
-    const variable = useRefSignalMemo(() =>
-        variables.current.find((n) => n.id === node.id),
-        [variables]
-    );
+    const variable = useRefSignalMemo(() => {
+        return variables.current.find((n) => n.id === node.id)
+    }, [variables]);
 
     useRefSignalEffect(() => {
         const _var = variable.current;

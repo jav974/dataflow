@@ -32,7 +32,7 @@ interface DashboardProviderProps {
 }
 
 export function DashboardProvider({children}: DashboardProviderProps) {
-    const { scale, canvasPosition, toGraph, loadGraph, nodes, connections, types, variables, addNode, addConnection, addType, addVariable, removeNodes } = useGraphContext();
+    const { scale, canvasPosition, toGraph, loadGraph, nodes, connections, types, variables, actionHistory, addNode, addConnection, addType, addVariable, removeNodes } = useGraphContext();
     const { selectedNodes } = useNodeContext();
     const canvasRef = useRef<HTMLDivElement | null>(null);
     const canvasRect = useRefSignal<DOMRect | undefined>(undefined);
@@ -48,39 +48,52 @@ export function DashboardProvider({children}: DashboardProviderProps) {
         if (payload.type === 'full-graph') {
             loadGraph(payload.data);
         } else {
-            const graph = pastePartialGraph(payload.data, pointerPosition.current.canvasScaled, payload.kind);
-            let hasStartNode = false;
-            let hasReturnNode = false;
-            let hasTriggerNode = false;
+            const previousGraph = structuredClone(toGraph());
 
-            nodes.current.forEach(node => {
-                if (node.current.type === NodeType.START) {
-                    hasStartNode = true;
-                } else if (node.current.type === NodeType.RETURN) {
-                    hasReturnNode = true;
-                } else if (node.current.type === NodeType.TRIGGER) {
-                    hasTriggerNode = true;
+            actionHistory.push({
+                redo: () => {
+                    actionHistory.lock();
+
+                    const graph = pastePartialGraph(payload.data, pointerPosition.current.canvasScaled, payload.kind);
+                    let hasStartNode = false;
+                    let hasReturnNode = false;
+                    let hasTriggerNode = false;
+
+                    nodes.current.forEach(node => {
+                        if (node.current.type === NodeType.START) {
+                            hasStartNode = true;
+                        } else if (node.current.type === NodeType.RETURN) {
+                            hasReturnNode = true;
+                        } else if (node.current.type === NodeType.TRIGGER) {
+                            hasTriggerNode = true;
+                        }
+                    });
+
+                    batch(() => {
+                        graph.nodes.forEach(node => addNode(node));
+                        graph.connections?.forEach(conn => {
+                            // Strip connections from/to start/return/trigger nodes if they already exist in current graph
+                            if (
+                                hasStartNode && conn.from.id === "start"
+                                || hasTriggerNode && conn.from.id === "trigger"
+                                || hasReturnNode && conn.to.id === "return"
+                            ) {
+                                return ;
+                            }
+                            addConnection(conn);
+                        });
+                        graph.types?.forEach(type => addType(type));
+                        graph.variables.forEach(variable => addVariable(variable));
+                        // Select pasted nodes by default
+                        selectedNodes.current = graph.nodes.map(node => node.id);
+                    }, [nodes, connections, variables, types, selectedNodes]);
+
+                    actionHistory.unlock();
+                },
+                undo: () => {
+                    loadGraph(previousGraph);
                 }
             });
-
-            batch(() => {
-                graph.nodes.forEach(node => addNode(node));
-                graph.connections?.forEach(conn => {
-                    // Strip connections from/to start/return/trigger nodes if they already exist in current graph
-                    if (
-                        hasStartNode && conn.from.id === "start"
-                        || hasTriggerNode && conn.from.id === "trigger"
-                        || hasReturnNode && conn.to.id === "return"
-                    ) {
-                        return ;
-                    }
-                    addConnection(conn);
-                });
-                graph.types?.forEach(type => addType(type));
-                graph.variables.forEach(variable => addVariable(variable));
-                // Select pasted nodes by default
-                selectedNodes.current = graph.nodes.map(node => node.id);
-            }, [nodes, connections, variables, types, selectedNodes]);
         }
     });
 
@@ -157,6 +170,14 @@ export function DashboardProvider({children}: DashboardProviderProps) {
                 e.preventDefault();
                 paste();
                 break;
+            case 'z':
+                e.preventDefault();
+                if (e.shiftKey) {
+                    actionHistory.redo();
+                } else {
+                    actionHistory.undo();
+                }
+                break ;
         }
     }, [selectedNodes, toGraph, removeNodes, copyPartial, cutPartial, paste]);
 

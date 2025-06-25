@@ -15,7 +15,7 @@ import Console from "./Console";
 export default function AppContainer() {
     const {canvasRef, canvasRect} = useDashboardContext();
     const { closeContextMenu } = useNodeContext();
-    const { loadGraph, zoomIn, zoomOut } = useGraphContext();
+    const { id, loadGraph, zoomIn, zoomOut } = useGraphContext();
     const { graph } = useUserGraphContext();
 
     // Disable right click default context menu (will be replaced)
@@ -55,10 +55,10 @@ export default function AppContainer() {
 
     // Load the graph when it changes (when user switches between graphs or at initial load)
     useEffect(() => {
-        if (graph) {
+        if (graph && graph.id !== id.current) {
             loadGraph(graph);
         }
-    }, [graph, loadGraph]);
+    }, [graph, id, loadGraph]);
 
     // Force re-render when canvasRect changes
     useRefSignalRender([canvasRect], () => {

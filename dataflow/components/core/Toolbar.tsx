@@ -42,7 +42,7 @@ export default function Toolbar() {
     const onSaveGraphClick = useCallback(() => {
         if (graph) {
             const newConfig = { ...graph, ...toGraph() };
-            saveGraph(graph.name, newConfig);
+            saveGraph(graph.id, newConfig);
         }
     }, [graph, saveGraph, toGraph]);
 
@@ -52,7 +52,7 @@ export default function Toolbar() {
 
     const onDeleteConfirm = useCallback(() => {
         if (graph) {
-            deleteGraph(graph.name);
+            deleteGraph(graph.id);
         }
     }, [graph, deleteGraph]);
 
@@ -78,6 +78,16 @@ export default function Toolbar() {
         }
     }, [zoom]);
 
+    const graphOptions = useMemo(() => {
+        const options = [];
+
+        for (const [graphId, graphName] of graphs.entries()) {
+            options.push(<option key={graphId} value={graphId} className="bg-gray-900">{graphName}</option>);
+        }
+
+        return options;
+    }, [graphs]);
+
     // Force re-render when zoom changes
     useRefSignalRender([zoom]);
 
@@ -85,15 +95,13 @@ export default function Toolbar() {
         <>
             <div className="grid grid-cols-3 bg-black min-h-[50px] min-w-full">
                 <div className="flex justify-start items-center gap-4">
-                    {graphs && graphs.length > 0 &&
+                    {graphOptions.length > 0 &&
                     <select 
                         className="select h-full bg-black text-white border border-transparent rounded px-4 py-2 focus:border-gray-800 hover:bg-gray-800 transition-colors duration-200" 
                         onChange={onGraphChange} 
-                        value={graph?.name}
+                        value={graph?.id}
                     >
-                        {graphs?.map((name, index) => (
-                            <option key={index} value={name} className="bg-gray-900">{name}</option>
-                        ))}
+                        {graphOptions}
                     </select>
                     }
                     <ResetViewButton onClick={handleResetView}/>
