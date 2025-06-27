@@ -9,6 +9,7 @@ export class ReliableEmitter<T> {
         private socket: ReturnType<typeof io>,
         private eventName: string,
         private getPayloadId: (payload: T) => string,
+        private ack: (ack: AckResponse) => void = () => {},
         private maxRetries = 3,
         private ackTimeout = 1000
     ) {}
@@ -29,6 +30,8 @@ export class ReliableEmitter<T> {
             this.socket
                 .timeout(this.ackTimeout)
                 .emit(this.eventName, payload, (err: Error | null, ack: AckResponse) => {
+                    if (!err) this.ack(ack);
+
                     if (err || ack?.status !== "ok") {
                         if (++attempts <= this.maxRetries) {
                             console.warn(`Retrying ${this.eventName} [${this.getPayloadId(payload)}]`);

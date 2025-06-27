@@ -79,22 +79,41 @@ export class WorkerExecutionController implements IExecutionController {
     private clientSocketId: string;
     private workerSocketId: string | undefined;
     private emitter: ReliableEmitter<Log>;
+    private registrationEmitter: ReliableEmitter<{executorId: string, clientSocketId: string}>;
     private websocketServerUrl: string | undefined;
     private connectionError: boolean = false;
+    private registered: boolean = false;
 
     constructor(clientSocketId: string) {
         this.clientSocketId = clientSocketId;
         this.websocketServerUrl = process.env.WEBSOCKET_SERVER_URL;
-        this.socket = io(this.websocketServerUrl, { path: "/ws" });
+        this.socket = io(this.websocketServerUrl, {
+            path: "/ws",
+            transports: ["polling"],
+            reconnection: true,
+            reconnectionAttempts: 5,
+            reconnectionDelay: 1000,
+            forceNew: true
+        });
+
+        this.emitter = new ReliableEmitter(this.socket, "writeTo", (log) => log.createdAt.toString());
+        this.registrationEmitter = new ReliableEmitter(this.socket, "registerExecutor", (payload) => {
+            return payload.executorId;
+        }, (ack) => {
+            if (ack.status === "ok") {
+                this.registered = true;
+            }
+        });
 
         this.socket.on("connect", () => {
             console.log("ExecutionController connected to WebSocket server");
             // Register as executor with a unique ID (could be hostname, PID, etc.)
             const executorId = process.env.EXECUTOR_ID || `executor-${process.pid}`;
-            this.socket.emit("registerExecutor", { executorId, clientSocketId: this.clientSocketId });
+            this.registrationEmitter.enqueue({ executorId, clientSocketId: this.clientSocketId });
         });
 
         this.socket.on("hello", (id) => {
+            console.log("WorkerController: Received hello from server:", id);
             this.workerSocketId = id;
         });
 
@@ -113,8 +132,6 @@ export class WorkerExecutionController implements IExecutionController {
         this.socket.on("disconnect", () => {
             console.log("WorkerExecutionController disconnected from WebSocket server");
         });
-
-        this.emitter = new ReliableEmitter(this.socket, "writeTo", (log) => log.createdAt.toString());
 
         // Forward IO writes to websocket server
         eventBus.on('io_write_' + this.clientSocketId, this.forwardIOWrites);
@@ -163,7 +180,7 @@ export class WorkerExecutionController implements IExecutionController {
     }
 
     async waitForWorkerSocketId() {
-        while (!this.workerSocketId) {
+        while (!this.registered || !this.workerSocketId) {
             if (this.connectionError) {
                 throw new Error("Connection error from worker to ws-server on URL: " + this.websocketServerUrl);
             }
@@ -193,7 +210,7 @@ export class RemoteExecutionController implements IExecutionController {
     private clientSocketId: string | undefined;
 
     private initSocket() {
-        this.socket = io(process.env.NEXT_PUBLIC_WEBSOCKET_SERVER_URL, { path: "/ws" });
+        this.socket = io(process.env.NEXT_PUBLIC_WEBSOCKET_SERVER_URL, { path: "/ws", transports: ["websocket"] });
 
         this.socket.on("connect", () => {
             console.log("Connected to remote WS server");

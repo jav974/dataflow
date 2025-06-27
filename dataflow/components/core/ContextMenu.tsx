@@ -25,7 +25,7 @@ function HorizontalMenu({menu}: {menu: MenuTree}) {
     return (
         <div className="relative group hover:bg-white/20 min-w-max">
             <button className="p-1">{menu.name}</button>
-            <div className="absolute left-full top-[-4] hidden group-hover:flex flex-col bg-black/50 p-1 min-w-max">
+            <div className="absolute left-full top-[-4px] hidden group-hover:flex flex-col bg-black/50 p-1 min-w-max">
                 {menu.children.map((m: MenuTree, index: number) => <HorizontalMenu key={index} menu={m}/>)}
             </div>
         </div>
@@ -202,6 +202,8 @@ export default function ContextMenu() {
             }
 
             setPosition({ top, left });
+        } else {
+            setPosition({top: undefined, left: undefined});
         }
     }, [rightClickPosition]);
 
@@ -209,7 +211,7 @@ export default function ContextMenu() {
         <div
             ref={menuRef}
             id="context-menu"
-            className={`${rightClickPosition.current ? 'visible' : 'hidden'} absolute bg-black/50 p-1 shadow-lg z-100000 text-white`}
+            className={`${position.top !== undefined ? 'visible' : 'hidden'} absolute bg-black/50 p-1 shadow-lg z-100000 text-white`}
             style={position}
         >
             <HorizontalMenu menu={menu} />

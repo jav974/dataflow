@@ -4,9 +4,6 @@ services:
       # - "traefik.http.routers.dashboard.rule=Host(`traefik.dataflow-ide.dev`)"
       - "traefik.http.routers.dashboard.rule=Host(`traefik.localhost`)"
     restart: always
-    # command:
-      # - "--api.dashboard=true"
-      # - "--api.insecure=false"
 
   nextjs:
     labels:
@@ -16,6 +13,6 @@ services:
   
   ws-server:
     labels:
-      # - "traefik.http.routers.ws.rule=Host(`ws.dataflow-ide.dev`) && PathPrefix(`/ws`)"
-      - "traefik.http.routers.ws.rule=Host(`ws.dataflow-ide.local`) && PathPrefix(`/ws`)"
+      # - "traefik.http.routers.ws-server.rule=Host(`ws.dataflow-ide.dev`) && PathPrefix(`/ws`)"
+      - "traefik.http.routers.ws-server.rule=Host(`ws.dataflow-ide.local`) && PathPrefix(`/ws`)"
     restart: always

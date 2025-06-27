@@ -14,7 +14,7 @@ export interface ServerToClientEvents {
 }
 
 export interface ClientToServerEvents {
-    registerExecutor: (data: { executorId: string, clientSocketId: string }) => void;
+    registerExecutor: (data: { executorId: string, clientSocketId: string }, ack: (ack: AckResponse) => void) => void;
     pause: (callback: () => void) => void;
     resume: (callback: () => void) => void;
     cancel: (callback: () => void) => void;

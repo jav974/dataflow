@@ -19,10 +19,11 @@ io.on("connection", (socket) => {
 
     socket.emit("hello", socket.id);
 
-    socket.on("registerExecutor", (data) => {
+    socket.on("registerExecutor", (data, ack) => {
         console.log("Register", data.executorId, socket.id, "for client", data.clientSocketId);
         clientToExecutor.set(data.clientSocketId, socket.id);
         executorToClient.set(socket.id, data.clientSocketId);
+        ack({status: "ok"});
     });
 
     // Listen for events from client
@@ -57,6 +58,7 @@ io.on("connection", (socket) => {
     });
 
     socket.on("writeTo", (data, ack) => {
+        console.log("Sdfsdfsfsrgqrgrgrg", data);
         const clientSocketId = executorToClient.get(socket.id);
 
         if (clientSocketId) {

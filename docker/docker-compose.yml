@@ -5,6 +5,7 @@ services:
       - "--api.dashboard=true"
       - "--entrypoints.web.address=:80"
       - "--providers.docker=true"
+      - "--providers.docker.network=dataflow"
     ports:
       - "80:80"
     volumes:
@@ -38,8 +39,9 @@ services:
   ws-server:
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.ws.entrypoints=web"
-      - "traefik.http.services.ws.loadbalancer.server.port=3001"
+      - "traefik.http.routers.ws-server.entrypoints=web"
+      - "traefik.http.routers.ws-server.service=ws-server"
+      - "traefik.http.services.ws-server.loadbalancer.server.port=3001"
       - "traefik.docker.network=dataflow"
     build:
       context: ..

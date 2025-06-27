@@ -20,7 +20,7 @@ export function RealTimeProvider({ url, children }: RealTimeProviderProps) {
     useEffect(() => {
         if (!url) return ;
 
-        const socket = io(url, { path: "/ws" });
+        const socket = io(url, { path: "/ws", transports: ["websocket"] });
         socketRef.update(socket);
 
         socket.on("connect", () => {
