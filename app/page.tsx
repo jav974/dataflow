@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 
 export default function Home() {
@@ -6,10 +7,11 @@ export default function Home() {
       {/* Hero */}
       <section className="relative h-screen flex items-center justify-center text-center px-4">
         <div className="absolute inset-0 z-0">
-          <img
+          <Image
             src="/background.png"
             alt="Graph background"
             className="object-cover w-full h-full opacity-30"
+            fill
           />
         </div>
         <div className="z-10 max-w-2xl">

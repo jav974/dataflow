@@ -1,5 +1,5 @@
 export function isNumeric(value: unknown): boolean {
-    return typeof value === "number" || (typeof value === "string" && Number.isFinite(Number(value)));
+    return (typeof value === "number" && !Number.isNaN(value)) || (typeof value === "string" && Number.isFinite(Number(value)));
 }
 
 export function math_add(...numbers: number[]): number {

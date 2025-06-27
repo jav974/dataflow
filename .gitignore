@@ -39,3 +39,12 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# mutagen lock file
+/docker/mutagen.yml.lock
+
+# default docker local env (urls to services)
+!docker/.env.docker.local
+
+# @vercel/nft dist folder
+/dist

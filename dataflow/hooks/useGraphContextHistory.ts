@@ -177,5 +177,5 @@ export default function useGraphContextHistory(graphContext: GraphContextType) {
                 }
             });
         },
-    }), [graphContext]);
+    }), [graphContext, actionHistory]);
 }

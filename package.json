@@ -3,12 +3,15 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev:next": "next dev --turbopack",
-    "dev:ws": "nodemon --watch dataflow/realtime/ws-server.mts --exec \"node --import ./register-loader.mjs dataflow/realtime/ws-server.mts\"",
-    "dev": "concurrently \"npm run dev:next\" \"npm run dev:ws\"",
+    "dev:next-turbo": "next dev --turbopack",
+    "dev:next": "next dev",
+    "dev:wss": "nodemon --watch dataflow/realtime/ws-server.mts --exec \"node --import ./register-loader.mjs dataflow/realtime/ws-server.mts\"",
+    "dev": "concurrently \"npm run dev:next\" \"npm run dev:wss\"",
     "build": "next build",
+    "build:wss": "rm -rf dist && rm -rf build/wss && tsc -p tsconfig.wss.json && npx nft build build/wss/realtime/ws-server.mjs",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "test": "vitest run"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.0.1",
@@ -30,16 +33,23 @@
   "devDependencies": {
     "@eslint/eslintrc": "^3",
     "@tailwindcss/postcss": "^4",
+    "@testing-library/dom": "^10.4.0",
+    "@testing-library/react": "^16.3.0",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@vercel/nft": "^0.29.4",
+    "@vitejs/plugin-react": "^4.6.0",
     "concurrently": "^9.1.2",
     "eslint": "^9",
     "eslint-config-next": "15.3.0",
+    "jsdom": "^26.1.0",
     "nodemon": "^3.1.10",
     "tailwind-scrollbar": "^4.0.2",
     "tailwindcss": "^4",
     "ts-node": "^10.9.2",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vite-tsconfig-paths": "^5.1.4",
+    "vitest": "^3.2.4"
   }
 }

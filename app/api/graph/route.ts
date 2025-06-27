@@ -12,7 +12,7 @@ export async function POST(req: NextRequest) {
         }
 
         result = await executeGraph(graph, params, clientSocketId);
-        
+
         // Removes circular dependencies by removing the graph itself.
         if (result) {
             result.graph = undefined;

@@ -1,11 +1,11 @@
 'use client'
 
-// import { executeGraph } from '@/actions/graph';
 import Dataflow from '@/dataflow/components/core/Dataflow';
 
 export default function Page() {
-  return (
-      // <Dataflow remoteExecutor={executeGraph}/>
-      <Dataflow serverUrl='http://localhost:3000/api/graph'/>
-  );
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
+
+    return (
+        <Dataflow serverUrl={`${baseUrl}/api/graph`}/>
+    );
 }

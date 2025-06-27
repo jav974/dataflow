@@ -1,0 +1,54 @@
+services:
+  traefik:
+    labels:
+      - "traefik.http.routers.dashboard.rule=Host(`traefik.localhost`)"
+    restart: unless-stopped
+
+  nextjs:
+    labels:
+      - "traefik.http.routers.next.rule=Host(`dataflow-ide.local`)"
+    env_file:
+      - .env.docker.local
+      - ../.env.local
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.dev
+      target: nextjs
+      args:
+        USER_ID: ${USER_ID}
+        GROUP_ID: ${GROUP_ID}
+    restart: unless-stopped
+    volumes:
+      - ../:/app:cached
+      - ./.env.docker.local:/app/.env.docker.local
+      - ../.env.local:/app/.env.local
+      # - next_cache:/app/.next
+    environment:
+      - NODE_ENV=development
+      - NODE_OPTIONS=--max-old-space-size=4096
+    command: ["npm", "run", "dev:next"]
+    user: "${USER_ID}:${GROUP_ID}"
+    ports:
+      - "3000:3000"
+
+  ws-server:
+    labels:
+      - "traefik.http.routers.ws.rule=Host(`ws.dataflow-ide.local`) && PathPrefix(`/ws`)"
+    env_file:
+      - .env.docker.local
+      - ../.env.local
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.dev
+      target: wsserver
+    restart: unless-stopped
+    volumes:
+      - ../:/app:cached
+      - ./.env.docker.local:/app/.env.docker.local
+      - ../.env.local:/app/.env.local
+    environment:
+      - NODE_ENV=development
+    command: ["npm", "run", "dev:wss"]
+
+# volumes:
+#   next_cache:

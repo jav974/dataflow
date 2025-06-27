@@ -1,3 +1,5 @@
+/* eslint-disable react-hooks/exhaustive-deps */
+
 import React, { createContext, useCallback, useContext, useMemo } from "react";
 import { AppConfig, ConnectionConfig, ConnectorConfig, Coordinates, GraphType, InputConfig, NodeConfig, NodeType, OutputBranchConfig, OutputConfig, ParameterTypes, PrimitiveTypes, VariableConfig } from "@/dataflow/config/schema";
 import { useRefState } from "@/dataflow/hooks/useRefState";

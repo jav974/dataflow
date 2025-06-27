@@ -79,10 +79,13 @@ export class WorkerExecutionController implements IExecutionController {
     private clientSocketId: string;
     private workerSocketId: string | undefined;
     private emitter: ReliableEmitter<Log>;
+    private websocketServerUrl: string | undefined;
+    private connectionError: boolean = false;
 
     constructor(clientSocketId: string) {
         this.clientSocketId = clientSocketId;
-        this.socket = io(process.env.NEXT_PUBLIC_WEBSOCKET_SERVER_URL, { path: "/ws" });
+        this.websocketServerUrl = process.env.WEBSOCKET_SERVER_URL;
+        this.socket = io(this.websocketServerUrl, { path: "/ws" });
 
         this.socket.on("connect", () => {
             console.log("ExecutionController connected to WebSocket server");
@@ -115,25 +118,30 @@ export class WorkerExecutionController implements IExecutionController {
 
         // Forward IO writes to websocket server
         eventBus.on('io_write_' + this.clientSocketId, this.forwardIOWrites);
+
+        this.socket.on("connect_error", () => {
+            this.clear();
+            this.connectionError = true;
+        });
     }
 
     private forwardIOWrites = (log: Log) => {
         this.emitter.enqueue(log);
     };
 
-    start(executor: Executor, graph: AppConfig, params?: KeyValue): ExecutorReturn {
+    start(): ExecutorReturn {
         throw new Error();
     }
 
-    pause(onPaused?: Callback): void {
+    pause(): void {
         throw new Error();
     }
 
-    resume(onResumed?: Callback): void {
+    resume(): void {
         throw new Error();
     }
 
-    cancel(onCanceled?: Callback): void {
+    cancel(): void {
         throw new Error();
     }
 
@@ -156,6 +164,9 @@ export class WorkerExecutionController implements IExecutionController {
 
     async waitForWorkerSocketId() {
         while (!this.workerSocketId) {
+            if (this.connectionError) {
+                throw new Error("Connection error from worker to ws-server on URL: " + this.websocketServerUrl);
+            }
             await this.wait();
         }
     }

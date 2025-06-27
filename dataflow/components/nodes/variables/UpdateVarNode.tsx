@@ -33,7 +33,7 @@ export default function UpdateVarNode({node, ...props}: NodeProps) {
             type: variable.type,
             isCollection: variable.isCollection
         }])
-    }, [setNodeContext, setNodeInputs, setNodeOutputs, node.id]);
+    }, [context, variables, setNodeContext, setNodeInputs, setNodeOutputs, node.id]);
 
     const onChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
         updateVariable(e.target.value);

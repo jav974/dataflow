@@ -36,6 +36,8 @@ RUN \
   else echo "Lockfile not found." && exit 1; \
   fi
 
+RUN rm -f .next/standalone/.env.production
+
 # Production image, copy all the files and run next
 FROM base AS runner
 WORKDIR /app
@@ -64,3 +66,37 @@ ENV PORT=3000
 # https://nextjs.org/docs/pages/api-reference/config/next-config-js/output
 ENV HOSTNAME="0.0.0.0"
 CMD ["node", "server.js"]
+
+####### WS SERVER #########
+
+# Rebuild the source code only when needed
+FROM base AS wsbuilder
+WORKDIR /app
+COPY --from=deps /app/node_modules ./node_modules
+COPY . .
+
+RUN \
+  if [ -f yarn.lock ]; then yarn run build:wss; \
+  elif [ -f package-lock.json ]; then npm run build:wss; \
+  elif [ -f pnpm-lock.yaml ]; then corepack enable pnpm && pnpm run build:wss; \
+  else echo "Lockfile not found." && exit 1; \
+  fi
+
+FROM base AS wsserver
+WORKDIR /app
+
+ENV NODE_ENV=production
+
+RUN addgroup --system --gid 1001 nodejs
+RUN adduser --system --uid 1001 wsserver
+
+COPY --from=wsbuilder /app/dist ./
+
+USER wsserver
+
+# Expose websocket server port
+EXPOSE 3001
+ENV HOSTNAME="0.0.0.0"
+
+# CMD ["ls", "-la"]
+CMD ["node", "build/wss/realtime/ws-server.mjs"]

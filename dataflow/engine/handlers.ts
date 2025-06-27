@@ -7,7 +7,7 @@ import "./handlers/bitwise";
 import "./handlers/logical";
 import { eventBus } from "../events/events";
 import { Log } from "./types";
-import { appendResult, createVariable, destructure, getValueByPath, setValueByPath } from "./utils";
+import { appendResult, createVariable, getValueByPath, setValueByPath } from "./utils";
 
 type SimpleMathContext = Map<string, (...numbers: number[]) => number>;
 

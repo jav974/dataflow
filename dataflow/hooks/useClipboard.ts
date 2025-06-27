@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef } from 'react';
 import { isEditableElement } from '../utils/utils';
+import { v4 as uuidv4 } from "uuid";
 
 type ClipboardPayload<T> = {
     kind: 'copy' | 'cut';
@@ -12,7 +13,7 @@ type ClipboardPayload<T> = {
 export function useClipboard<T>(onPaste: (payload: ClipboardPayload<T>) => void) {
     const clipboard = useRef<ClipboardPayload<T> | null>(null);
     const channelRef = useRef<BroadcastChannel | null>(null);
-    const sourceId = useRef<string>(crypto.randomUUID()).current;
+    const sourceId = useRef<string>(uuidv4()).current;
 
     // BroadcastChannel setup
     useEffect(() => {
@@ -60,7 +61,7 @@ export function useClipboard<T>(onPaste: (payload: ClipboardPayload<T>) => void)
         };
         channelRef.current?.postMessage(payload);
         clipboard.current = { type: 'partial-graph', data, kind };
-    }, []);
+    }, [sourceId]);
 
     const copyPartial = useCallback((data: T) => {
         copyOrCutPartial(data, 'copy');
@@ -74,7 +75,7 @@ export function useClipboard<T>(onPaste: (payload: ClipboardPayload<T>) => void)
         if (clipboard.current) {
             onPaste(clipboard.current);
         }
-    }, [clipboard]);
+    }, [clipboard, onPaste]);
 
     return {
         copyPartial,

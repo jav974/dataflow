@@ -52,7 +52,7 @@ export default function SetVarNode({node, ...props}: NodeProps) {
         }]);
 
         setNodeOutputs(node.id, [{id: 'result', name: 'var', type: data.type, isCollection: data.isCollection}]);
-    }, [node.id, node.inputs, node.outputs, setVariable, setNodeInputs, setNodeOutputs]);
+    }, [node.id, setVariable, setNodeInputs, setNodeOutputs]);
 
     const onBlur = useCallback(() => {
         formRef.current?.requestSubmit();

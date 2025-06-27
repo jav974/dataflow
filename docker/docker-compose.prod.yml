@@ -1,0 +1,21 @@
+services:
+  traefik:
+    labels:
+      # - "traefik.http.routers.dashboard.rule=Host(`traefik.dataflow-ide.dev`)"
+      - "traefik.http.routers.dashboard.rule=Host(`traefik.localhost`)"
+    restart: always
+    # command:
+      # - "--api.dashboard=true"
+      # - "--api.insecure=false"
+
+  nextjs:
+    labels:
+      # - "traefik.http.routers.next.rule=Host(`dataflow-ide.dev`)"
+      - "traefik.http.routers.next.rule=Host(`dataflow-ide.local`)"
+    restart: always
+  
+  ws-server:
+    labels:
+      # - "traefik.http.routers.ws.rule=Host(`ws.dataflow-ide.dev`) && PathPrefix(`/ws`)"
+      - "traefik.http.routers.ws.rule=Host(`ws.dataflow-ide.local`) && PathPrefix(`/ws`)"
+    restart: always

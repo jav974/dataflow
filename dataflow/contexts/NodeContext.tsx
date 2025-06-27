@@ -1,3 +1,5 @@
+/* eslint-disable react-hooks/exhaustive-deps */
+
 import { Coordinates, InputConfig, NodeConfig, OutputBranchConfig, OutputConfig } from '@/dataflow/config/schema';
 import { createContext, useContext, useState, useCallback, useEffect } from 'react';
 import { useGraphContext } from './GraphContext';

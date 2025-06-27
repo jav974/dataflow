@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useRef, useState } from "react";
+import React, { useCallback, useMemo, useRef } from "react";
 import { InputPin, OutputBranchPin, OutputPin, Pin as PinType, useNodeContext } from "@/dataflow/contexts/NodeContext";
 import PinExecute from "./pin/PinExecute";
 import PinContinue from "./pin/PinContinue";
@@ -203,7 +203,7 @@ export default function Node({
         if ((e.ctrlKey || e.metaKey) && !isEditableElement(document.activeElement)) {
             setSelected(node.id, !selected.current);
         }
-    }, [selected, setSelected]);
+    }, [node.id, selected, setSelected]);
 
     return (
         <div

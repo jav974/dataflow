@@ -25,6 +25,7 @@ enum NodeType {
     IF = "if",
     FOR = "for",
     FOREACH = "foreach",
+    WHILE = "while",
     NEW = "new_variable",
     SET = "set_variable",
     GET = "get_variable",

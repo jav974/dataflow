@@ -3,6 +3,7 @@ type WithTarget<T, F> = F extends (...args: infer A) => infer R
     : never;
 
 export type Proxied<T, IncludeTarget extends boolean> = {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     [K in keyof T]?: T[K] extends (...args: any[]) => any
         ? IncludeTarget extends true
             ? WithTarget<T, T[K]>
@@ -23,6 +24,7 @@ export function createProxyWithTarget<T extends object>(
             const original = Reflect.get(target, prop, receiver);
 
             if (typeof original === 'function' && typeof override === 'function') {
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 return (...args: any[]) => (override as any)(base, ...args);
             }
 
@@ -41,6 +43,7 @@ export function createProxy<T extends object>(
             const original = Reflect.get(target, prop, receiver);
 
             if (typeof original === 'function' && typeof override === 'function') {
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 return (...args: any[]) => (override as any)(...args);
             }
 

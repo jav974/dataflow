@@ -64,7 +64,7 @@ function Pin({ nodeId, id, nodeType, name, type, required, isInput, onRef, remov
     const handleSplit = useCallback(() => {
         if (isInput) splitInputParam(nodeId, id);
         else splitOutputParam(nodeId, id);
-    }, [splitInputParam, nodeId, id]);
+    }, [splitInputParam, nodeId, id, isInput, splitOutputParam]);
 
     const lastUpdated = computedResult.lastUpdated;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any

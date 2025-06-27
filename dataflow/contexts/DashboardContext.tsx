@@ -179,7 +179,7 @@ export function DashboardProvider({children}: DashboardProviderProps) {
                 }
                 break ;
         }
-    }, [selectedNodes, toGraph, removeNodes, copyPartial, cutPartial, paste]);
+    }, [selectedNodes, actionHistory, nodes, toGraph, removeNodes, copyPartial, cutPartial, paste]);
 
     useEffect(() => {
         window.addEventListener('keydown', handleKeyDown);

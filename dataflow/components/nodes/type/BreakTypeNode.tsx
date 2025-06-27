@@ -26,7 +26,7 @@ export default function BreakTypeNode({node, ...props}: NodeProps) {
                 setNodeOutputs(node.id, outputs);
                 break ;
         }
-    }, [node.id, input, setNodeOutputs, updateNodeInput]);
+    }, [input, types, setNodeOutputs, updateNodeInput]);
 
     // Update type of input after it is connected
     // Update outputs depending on input type

@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 import executionContext, { KeyValue } from "./context";
 import { NodeExecContext, NodeExecParams } from "./registry";
 import { ExecutionGraph } from "./types";
@@ -21,7 +23,6 @@ export function getValueByPath<T>(obj: T, path: string): unknown {
     return path
         .replace(/\[(["']?)([^"\]]+)\1\]/g, '.$2') // Convert bracket notation to dot notation while handling quoted keys
         .split('.')
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         .reduce((acc: any, key: string) => acc && acc[key], obj);
 }
 

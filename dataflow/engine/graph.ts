@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 import { AppConfig, ConnectionConfig, InputConfig, NodeConfig, NodeType, OutputBranchConfig, OutputConfig, ParameterValueType } from "@/dataflow/config/schema";
 import registry, { NodeExecParams, NodeExecutor } from "./registry";
 import { getIOValues, jsonToMap, mapToKeyValue, Stack } from "./utils";
@@ -91,7 +93,6 @@ class Graph {
         }
 
         const nextNode = this.findNextNode(node, graph);
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const context = jsonToMap<any>(node.context);
 
         context.set('_node_id', node.id);
@@ -202,7 +203,6 @@ class Graph {
         graph: ExecutionGraph, 
         inputs: Map<string, ParameterValueType>
     ): Promise<ExecutionGraph> {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const target: any = inputs.get("value");
 
         // Exclude unwanted types

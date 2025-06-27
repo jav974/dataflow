@@ -2,7 +2,6 @@ import { NodeConfig, NodeType, ParameterTypes } from "../../config/schema";
 import registry from "./registry";
 import FetchNode from "./fetch/FetchNode";
 import MathNode from "./math/MathNode";
-import SetVarNode from "./variables/SetVarNode";
 import IfNode from "./conditional/IfNode";
 import GetVarNode from "./variables/GetVarNode";
 import StartNode from "./special/StartNode";
@@ -315,6 +314,23 @@ registry.set(NodeType.FOREACH, {
         outputs: [
             {id: "index", name: "index", type: ParameterTypes.ANY},
             {id: "item", name: "item", type: ParameterTypes.ANY}
+        ],
+        branches: [
+            {id: "callback", name: "callback"}
+        ]
+    }
+});
+
+registry.set(NodeType.WHILE, {
+    builder: (node: NodeConfig) => <ForNode node={node} />,
+    config: {
+        executable: true,
+        name: "While",
+        type: NodeType.WHILE,
+        inputs: [
+            {id: "condition", name: "Condition", type: ParameterTypes.BOOLEAN, required: true, editable: true, isCollection: false, defaultValue: false}
+        ],
+        outputs: [
         ],
         branches: [
             {id: "callback", name: "callback"}

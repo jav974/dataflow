@@ -13,13 +13,13 @@ const handler = NextAuth({
                     access_type: "offline",
                     response_type: "code"
                 }
-            }
+            },
         }),
         GitHubProvider({
             clientId: process.env.GITHUB_CLIENT_ID!,
             clientSecret: process.env.GITHUB_CLIENT_SECRET!,
         }),
-  ],
+    ],
 });
 
 export { handler as GET, handler as POST }

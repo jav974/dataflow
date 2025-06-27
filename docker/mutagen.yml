@@ -1,0 +1,21 @@
+sync:
+  nextjs:
+    alpha: ../
+    beta: docker://dataflow-nextjs-1/app
+    ignore:
+      vcs: true
+      paths:
+        - node_modules
+        - .next
+        - .git
+        - .env*
+  ws-server:
+    alpha: ../
+    beta: docker://dataflow-ws-server-1/app
+    ignore:
+      vcs: true
+      paths:
+        - node_modules
+        - .next
+        - .git
+        - .env*

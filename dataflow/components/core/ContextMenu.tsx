@@ -126,6 +126,7 @@ export default function ContextMenu() {
                     children: [
                         createNodeMenuEntry("For", NodeType.FOR),
                         createNodeMenuEntry("Foreach", NodeType.FOREACH),
+                        createNodeMenuEntry("Do/While", NodeType.WHILE),
                     ]
                 },
                 {

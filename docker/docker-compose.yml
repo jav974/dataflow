@@ -1,0 +1,59 @@
+services:
+  traefik:
+    image: traefik:v2.10
+    command:
+      - "--api.dashboard=true"
+      - "--entrypoints.web.address=:80"
+      - "--providers.docker=true"
+    ports:
+      - "80:80"
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.dashboard.service=api@internal"
+      - "traefik.http.routers.dashboard.entrypoints=web"
+    networks:
+      - dataflow
+
+  nextjs:
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.next.entrypoints=web"
+      - "traefik.http.services.next.loadbalancer.server.port=3000"
+      - "traefik.docker.network=dataflow"
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.prod
+      target: runner
+    env_file:
+      - ../.env.production
+    environment:
+      - NODE_ENV=production
+    networks:
+      - dataflow
+    depends_on:
+      - traefik
+
+  ws-server:
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.ws.entrypoints=web"
+      - "traefik.http.services.ws.loadbalancer.server.port=3001"
+      - "traefik.docker.network=dataflow"
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.prod
+      target: wsserver
+    env_file:
+      - ../.env.production
+    environment:
+      - NODE_ENV=production
+    networks:
+      - dataflow
+    depends_on:
+      - traefik
+
+networks:
+  dataflow:
+    name: dataflow
