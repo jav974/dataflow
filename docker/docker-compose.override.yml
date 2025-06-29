@@ -22,6 +22,7 @@ services:
       - ../:/app:cached
       - ./.env.docker.local:/app/.env.docker.local
       - ../.env.local:/app/.env.local
+      - /app/node_modules  # anonymous volume INSIDE container
       # - next_cache:/app/.next
     environment:
       - NODE_ENV=development
@@ -50,6 +51,7 @@ services:
       - ../:/app:cached
       - ./.env.docker.local:/app/.env.docker.local
       - ../.env.local:/app/.env.local
+      - /app/node_modules  # anonymous volume INSIDE container
     environment:
       - NODE_ENV=development
     command: ["npm", "run", "dev:wss"]

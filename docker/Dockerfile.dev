@@ -6,7 +6,6 @@ WORKDIR /app
 
 ARG USER_ID=1000
 ARG GROUP_ID=1000
-#RUN addgroup -g ${GROUP_ID} nodejs && adduser -D -u ${USER_ID} -G nodejs nextjs
 
 # Detect and create only if needed
 RUN if ! getent passwd ${USER_ID} >/dev/null; then \
@@ -16,7 +15,7 @@ RUN if ! getent passwd ${USER_ID} >/dev/null; then \
       echo "User with UID ${USER_ID} already exists. Skipping creation."; \
     fi
 
-#USER nextjs
+RUN chown -R ${USER_ID}:${GROUP_ID} /app
 USER ${USER_ID}
 
 # Install dependencies only
