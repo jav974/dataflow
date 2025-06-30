@@ -24,13 +24,9 @@ services:
       - "traefik.http.services.next.loadbalancer.server.port=3000"
       - "traefik.docker.network=dataflow"
     build:
-      context: ..
+      context: ../apps/frontend
       dockerfile: docker/Dockerfile.prod
       target: runner
-    env_file:
-      - ../.env.production
-    environment:
-      - NODE_ENV=production
     networks:
       - dataflow
     depends_on:
@@ -44,13 +40,9 @@ services:
       - "traefik.http.services.ws-server.loadbalancer.server.port=3001"
       - "traefik.docker.network=dataflow"
     build:
-      context: ..
+      context: ../apps/frontend
       dockerfile: docker/Dockerfile.prod
       target: wsserver
-    env_file:
-      - ../.env.production
-    environment:
-      - NODE_ENV=production
     networks:
       - dataflow
     depends_on:

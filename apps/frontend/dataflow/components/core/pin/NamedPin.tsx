@@ -1,8 +1,8 @@
 import { useCallback, useMemo, useRef } from "react";
 import useHoverable from "@/dataflow/hooks/useHoverable";
-import { FormProvider, useForm } from "react-hook-form"
-import { yupResolver } from "@hookform/resolvers/yup"
-import * as yup from "yup"
+import { FormProvider, useForm } from "react-hook-form";
+import { yupResolver } from "@hookform/resolvers/yup";
+import * as yup from "yup";
 import Input from "@/dataflow/components/forms/Input";
 
 interface NamedPinProps {

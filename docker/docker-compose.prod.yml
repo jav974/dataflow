@@ -10,9 +10,23 @@ services:
       # - "traefik.http.routers.next.rule=Host(`dataflow-ide.dev`)"
       - "traefik.http.routers.next.rule=Host(`dataflow-ide.local`)"
     restart: always
+    environment:
+      - NODE_ENV=production
+    env_file:
+      - ../apps/frontend/.env.production
+    build:
+      dockerfile: docker/Dockerfile.prod
+      target: runner
   
   ws-server:
     labels:
       # - "traefik.http.routers.ws-server.rule=Host(`ws.dataflow-ide.dev`) && PathPrefix(`/ws`)"
       - "traefik.http.routers.ws-server.rule=Host(`ws.dataflow-ide.local`) && PathPrefix(`/ws`)"
     restart: always
+    environment:
+      - NODE_ENV=production
+    env_file:
+      - ../apps/frontend/.env.production
+    build:
+      dockerfile: docker/Dockerfile.prod
+      target: wsserver

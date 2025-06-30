@@ -9,9 +9,8 @@ services:
       - "traefik.http.routers.next.rule=Host(`dataflow-ide.local`)"
     env_file:
       - .env.docker.local
-      - ../.env.local
+      - ../apps/frontend/.env.local
     build:
-      context: ..
       dockerfile: docker/Dockerfile.dev
       target: nextjs
       args:
@@ -19,9 +18,9 @@ services:
         GROUP_ID: ${GROUP_ID}
     restart: unless-stopped
     volumes:
-      - ../:/app:cached
+      - ../apps/frontend/:/app:cached
       - ./.env.docker.local:/app/.env.docker.local
-      - ../.env.local:/app/.env.local
+      - ../apps/frontend/.env.local:/app/.env.local
       - /app/node_modules  # anonymous volume INSIDE container
       # - next_cache:/app/.next
     environment:
@@ -38,9 +37,8 @@ services:
       - "traefik.http.services.ws-server.loadbalancer.sticky.cookie.name=ws_sticky"
     env_file:
       - .env.docker.local
-      - ../.env.local
+      - ../apps/frontend/.env.local
     build:
-      context: ..
       dockerfile: docker/Dockerfile.dev
       target: wsserver
       args:
@@ -48,9 +46,9 @@ services:
         GROUP_ID: ${GROUP_ID}
     restart: unless-stopped
     volumes:
-      - ../:/app:cached
+      - ../apps/frontend/:/app:cached
       - ./.env.docker.local:/app/.env.docker.local
-      - ../.env.local:/app/.env.local
+      - ../apps/frontend/.env.local:/app/.env.local
       - /app/node_modules  # anonymous volume INSIDE container
     environment:
       - NODE_ENV=development
