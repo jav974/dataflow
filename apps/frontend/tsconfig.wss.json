@@ -13,5 +13,5 @@
     },
     "skipLibCheck": true
   },
-  "include": ["dataflow/realtime/*", "register-loader.mjs"],
+  "include": ["../../libs/dataflow/src/lib/realtime/*", "register-loader.mjs"],
 }

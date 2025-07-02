@@ -19,6 +19,7 @@ services:
     restart: unless-stopped
     volumes:
       - ../apps/frontend/:/app:cached
+      - ../libs/:/libs:cached
       - ./.env.docker.local:/app/.env.docker.local
       - ../apps/frontend/.env.local:/app/.env.local
       - /app/node_modules  # anonymous volume INSIDE container
@@ -47,6 +48,7 @@ services:
     restart: unless-stopped
     volumes:
       - ../apps/frontend/:/app:cached
+      - ../libs/:/libs:cached
       - ./.env.docker.local:/app/.env.docker.local
       - ../apps/frontend/.env.local:/app/.env.local
       - /app/node_modules  # anonymous volume INSIDE container

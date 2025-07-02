@@ -19,9 +19,11 @@
       }
     ],
     "paths": {
-      "@/*": ["./*"]
+      "@/*": ["./*"],
+      "@dataflow-ui/*": ["../../libs/dataflow-ui/src/lib/*"],
+      "@dataflow-core/*": ["../../libs/dataflow-core/src/lib/*"],
     }
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "dataflow/realtime/ws-server.mts", "vitest.config.mts"],
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "../../libs/dataflow/src/lib/realtime/ws-server.mts", "vitest.config.mts"],
   "exclude": ["node_modules"]
 }

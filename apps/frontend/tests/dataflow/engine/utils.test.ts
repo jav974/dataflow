@@ -1,4 +1,4 @@
-import { jsonToMap, mapToJson } from '@/dataflow/engine/utils';
+import { jsonToMap, mapToJson } from '@dataflow-ui/engine/utils';
 import { describe, it, expect } from 'vitest';
 
 describe('jsonToMap()', () => {

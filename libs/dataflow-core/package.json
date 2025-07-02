@@ -1,0 +1,13 @@
+{
+  "name": "@dataflow-ide/dataflow-core",
+  "version": "1.0.0",
+  "main": "src/index.ts",
+  "private": true,
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "peerDependencies": {
+    "socket.io-client": "^4.8.1",
+    "socket.io": "^4.8.1"
+  }
+}

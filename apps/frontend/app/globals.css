@@ -34,3 +34,5 @@ svg {
 svg:hover {
   filter: brightness(1.2) contrast(1.5) saturate(2);
 }
+
+@source "../../../libs/dataflow-ui/src/lib";

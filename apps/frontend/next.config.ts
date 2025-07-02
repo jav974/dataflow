@@ -4,7 +4,7 @@ const nextConfig: NextConfig = {
   /* config options here */
   output: "standalone",
   eslint: {
-    dirs: ['app', 'actions', 'dataflow'],
+    dirs: ['app', 'actions'],
   },
   images: {
   remotePatterns: [
@@ -29,7 +29,8 @@ const nextConfig: NextConfig = {
       pathname: '/**',
     },
   ],
-}
+},
+transpilePackages: ['@dataflow-ide/dataflow-ui', '@dataflow-ide/dataflow-core'],
 };
 
 export default nextConfig;

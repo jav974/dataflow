@@ -1,4 +1,4 @@
-import { isNumeric, math_add, math_div, math_mod, math_mul, math_sub } from "@/dataflow/engine/lib";
+import { isNumeric, math_add, math_div, math_mod, math_mul, math_sub } from "@dataflow-ui/engine/lib";
 import { describe, expect, it } from "vitest";
 
 describe('isNumeric()', () => {

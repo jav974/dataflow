@@ -1,9 +1,9 @@
 'use client'
 
 import { executeGraph } from '@/actions/graph';
-import { DataflowProvider } from '@/dataflow/contexts/DataflowContext';
-import { GraphResult } from '@/dataflow/engine/types';
-import { useDataflowGraph } from '@/dataflow/hooks/useDataflowGraph';
+import { DataflowProvider } from '@dataflow-ui/contexts/DataflowContext';
+import { GraphResult } from '@dataflow-ui/engine/types';
+import { useDataflowGraph } from '@dataflow-ui/hooks/useDataflowGraph';
 import { useEffect } from 'react';
 
 function Child() {

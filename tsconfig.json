@@ -1,0 +1,9 @@
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@dataflow-ui/*": ["libs/dataflow-ui/src/lib/*"],
+      "@dataflow-core/*": ["libs/dataflow-core/src/lib/*"]
+    }
+  }
+}
