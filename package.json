@@ -6,7 +6,9 @@
     "libs/*"
   ],
   "scripts": {
-    "frontend-dev": "npm --workspace apps/frontend run dev"
+    "frontend-dev": "npm --workspace apps/frontend run dev",
+    "ws-gateway-dev": "npm --workspace apps/ws-gateway run start:dev",
+    "dev": "concurrently \"npm run frontend-dev\" \"npm run ws-gateway-dev\""
   },
   "devDependencies": {
     "@types/node": "^20",

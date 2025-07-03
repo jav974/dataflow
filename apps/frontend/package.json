@@ -5,7 +5,6 @@
   "scripts": {
     "dev:turbo": "next dev --turbopack",
     "dev": "next dev",
-    "dev:wss": "nodemon --watch ../../libs/dataflow/src/lib/realtime/ws-server.mts --exec \"node --import ./register-loader.mjs ../../libs/dataflow/src/lib/realtime/ws-server.mts\"",
     "build": "next build",
     "build:wss": "rm -rf dist && rm -rf build/wss && tsc -p tsconfig.wss.json && npx nft build build/wss/realtime/ws-server.mjs",
     "start": "next start",
@@ -39,14 +38,12 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
-    "@vercel/nft": "^0.29.4",
     "@vitejs/plugin-react": "^4.6.0",
     "eslint": "^9",
     "eslint-config-next": "15.3.0",
     "jsdom": "^26.1.0",
     "tailwind-scrollbar": "^4.0.2",
     "tailwindcss": "^4",
-    "ts-node": "^10.9.2",
     "typescript": "^5",
     "vite-tsconfig-paths": "^5.1.4",
     "vitest": "^3.2.4"
