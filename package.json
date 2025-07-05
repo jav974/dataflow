@@ -6,7 +6,8 @@
     "libs/*"
   ],
   "scripts": {
-    "clean": "rimraf apps/*/dist libs/*/dist",
+    "clean": "rimraf apps/*/dist libs/*/dist apps/*/.next",
+    "purge": "npm run clean && rimraf node_modules apps/*/node_modules libs/*/node_modules",
     "proto:generate": "protoc --plugin=protoc-gen-ts_proto=node_modules/.bin/protoc-gen-ts_proto --ts_proto_opt=nestJs=true --ts_proto_opt=addGrpcMetadata=true --ts_proto_opt=addNestjsRestParameter=true --ts_proto_out=libs/dataflow-protos/generated --proto_path=libs/dataflow-protos/src libs/dataflow-protos/src/*.proto",
     "build:dataflow-core": "npm run --workspace libs/dataflow-core build",
     "build:dataflow-nats": "npm run --workspace libs/dataflow-nats build",

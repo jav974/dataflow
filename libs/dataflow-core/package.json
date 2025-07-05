@@ -20,8 +20,5 @@
   "peerDependencies": {
     "socket.io": "^4.8.1",
     "socket.io-client": "^4.8.1"
-  },
-  "devDependencies": {
-    "tsup": "^8.5.0"
   }
 }
