@@ -6,7 +6,6 @@
     "dev:turbo": "next dev --turbopack",
     "dev": "next dev",
     "build": "next build",
-    "build:wss": "rm -rf dist && rm -rf build/wss && tsc -p tsconfig.wss.json && npx nft build build/wss/realtime/ws-server.mjs",
     "start": "next start",
     "lint": "next lint",
     "test": "vitest run"
