@@ -9,6 +9,3 @@ export * from './lib/engine/utils';
 export * from './lib/events/events';
 export * from './lib/realtime/socket-types';
 export * from './lib/realtime/emitter';
-
-import controller from './lib/engine/controller';
-export { controller };

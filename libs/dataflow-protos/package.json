@@ -1,0 +1,6 @@
+{
+  "name": "@dataflow-ide/dataflow-protos",
+  "version": "1.0.0",
+  "main": "generated/index.ts",
+  "types": "generated/index.ts"
+}

@@ -2,7 +2,8 @@ COMPOSE=docker-compose
 
 ## 🟢 Local development
 dev:
-	$(COMPOSE) up --build
+	$(COMPOSE) -f docker/docker-compose.infra.yml up -d && npm run dev
+# 	$(COMPOSE) up --build
 
 dev-no-build:  ## 🔄 Start dev without rebuilding
 	$(COMPOSE) up

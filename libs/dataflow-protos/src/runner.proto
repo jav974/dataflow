@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+package runner;
+
+service RunnerService {
+  rpc Pause (RunnerCommand) returns (Ack);
+  rpc Resume (RunnerCommand) returns (Ack);
+  rpc Cancel (RunnerCommand) returns (Ack);
+}
+
+message RunnerCommand {
+  string socketId = 1;
+}
+
+message Ack {
+  string status = 1;
+}

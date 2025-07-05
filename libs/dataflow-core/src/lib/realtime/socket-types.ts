@@ -1,4 +1,6 @@
-import { Log } from "@dataflow-core/engine/types";
+import { AppConfig } from "@dataflow-core/config/schema";
+import { KeyValue } from "@dataflow-core/engine/context";
+import { GraphResult, Log } from "@dataflow-core/engine/types";
 
 export type AckResponse = {
     status: "ok" | "error";
@@ -11,10 +13,12 @@ export interface ServerToClientEvents {
     paused: () => void;
     resumed: () => void;
     canceled: () => void;
+    executed: (data: { result: GraphResult | undefined, error?: string }) => void;
 }
 
 export interface ClientToServerEvents {
     registerExecutor: (data: { executorId: string, clientSocketId: string }, ack: (ack: AckResponse) => void) => void;
+    start: (data: {graph: AppConfig, params?: KeyValue}, callback: () => void) => void;
     pause: (callback: () => void) => void;
     resume: (callback: () => void) => void;
     cancel: (callback: () => void) => void;

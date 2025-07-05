@@ -6,21 +6,21 @@ import { getIOValues, jsonToMap, mapToKeyValue, Stack } from "./utils";
 import executionContext, { KeyValue } from "./context";
 import { ExecutionBranch, ExecutionGraph, ExecutionInput, ExecutionOutput, GraphResult } from "./types";
 import "./handlers";
-import controller, { IExecutionController, WorkerExecutionController } from "./controller";
+import { controller, IExecutionController, RunnerExecutionController, WorkerExecutionController } from "./controller";
 
-class Graph {
-    private controller: IExecutionController;
+export class Graph {
+    readonly controller: IExecutionController;
     private graphs: Map<string, ExecutionGraph> = new Map();
     private stack: Stack<ExecutionGraph> = new Stack();
     private nodePos: number = 0;
     private clientSocketId: string | undefined;
 
-    constructor(clientSocketId?: string) {
+    constructor(clientSocketId?: string, _controller?: IExecutionController) {
         if (clientSocketId) {
             this.clientSocketId = clientSocketId;
-            this.controller = new WorkerExecutionController(clientSocketId);
+            this.controller = _controller ?? new WorkerExecutionController(clientSocketId);
         } else {
-            this.controller = controller;
+            this.controller = _controller ?? controller;
         }
     }
 
@@ -363,9 +363,9 @@ class Graph {
             });
         }
 
-        if (this.clientSocketId) {
-            await (this.controller as WorkerExecutionController).waitForWorkerSocketId();
-        }
+        // if (this.clientSocketId) {
+        //     await (this.controller as WorkerExecutionController).waitForWorkerSocketId();
+        // }
 
         executionGraph = await this.resolveExecutionGraph(executionGraph);
 

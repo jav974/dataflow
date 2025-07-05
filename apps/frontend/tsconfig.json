@@ -21,9 +21,9 @@
     "paths": {
       "@/*": ["./*"],
       "@dataflow-ui/*": ["../../libs/dataflow-ui/src/lib/*"],
-      "@dataflow-core/*": ["../../libs/dataflow-core/src/lib/*"],
+      "@dataflow-ide/dataflow-core": ["../../libs/dataflow-core/dist/index"],
     }
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "../../libs/dataflow/src/lib/realtime/ws-server.mts", "vitest.config.mts"],
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "vitest.config.mts"],
   "exclude": ["node_modules"]
 }

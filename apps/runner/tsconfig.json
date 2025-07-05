@@ -3,12 +3,12 @@
   "compilerOptions": {
     "module": "commonjs",
     "declaration": true,
-    "removeComments": true,
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
     "allowSyntheticDefaultImports": true,
     "target": "ES2023",
     "sourceMap": true,
+    // "outDir": "../../dist/apps/runner",
     "outDir": "./dist",
     "baseUrl": "./",
     "incremental": true,
@@ -18,11 +18,13 @@
     "noImplicitAny": true,
     "strictBindCallApply": true,
     "noFallthroughCasesInSwitch": true,
+    "preserveSymlinks": true,
     "paths": {
       "@dataflow-core/*": ["../../libs/dataflow-core/src/lib/*"],
       "@dataflow-protos/*": ["../../libs/dataflow-protos/generated/*"],
       "@dataflow-ide/dataflow-core": ["../../libs/dataflow-core/dist/index"],
       "@dataflow-ide/dataflow-nats": ["../../libs/dataflow-nats/dist/index"],
-    },
-  }
+    }
+  },
+  "include": ["src"]
 }

@@ -3,7 +3,10 @@
     "baseUrl": ".",
     "paths": {
       "@dataflow-ui/*": ["libs/dataflow-ui/src/lib/*"],
-      "@dataflow-core/*": ["libs/dataflow-core/src/lib/*"]
-    }
+      "@dataflow-core/*": ["libs/dataflow-core/src/lib/*"],
+      "@dataflow-protos/*": ["libs/dataflow-protos/generated/*"],
+      "@dataflow-ide/dataflow-core": ["libs/dataflow-core/dist/index"],
+      "@dataflow-ide/dataflow-nats": ["libs/dataflow-nats/dist/index"],
+    },
   }
 }

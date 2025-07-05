@@ -1,0 +1,14 @@
+services:
+  nats:
+    image: nats:latest
+    container_name: nats-server
+    ports:
+      - "4222:4222"   # Main client connections
+      - "8222:8222"   # Monitoring endpoint
+    restart: unless-stopped
+    networks:
+      - dataflow
+
+networks:
+  dataflow:
+    name: dataflow

@@ -1,0 +1,5 @@
+export { NatsModule } from './lib/nats/nats.module';
+export { NATS_CONNECTION } from './lib/nats/nats.constants';
+export { NatsController } from './lib/nats/nats.controller';
+export { NatsService } from './lib/nats/nats.service';
+export { NatsConnectionProvider } from './lib/nats/nats-connection.provider';

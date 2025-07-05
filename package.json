@@ -6,9 +6,17 @@
     "libs/*"
   ],
   "scripts": {
+    "build:libs": "npm run --workspace libs/dataflow-core build",
     "frontend-dev": "npm --workspace apps/frontend run dev",
     "ws-gateway-dev": "npm --workspace apps/ws-gateway run start:dev",
-    "dev": "concurrently \"npm run frontend-dev\" \"npm run ws-gateway-dev\""
+    "runner-dev": "npm --workspace apps/runner run start:dev",
+    "libs-dev": "concurrently \"npm --workspace libs/dataflow-core run dev\" \"npm run wait:dataflow-core && npm --workspace libs/dataflow-nats run dev\"",
+    "proto:generate": "protoc --plugin=protoc-gen-ts_proto=node_modules/.bin/protoc-gen-ts_proto --ts_proto_opt=nestJs=true --ts_proto_opt=addGrpcMetadata=true --ts_proto_opt=addNestjsRestParameter=true --ts_proto_out=libs/dataflow-protos/generated --proto_path=libs/dataflow-protos/src libs/dataflow-protos/src/*.proto",
+    "wait:dataflow-core": "wait-on libs/dataflow-core/dist/index.d.ts",
+    "wait:dataflow-nats": "wait-on libs/dataflow-nats/dist/index.d.ts",
+    "wait:libs": "npm run wait:dataflow-core && npm run wait:dataflow-nats",
+    "dev:apps": "concurrently \"npm run frontend-dev\" \"npm run ws-gateway-dev\" \"npm run runner-dev\"",
+    "dev": "rm -rf libs/dataflow-core/dist && rm -rf libs/dataflow-nats/dist && concurrently \"npm run libs-dev\" \"npm run wait:libs && npm run dev:apps\""
   },
   "devDependencies": {
     "@types/node": "^20",
@@ -16,7 +24,14 @@
     "@types/react-dom": "^19",
     "concurrently": "^9.2.0",
     "eslint": "^9.0.0",
+    "grpc-tools": "^1.13.0",
     "nodemon": "^3.1.10",
-    "typescript": "^5.0.0"
+    "ts-proto": "^2.7.5",
+    "tsup": "^8.5.0",
+    "typescript": "^5.0.0",
+    "wait-on": "^8.0.3"
+  },
+  "dependencies": {
+    "rxjs": "^7.8.2"
   }
 }

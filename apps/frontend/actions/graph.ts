@@ -1,9 +1,6 @@
 'use server'
 
-import { AppConfig } from "@dataflow-core/config/schema";
-import { KeyValue } from "@dataflow-core/engine/context";
-import { buildExecutionGraph, runGraph } from "@dataflow-core/engine/graph";
-import { ExecutionGraph, GraphResult } from "@dataflow-core/engine/types";
+import { AppConfig, buildExecutionGraph, ExecutionGraph, GraphResult, KeyValue, runGraph } from "@dataflow-ide/dataflow-core";
 
 export async function getExecutionGraph(graph: AppConfig): Promise<ExecutionGraph | undefined> {
     return buildExecutionGraph(graph);

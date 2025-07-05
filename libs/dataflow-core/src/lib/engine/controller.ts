@@ -65,7 +65,57 @@ export class LocalExecutionController implements IExecutionController {
 }
 
 /**
- * Used in serverside nodejs app to control flow execution of graph
+ * Used in serverside nestjs app to control flow execution of graph
+ */
+export class RunnerExecutionController implements IExecutionController {
+    started = true;
+    paused = false;
+
+    constructor(private clientSocketId: string) {}
+
+    start(executor: Executor, graph: AppConfig, params?: KeyValue): ExecutorReturn {
+        throw new Error("RunnerExecutionController does not support start method directly.");
+    }
+
+    clear(): void {
+        this.started = false;
+        this.paused = false;
+    }
+
+    pause(onPaused?: Callback): void {
+        this.paused = true;
+        if (onPaused) onPaused();
+    }
+
+    resume(onResumed?: Callback): void {
+        this.paused = false;
+        if (onResumed) onResumed();
+    }
+
+    cancel(onCanceled?: Callback): void {
+        this.clear();
+        if (onCanceled) onCanceled();
+    }
+
+    async waitIfPaused(): Promise<void> {
+        while (this.paused) {
+            await this.wait();
+        }
+    }
+
+    wait(timeout: number = 50) {
+        return new Promise(resolve => setTimeout(resolve, timeout));
+    }
+
+    async waitForPendingLogs() {
+        // while (!eventBus.listenerCount('io_write_' + this.clientSocketId)) {
+        //     await this.wait();
+        // }
+    }
+}
+
+/**
+ * Used in serverside nextjs app to control flow execution of graph
  * 
  * Sends "writeTo" event to WS server
  * Receives "paused" | "resumed" | "canceled" events from WS server
@@ -195,6 +245,8 @@ export class WorkerExecutionController implements IExecutionController {
     }
 }
 
+type RemoteExecutionData = {completed: boolean, result: GraphResult | undefined, error?: string};
+
 /**
  * Used in client side react app to control flow execution of graph
  * 
@@ -208,6 +260,7 @@ export class RemoteExecutionController implements IExecutionController {
     paused = false;
     private socket: Socket<ServerToClientEvents, ClientToServerEvents> | null = null;
     private clientSocketId: string | undefined;
+    private data: RemoteExecutionData | undefined;
 
     private initSocket() {
         this.socket = io(process.env.NEXT_PUBLIC_WEBSOCKET_SERVER_URL, { path: "/ws", transports: ["websocket"] });
@@ -244,9 +297,35 @@ export class RemoteExecutionController implements IExecutionController {
             this.socket?.connect();
         }
 
-        this.started = true;
         await this.waitForClientSocketId();
-        return executor(graph, params, this.clientSocketId).finally(() => this.clear());
+
+        this.data = { completed: false, result: undefined, error: undefined };
+        this.socket?.on("executed", (data) => {
+            console.log("RemoteExecutionController: Received executed event:", data);
+            if (data.error) {
+                eventBus.emit<Log>('io_write', { type: "error", message: data.error, createdAt: Date.now() } as Log);
+            }
+
+            this.data = {...data, completed: true};
+            this.socket?.off("executed");
+        });
+
+        this.socket?.emit("start", { graph, params }, () => {
+            this.started = true;
+        });
+
+        while (!this.data.completed) {
+            await this.wait();
+        }
+
+        this.clear();
+        return this.data.result;
+
+        // return executor(graph, params, this.clientSocketId).finally(() => this.clear());
+    }
+
+    wait(timeout: number = 50) {
+        return new Promise(resolve => setTimeout(resolve, timeout));
     }
 
     clear(): void {
@@ -272,7 +351,7 @@ export class RemoteExecutionController implements IExecutionController {
 
     cancel(onCanceled?: Callback) {
         this.socket?.emit("cancel", () => {
-            this.clear();
+            // this.clear();
             if (onCanceled) onCanceled();
         });
     }
@@ -341,4 +420,4 @@ class ExecutionController implements IExecutionController {
 
 const controller = new ExecutionController();
 
-export default controller;
+export { controller }

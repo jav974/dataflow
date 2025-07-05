@@ -2,7 +2,7 @@
 
 import { executeGraph } from '@/actions/graph';
 import { DataflowProvider } from '@dataflow-ui/contexts/DataflowContext';
-import { GraphResult } from '@dataflow-ui/engine/types';
+import { GraphResult } from '@dataflow-core/engine/types';
 import { useDataflowGraph } from '@dataflow-ui/hooks/useDataflowGraph';
 import { useEffect } from 'react';
 
