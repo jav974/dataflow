@@ -17,7 +17,7 @@ import {
 import { Inject } from '@nestjs/common';
 import { ClientNats } from '@nestjs/microservices';
 import { firstValueFrom } from 'rxjs';
-import { NatsService } from '@dataflow-ide/dataflow-nats';
+import { NATS_CLIENT, NatsService } from '@dataflow-ide/dataflow-nats';
 
 @WebSocketGateway({
     path: '/ws',
@@ -35,8 +35,8 @@ export class WSGateway implements OnGatewayDisconnect, OnGatewayConnection {
     private useNats: boolean = true; // Set to false to use websocket directly
 
     constructor(
-        @Inject('RUNNER_PACKAGE') private readonly client: ClientNats,
-        @Inject() private readonly natsService: NatsService
+        @Inject(NATS_CLIENT) private readonly client: ClientNats,
+        private readonly natsService: NatsService
     ) {}
 
     handleConnection(

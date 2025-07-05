@@ -1,1 +1,2 @@
 export const NATS_CONNECTION = 'NATS_CONNECTION';
+export const NATS_CLIENT = 'NATS_CLIENT';

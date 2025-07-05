@@ -10,6 +10,10 @@ async function bootstrap() {
         },
     });
 
-    await app.listen();
+    await app.listen().then(() => {
+        console.log('✅ Runner microservice is running');
+    }).catch((error) => {
+        console.error('❌ Failed to start runner microservice:', error);
+    });
 }
 bootstrap();
