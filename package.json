@@ -23,8 +23,8 @@
     "dev:frontend": "npm --workspace apps/frontend run dev",
     "dev:ws-gateway": "npm --workspace apps/ws-gateway run start:dev",
     "dev:runner": "npm --workspace apps/runner run start:dev",
-    "dev:libs": "concurrently \"npm --workspace libs/dataflow-core run dev\" \"npm run wait:dataflow-core && npm --workspace libs/dataflow-nats run dev\"",
-    "dev:apps": "concurrently \"npm run dev:frontend\" \"npm run dev:ws-gateway\" \"npm run dev:runner\"",
+    "dev:libs": "concurrently -n dataflow-core,dataflow-nats -c magenta,green \"npm --workspace libs/dataflow-core run dev\" \"npm run wait:dataflow-core && npm --workspace libs/dataflow-nats run dev\"",
+    "dev:apps": "concurrently -n frontend,ws-gateway,runner -c cyan,yellow,blue \"npm run dev:frontend\" \"npm run dev:ws-gateway\" \"npm run dev:runner\"",
     "dev": "rm -rf libs/dataflow-core/dist && rm -rf libs/dataflow-nats/dist && concurrently \"npm run dev:libs\" \"npm run wait:libs && npm run dev:apps\""
   },
   "devDependencies": {
