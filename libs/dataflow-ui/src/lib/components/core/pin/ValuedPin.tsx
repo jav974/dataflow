@@ -86,7 +86,7 @@ export default function ValuedPin({id, name, type, required, defaultValue, remov
         <FormProvider {...methods}>
             <form ref={formRef} onSubmit={methods.handleSubmit(onSubmit)} onPointerEnter={handleMouseEnter} onPointerLeave={handleMouseLeave} className="flex grow">
                 <div className="flex grow">
-                    {name}&nbsp;
+                    <span className="inline-block whitespace-nowrap">{name}&nbsp;</span>
                     {inputType === "checkbox" &&
                         <Checkbox id={id} name={id} onBlur={onBlur} styling="solid" />
                     }

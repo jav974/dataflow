@@ -41,18 +41,20 @@ export default function SetVarNode({node, ...props}: NodeProps) {
         }
     });
     const onSubmit = useCallback((data: VarType) => {
-        setVariable(node.id, data.name, data.type, data.isCollection);
-        
-        setNodeInputs(node.id, [{
-            id: 'default',
-            name: 'default',
-            required: false,
-            type: data.type,
-            isCollection: data.isCollection,
-        }]);
+        if (data.type !== variable?.type || data.isCollection !== variable?.isCollection) {
+            setNodeInputs(node.id, [{
+                id: 'default',
+                name: 'default',
+                required: false,
+                type: data.type,
+                isCollection: data.isCollection,
+            }]);
 
-        setNodeOutputs(node.id, [{id: 'result', name: 'var', type: data.type, isCollection: data.isCollection}]);
-    }, [node.id, setVariable, setNodeInputs, setNodeOutputs]);
+            setNodeOutputs(node.id, [{id: 'result', name: 'var', type: data.type, isCollection: data.isCollection}]);
+        }
+
+        setVariable(node.id, data.name, data.type, data.isCollection);
+    }, [node.id, variable, setVariable, setNodeInputs, setNodeOutputs]);
 
     const onBlur = useCallback(() => {
         formRef.current?.requestSubmit();

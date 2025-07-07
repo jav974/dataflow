@@ -16,7 +16,7 @@ export class NatsController {
             this.natsService.publish(`writeTo.${data.socketId}`, log);
         };
 
-        const graph = new Graph(data.socketId, new RunnerExecutionController(data.socketId));
+        const graph = new Graph(data.socketId, new RunnerExecutionController());
         eventBus.on('io_write_' + data.socketId, forwardIOWrites);
 
         this.natsService.subscribe(`pause.${data.socketId}`, () => {

@@ -42,7 +42,7 @@ export default function Toolbar() {
     const onSaveGraphClick = useCallback(() => {
         if (graph) {
             const newConfig = { ...graph, ...toGraph() };
-            saveGraph(graph.id, newConfig);
+            saveGraph(newConfig);
         }
     }, [graph, saveGraph, toGraph]);
 

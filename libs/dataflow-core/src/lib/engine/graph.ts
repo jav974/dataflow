@@ -363,15 +363,17 @@ export class Graph {
             });
         }
 
+        // When using WorkerExecutionController, we need to wait for the worker to be ready, but now using nats
         // if (this.clientSocketId) {
         //     await (this.controller as WorkerExecutionController).waitForWorkerSocketId();
         // }
 
         executionGraph = await this.resolveExecutionGraph(executionGraph);
 
-        if (this.clientSocketId) {
-            await (this.controller as WorkerExecutionController).waitForPendingLogs();
-        }
+        // When using WorkerExecutionController, we need to wait for the logs to be ready, but now using nats
+        // if (this.clientSocketId) {
+        //     await (this.controller as WorkerExecutionController).waitForPendingLogs();
+        // }
 
         this.controller.clear();
 

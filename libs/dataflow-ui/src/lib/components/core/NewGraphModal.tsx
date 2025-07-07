@@ -42,10 +42,11 @@ export default function NewGraphModal({ isOpen, onClose }: NewGraphModalProps) {
             zoom: 100
         };
 
-        saveGraph(newGraph.id, newGraph);
-        setGraphName("");
-        loadGraph(newGraph.id);
-        onClose();
+        saveGraph(newGraph).then(() => {
+            setGraphName("");
+            loadGraph(newGraph.id);
+            onClose();
+        });
     }, [graphName, canvasRect, saveGraph, onClose, loadGraph]);
 
     return (

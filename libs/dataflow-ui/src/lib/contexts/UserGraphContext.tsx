@@ -1,88 +1,100 @@
-import { AppConfig, jsonToMap, mapToJson } from "@dataflow-ide/dataflow-core";
-import { createContext, useCallback, useContext, useEffect, useState } from "react";
+import { AppConfig } from "@dataflow-ide/dataflow-core";
+import {
+    createContext,
+    useCallback,
+    useContext,
+    useEffect,
+    useState
+} from "react";
+import Dexie, { Table } from "dexie";
+import { useLiveQuery } from "dexie-react-hooks";
+
+class GraphDB extends Dexie {
+    appConfigs!: Table<AppConfig, string>;
+    constructor() {
+        super("GraphDB");
+        this.version(1).stores({
+            appConfigs: "id"
+        });
+    }
+}
+
+export const graphDB = new GraphDB();
 
 interface UserGraphContextType {
     graphs: Map<string, string>;
     graph: AppConfig | null;
-    loadGraph: (name: string) => void;
-    saveGraph: (name: string, graph: AppConfig) => void;
-    deleteGraph: (name: string) => void;
+    loadGraph: (id: string) => Promise<AppConfig | undefined>;
+    saveGraph: (graph: AppConfig) => Promise<string>;
+    deleteGraph: (id: string) => Promise<void>;
 }
 
 export const UserGraphContext = createContext<UserGraphContextType | null>(null);
 
 export function UserGraphProvider({ children }: { children: React.ReactNode }) {
-    const [graphs, setGraphs] = useState<Map<string, string> | null>(null);
     const [graph, setGraph] = useState<AppConfig | null>(null);
 
-    const getLocalStorageGraphKey = useCallback((name: string) => {
-        // Replace any non-alphanumeric characters with hyphens and convert to lowercase
-        const safeName = name.toLowerCase().replace(/[^a-z0-9_-]/g, '-');
-        return `dataflow-graph-${safeName}`;
-    }, []);
-    
-    const loadGraph = useCallback((id: string) => {
-        const graph = localStorage.getItem(getLocalStorageGraphKey(id));
+    const graphs = useLiveQuery(async () => {
+        const all = await graphDB.appConfigs.toArray();
+        const mapped = new Map(all.map(cfg => [cfg.id, cfg.name]));
+        return mapped;
+    }, [], new Map());
 
-        if (graph) {
-            setGraph(JSON.parse(graph));
+    const loadGraph = useCallback(async (id: string): Promise<AppConfig | undefined> => {
+        const config = await graphDB.appConfigs.get(id);
+        if (config) {
+            setGraph(config);
             localStorage.setItem("dataflow-last-graph", id);
         }
-    }, [getLocalStorageGraphKey]);
+        return config;
+    }, []);
 
-    const saveGraph = useCallback((id: string, graph: AppConfig) => {
-        localStorage.setItem(getLocalStorageGraphKey(id), JSON.stringify(graph));
+    const saveGraph = useCallback(async (config: AppConfig): Promise<string> => {
+        return await graphDB.appConfigs.put(config);
+    }, []);
 
-        if (!graphs) {
-            setGraphs(new Map().set(id, graph.name));
-        } else if (!graphs.has(id)) {
-            setGraphs(new Map(graphs).set(id, graph.name));
-        }
-    }, [getLocalStorageGraphKey, graphs]);
-
-    const deleteGraph = useCallback((id: string) => {
-        localStorage.removeItem(getLocalStorageGraphKey(id));
-        const filteredGraphs = new Map(graphs);
-        filteredGraphs.delete(id);
-
-        setGraphs(filteredGraphs);
-        
+    const deleteGraph = useCallback(async (id: string): Promise<void> => {
+        await graphDB.appConfigs.delete(id);
         if (graph?.id === id) {
-            if (filteredGraphs.size > 0) {
-                const graph = filteredGraphs.entries().next().value!;
-                loadGraph(graph[0]);
+            const fallbackId = localStorage.getItem("dataflow-last-graph");
+            if (fallbackId && fallbackId !== id) {
+                loadGraph(fallbackId);
             } else {
                 setGraph(null);
             }
         }
-    }, [getLocalStorageGraphKey, graphs, graph, loadGraph]);
+    }, [graph, loadGraph]);
 
     useEffect(() => {
-        const savedGraphs = jsonToMap<string>(localStorage.getItem("dataflow-graphs") ?? "{}");
+        const tryLoad = async () => {
+            const lastId =
+                localStorage.getItem("dataflow-last-graph") ||
+                (graphs.size > 0 ? Array.from(graphs.keys())[0] : null)
+            ;
+            if (lastId) {
+                await loadGraph(lastId);
+            }
+        };
+        tryLoad();
+    }, [loadGraph, graphs]);
 
-        setGraphs(savedGraphs);
-
-        if (savedGraphs.size > 0) {
-            const lastGraph = localStorage.getItem("dataflow-last-graph");
-            loadGraph(lastGraph ?? savedGraphs.entries().next().value![0]);
-        }
-    }, [loadGraph]);
-
-    useEffect(() => {
-        if (graphs) {
-            localStorage.setItem("dataflow-graphs", mapToJson(graphs));
-        }
-    }, [graphs]);
-    
-    return <UserGraphContext.Provider value={{ graphs: graphs ?? new Map(), graph, loadGraph, saveGraph, deleteGraph }}>
-        {children}
-    </UserGraphContext.Provider>;
+    return (
+        <UserGraphContext.Provider value={{
+            graphs: graphs ?? new Map(),
+            graph,
+            loadGraph,
+            saveGraph,
+            deleteGraph
+        }}>
+            {children}
+        </UserGraphContext.Provider>
+    );
 }
 
 export function useUserGraphContext() {
     const context = useContext(UserGraphContext);
     if (!context) {
-        throw new Error('useUserGraph must be used within a UserGraphProvider');
+        throw new Error("useUserGraph must be used within a UserGraphProvider");
     }
     return context;
 }

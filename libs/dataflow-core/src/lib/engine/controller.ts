@@ -21,10 +21,31 @@ export interface IExecutionController {
     waitIfPaused(): Promise<void>;
 }
 
+abstract class AbstractExecutionController implements IExecutionController {
+    started = false;
+    paused = false;
+
+    abstract start(executor: Executor, graph: AppConfig, params?: KeyValue): ExecutorReturn;
+    abstract pause(onPaused?: Callback): void;
+    abstract resume(onResumed?: Callback): void;
+    abstract cancel(onCanceled?: Callback): void;
+    abstract clear(): void;
+    
+    async waitIfPaused(): Promise<void> {
+        while (this.paused) {
+            await this.wait();
+        }
+    }
+
+    async wait(timeout: number = 50) {
+        return new Promise(resolve => setTimeout(resolve, timeout));
+    }
+}
+
 /**
  * Used in clientside react app to control the flow execution of graph
  */
-export class LocalExecutionController implements IExecutionController {
+export class LocalExecutionController extends AbstractExecutionController {
     started = false;
     paused = false;
 
@@ -56,24 +77,16 @@ export class LocalExecutionController implements IExecutionController {
         
         if (onCanceled) onCanceled();
     }
-
-    async waitIfPaused(): Promise<void> {
-        while (this.paused) {
-            await new Promise(resolve => setTimeout(resolve, 50));
-        }
-    }
 }
 
 /**
  * Used in serverside nestjs app to control flow execution of graph
  */
-export class RunnerExecutionController implements IExecutionController {
+export class RunnerExecutionController extends AbstractExecutionController {
     started = true;
     paused = false;
 
-    constructor(private clientSocketId: string) {}
-
-    start(executor: Executor, graph: AppConfig, params?: KeyValue): ExecutorReturn {
+    start(): ExecutorReturn {
         throw new Error("RunnerExecutionController does not support start method directly.");
     }
 
@@ -96,22 +109,6 @@ export class RunnerExecutionController implements IExecutionController {
         this.clear();
         if (onCanceled) onCanceled();
     }
-
-    async waitIfPaused(): Promise<void> {
-        while (this.paused) {
-            await this.wait();
-        }
-    }
-
-    wait(timeout: number = 50) {
-        return new Promise(resolve => setTimeout(resolve, timeout));
-    }
-
-    async waitForPendingLogs() {
-        // while (!eventBus.listenerCount('io_write_' + this.clientSocketId)) {
-        //     await this.wait();
-        // }
-    }
 }
 
 /**
@@ -122,7 +119,7 @@ export class RunnerExecutionController implements IExecutionController {
  * 
  * Reflects state based on WS server events received
  */
-export class WorkerExecutionController implements IExecutionController {
+export class WorkerExecutionController extends AbstractExecutionController {
     started = true;
     paused = false;
     private socket: Socket<ServerToClientEvents, ClientToServerEvents>;
@@ -135,6 +132,7 @@ export class WorkerExecutionController implements IExecutionController {
     private registered: boolean = false;
 
     constructor(clientSocketId: string) {
+        super();
         this.clientSocketId = clientSocketId;
         this.websocketServerUrl = process.env.WEBSOCKET_SERVER_URL;
         this.socket = io(this.websocketServerUrl, {
@@ -219,16 +217,6 @@ export class WorkerExecutionController implements IExecutionController {
         this.socket.disconnect();
     }
 
-    wait(timeout: number = 50) {
-        return new Promise(resolve => setTimeout(resolve, timeout));
-    }
-
-    async waitIfPaused(): Promise<void> {
-        while (this.paused) {
-            await this.wait();
-        }
-    }
-
     async waitForWorkerSocketId() {
         while (!this.registered || !this.workerSocketId) {
             if (this.connectionError) {
@@ -255,7 +243,7 @@ type RemoteExecutionData = {completed: boolean, result: GraphResult | undefined,
  * 
  * Waits for WS server to acknowledge each event before proceeding to local state update
  */
-export class RemoteExecutionController implements IExecutionController {
+export class RemoteExecutionController extends AbstractExecutionController {
     started = false;
     paused = false;
     private socket: Socket<ServerToClientEvents, ClientToServerEvents> | null = null;
@@ -324,10 +312,6 @@ export class RemoteExecutionController implements IExecutionController {
         // return executor(graph, params, this.clientSocketId).finally(() => this.clear());
     }
 
-    wait(timeout: number = 50) {
-        return new Promise(resolve => setTimeout(resolve, timeout));
-    }
-
     clear(): void {
         this.started = false;
         this.paused = false;
@@ -354,12 +338,6 @@ export class RemoteExecutionController implements IExecutionController {
             // this.clear();
             if (onCanceled) onCanceled();
         });
-    }
-
-    async waitIfPaused(): Promise<void> {
-        while (this.paused) {
-            await new Promise(resolve => setTimeout(resolve, 50));
-        }
     }
 }
 
