@@ -9,6 +9,7 @@ export default defineConfig({
   clean: true,
   dts: true,
   shims: true,
+  watch: process.env.WATCH === 'true',
   outExtension: ({ format }) => {
     return format === 'esm'
       ? { js: '.mjs' }

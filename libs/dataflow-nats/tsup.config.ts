@@ -1,13 +1,13 @@
 import { defineConfig } from 'tsup';
 
 export default defineConfig({
-  entry: ['src/index.ts'],   // Adjust path if needed
+  entry: ['src/index.ts'],
   outDir: 'dist',
-  dts: true,                 // Emit .d.ts for consumers
+  dts: true,
   format: ['esm', 'cjs'],
   clean: true,
-  splitting: false,          // Keep output simple
-  shims: true,               // Optional Node polyfills
+  splitting: false,
+  shims: true,
   watch: process.env.WATCH === 'true',
   outExtension: ({ format }) => {
     return format === 'esm'
