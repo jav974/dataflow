@@ -24,6 +24,6 @@
       "@dataflow-ide/dataflow-core": ["../../libs/dataflow-core/dist/index"],
     }
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "vitest.config.mts"],
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "vitest.config.mts", "types"],
   "exclude": ["node_modules"]
 }
