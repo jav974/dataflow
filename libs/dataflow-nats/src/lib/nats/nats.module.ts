@@ -1,5 +1,4 @@
 import { Module } from '@nestjs/common';
-import { NatsController } from './nats.controller';
 import { NatsConnectionProvider } from './nats-connection.provider';
 import { NatsService } from './nats.service';
 import { ClientsModule, Transport } from '@nestjs/microservices';
@@ -14,7 +13,6 @@ const natsClient = ClientsModule.register([{
 }]);
 
 @Module({
-  controllers: [NatsController],
   providers: [NatsConnectionProvider, NatsService],
   exports: [NatsService, natsClient],
   imports: [natsClient],

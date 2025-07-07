@@ -1,11 +1,11 @@
 
 import { Controller } from '@nestjs/common';
 import { MessagePattern } from '@nestjs/microservices';
-import { NatsService } from './nats.service';
+import { NatsService } from '@dataflow-ide/dataflow-nats';
 import { AppConfig, KeyValue, Graph, RunnerExecutionController, eventBus, Log } from '@dataflow-ide/dataflow-core';
 
 @Controller()
-export class NatsController {
+export class AppController {
     constructor(private readonly natsService: NatsService) {}
 
     @MessagePattern({ cmd: 'start' })
