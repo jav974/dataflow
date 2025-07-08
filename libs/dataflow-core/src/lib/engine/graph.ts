@@ -6,7 +6,9 @@ import { getIOValues, jsonToMap, mapToKeyValue, Stack } from "./utils";
 import executionContext, { KeyValue } from "./context";
 import { ExecutionBranch, ExecutionGraph, ExecutionInput, ExecutionOutput, GraphResult } from "./types";
 import "./handlers";
-import { controller, IExecutionController, RunnerExecutionController, WorkerExecutionController } from "./controller";
+import { IExecutionController } from "@dataflow-core/controllers/base.controller";
+import { WorkerExecutionController } from "@dataflow-core/controllers/worker.controller";
+import { LocalExecutionController } from "@dataflow-core/controllers/local.controller";
 
 export class Graph {
     readonly controller: IExecutionController;
@@ -20,7 +22,7 @@ export class Graph {
             this.clientSocketId = clientSocketId;
             this.controller = _controller ?? new WorkerExecutionController(clientSocketId);
         } else {
-            this.controller = _controller ?? controller;
+            this.controller = _controller ?? new LocalExecutionController();
         }
     }
 
@@ -402,4 +404,8 @@ export function buildExecutionGraph(graph: AppConfig): ExecutionGraph | undefine
 
 export async function runGraph(graph: AppConfig, params?: KeyValue, clientSocketId?: string): Promise<GraphResult | undefined> {
     return new Graph(clientSocketId).runGraph(graph, params);
+}
+
+export async function runGraphWithController(controller: IExecutionController, graph: AppConfig, params?: KeyValue, clientSocketId?: string): Promise<GraphResult | undefined> {
+    return new Graph(clientSocketId, controller).runGraph(graph, params);
 }

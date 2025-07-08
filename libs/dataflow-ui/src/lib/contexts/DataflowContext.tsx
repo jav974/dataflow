@@ -1,6 +1,6 @@
 import React, { createContext, useCallback, useContext, useMemo, useState } from "react";
 import { createUrlGraphExecutor } from "../utils/utils";
-import { AppConfig, GraphExecutor, runGraph } from "@dataflow-ide/dataflow-core";
+import { AppConfig, Executor, runGraphWithController } from "@dataflow-ide/dataflow-core";
 
 type DataflowAuth = {
     apiKey?: string;
@@ -8,19 +8,19 @@ type DataflowAuth = {
 };
 
 type DataflowExec = {
-    remoteExecutor?: GraphExecutor;
-    localExecutor?: GraphExecutor;
-    mode?: "remote" | "local";
+    remoteExecutor?: Executor;
+    localExecutor?: Executor;
+    mode?: "remote" | "local" | "react";
     serverUrl?: string; // Optional: if provided, use as remoteExecutor
 };
 
 type DataflowUtils = {
     fetchGraph: (graphId: string) => Promise<AppConfig | null>;
-    setMode: (mode: "remote" | "local") => void;
+    setMode: (mode: "remote" | "local" | "react") => void;
 }
 
 type DataflowContextType = DataflowAuth & DataflowExec & DataflowUtils & {
-    selectedExecutor: GraphExecutor | undefined;
+    selectedExecutor: Executor | undefined;
 };
 
 const DataflowContext = createContext<DataflowContextType | undefined>(undefined);
@@ -35,9 +35,9 @@ const getLocalStorageGraphKey = (name: string) => {
     return `dataflow-graph-${safeName}`;
 };
 
-export function DataflowProvider({ children, remoteExecutor, localExecutor = runGraph, mode: initialMode = "local", serverUrl }: DataflowProviderProps) {
+export function DataflowProvider({ children, remoteExecutor, localExecutor = runGraphWithController, mode: initialMode = "react", serverUrl }: DataflowProviderProps) {
     const [apiKey, setApiKey] = useState<string | undefined>(undefined);
-    const [mode, setMode] = useState<"remote" | "local">(initialMode);
+    const [mode, setMode] = useState<"remote" | "local" | "react">(initialMode);
 
     // If serverUrl is provided, use it to create a remoteExecutor
     const effectiveRemoteExecutor = useMemo(() => {
@@ -61,11 +61,11 @@ export function DataflowProvider({ children, remoteExecutor, localExecutor = run
         return null;
     }, [mode]);
 
-    const selectedExecutor = useMemo((): GraphExecutor | undefined => {
+    const selectedExecutor = useMemo((): Executor | undefined => {
         if (mode === "remote" && effectiveRemoteExecutor) {
             return effectiveRemoteExecutor;
         }
-        if (mode === "local" && localExecutor) {
+        if ((mode === "local" || mode === "react") && localExecutor) {
             return localExecutor;
         }
         return undefined;

@@ -23,7 +23,7 @@ export default function Toolbar() {
     const availableModes = useMemo((): OptionProps[] => {
         const modes: OptionProps[] = [];
         if (localExecutor) {
-            modes.push({name: "Local", value: "local"});
+            modes.push({name: "Local", value: "react"});
         }
         if (remoteExecutor) {
             modes.push({name: "Remote", value: "remote"});
@@ -57,7 +57,7 @@ export default function Toolbar() {
     }, [graph, deleteGraph]);
 
     const handleModeChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
-        const newMode = e.target.value as "local" | "remote";
+        const newMode = e.target.value as "react" | "remote";
         if (newMode !== mode) {
             setMode(newMode);
         }

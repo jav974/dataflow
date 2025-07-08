@@ -1,6 +1,4 @@
 import { EventEmitter } from "node:events";
-// import type { EventEmitter as EEType } from 'events';
-// const EventEmitter: typeof EEType = require('events').EventEmitter;
 
 export const eventBus = new EventEmitter();
 

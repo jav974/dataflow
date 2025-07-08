@@ -1,60 +1,98 @@
-
 import { Controller } from '@nestjs/common';
 import { MessagePattern } from '@nestjs/microservices';
 import { NatsService } from '@dataflow-ide/dataflow-nats';
-import { AppConfig, KeyValue, Graph, RunnerExecutionController, eventBus, Log } from '@dataflow-ide/dataflow-core';
+import { AppConfig, KeyValue, Log } from '@dataflow-ide/dataflow-core';
+import { fork, ChildProcess } from 'child_process';
+import * as path from 'node:path';
 
 @Controller()
 export class AppController {
+    private activeChildren = new Map<string, ChildProcess>();
+
     constructor(private readonly natsService: NatsService) {}
 
     @MessagePattern({ cmd: 'start' })
-    start(data: {socketId: string, graph: AppConfig, params?: KeyValue}): boolean {
-        console.log('Start command received with data:', data);
+    start(data: { socketId: string; graph: AppConfig; params?: KeyValue }): boolean {
+        const { socketId, graph, params } = data;
 
-        const forwardIOWrites = (log: Log) => {
-            this.natsService.publish(`writeTo.${data.socketId}`, log);
+        console.log(`🚀 Received start command for socketId=${socketId}`);
+
+        const childPath = path.resolve(
+            __dirname,
+            '../../../libs/dataflow-core/dist/runtime/childprocess.js'
+        );
+
+        const child = fork(childPath, [], {
+            stdio: ['pipe', 'pipe', 'pipe', 'ipc']
+        });
+
+        child.stdout?.on('data', (data: Buffer) => {
+            console.log(`[runner runtime stdout]: ${data}` + typeof data);
+            publish('writeTo', {type: 'debug', message: data.toString(), createdAt: Date.now()} as Log);
+        });
+
+        child.stderr?.on('data', (data: Buffer) => {
+            console.error(`[runner runtime stderr]: ${data}`);
+            publish('writeTo', {type: 'error', message: data.toString(), createdAt: Date.now()} as Log);
+        });
+
+        const publish = (channel: string, payload: any) => {
+            this.natsService.publish(`${channel}.${socketId}`, payload);
         };
 
-        const graph = new Graph(data.socketId, new RunnerExecutionController());
-        eventBus.on('io_write_' + data.socketId, forwardIOWrites);
+        this.activeChildren.set(socketId, child);
 
-        this.natsService.subscribe(`pause.${data.socketId}`, () => {
-            console.log(`Pause command received for socket ${data.socketId}`);
-            graph.controller.pause();
+        // Set up event bridge: child → NATS
+        child.on('message', (msg: any) => {
+            switch (msg.type) {
+                case 'start':
+                    console.log(`⚡ Worker started for socket ${socketId}`);
+                    break;
+                case 'writeTo':
+                    publish('writeTo', msg.payload);
+                    break;
+                case 'executed':
+                    console.log(`✅ Graph executed for socket ${socketId}`);
+                    publish('executed', { result: msg.payload, error: null });
+                    break;
+                case 'error':
+                    console.error(`❌ Worker error for socket ${socketId}:`, msg.payload);
+                    publish('executed', { result: null, error: msg.payload });
+                    break;
+            }
         });
 
-        this.natsService.subscribe(`resume.${data.socketId}`, () => {
-            console.log(`Resume command received for socket ${data.socketId}`);
-            graph.controller.resume();
+        child.on('exit', (code) => {
+            console.log(`🧹 Child exited for socket ${socketId} with code ${code}`);
+            this.cleanup(socketId);
         });
 
-        this.natsService.subscribe(`cancel.${data.socketId}`, () => {
-            console.log(`Cancel command received for socket ${data.socketId}`);
-            graph.controller.cancel();
+        // Setup NATS control messages → child
+        this.natsService.subscribe(`pause.${socketId}`, () => {
+            console.log(`⏸️ Pause requested for socket ${socketId}`);
+            child.send({ type: 'pause' });
         });
 
-        graph
-            .runGraph(data.graph, data.params)
-            .then((result) => {
-                if (result && result.graph) {
-                    result.graph = undefined; // Clear the graph to avoid sending it back
-                }
+        this.natsService.subscribe(`resume.${socketId}`, () => {
+            console.log(`▶️ Resume requested for socket ${socketId}`);
+            child.send({ type: 'resume' });
+        });
 
-                console.log(`Graph execution completed for socket ${data.socketId}`, result);
-                this.natsService.publish(`executed.${data.socketId}`, { result, error: undefined });
-            })
-            .catch((error) => {
-                console.error(`Error executing graph for socket ${data.socketId}:`, error);
-                this.natsService.publish(`executed.${data.socketId}`, { result: undefined, error: error.message });
-            })
-            .finally(() => {
-                this.natsService.unsubscribe(`pause.${data.socketId}`);
-                this.natsService.unsubscribe(`resume.${data.socketId}`);
-                this.natsService.unsubscribe(`cancel.${data.socketId}`);
-                eventBus.off('io_write_' + data.socketId, forwardIOWrites);
-            });
+        this.natsService.subscribe(`cancel.${socketId}`, () => {
+            console.log(`🛑 Cancel requested for socket ${socketId}`);
+            child.send({ type: 'cancel' });
+        });
 
-        return true; // Return true to acknowledge the command
+        // Kick off the job
+        child.send({ type: 'start', graph, params });
+
+        return true;
+    }
+
+    private cleanup(socketId: string) {
+        this.natsService.unsubscribe(`pause.${socketId}`);
+        this.natsService.unsubscribe(`resume.${socketId}`);
+        this.natsService.unsubscribe(`cancel.${socketId}`);
+        this.activeChildren.delete(socketId);
     }
 }

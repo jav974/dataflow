@@ -17,7 +17,8 @@
     "build:runner": "npm --workspace apps/runner run build",
     "build:apps": "npm run build:frontend && npm run build:ws-gateway && npm run build:runner",
     "build": "npm run build:libs && npm run build:apps",
-    "wait:dataflow-core": "wait-on libs/dataflow-core/dist/index.d.ts",
+    "wait:dataflow-core-runtime": "wait-on libs/dataflow-core/dist/runtime/worker.mjs && wait-on libs/dataflow-core/dist/runtime/childprocess.js",
+    "wait:dataflow-core": "wait-on libs/dataflow-core/dist/core/index.d.ts && npm run wait:dataflow-core-runtime",
     "wait:dataflow-nats": "wait-on libs/dataflow-nats/dist/index.d.ts",
     "wait:libs": "npm run wait:dataflow-core && npm run wait:dataflow-nats",
     "dev:frontend": "npm --workspace apps/frontend run dev",
@@ -25,18 +26,20 @@
     "dev:runner": "npm --workspace apps/runner run start:dev",
     "dev:libs": "concurrently -n '⚙️  dataflow-core','🔗 dataflow-nats' -c magenta,green \"npm --workspace libs/dataflow-core run dev\" \"npm run wait:dataflow-core && npm --workspace libs/dataflow-nats run dev\"",
     "dev:apps": "concurrently -n '💻 frontend','🔌 ws-gateway','🚀 runner' -c cyan,yellow,blue \"npm run dev:frontend\" \"npm run dev:ws-gateway\" \"npm run dev:runner\"",
-    "dev": "rm -rf libs/dataflow-core/dist && rm -rf libs/dataflow-nats/dist && concurrently \"npm run dev:libs\" \"npm run wait:libs && npm run dev:apps\""
+    "dev": "rm -rf libs/dataflow-core/dist && rm -rf libs/dataflow-nats/dist && concurrently -n 'lib','app' -c redBright,gray \"npm run dev:libs\" \"npm run wait:libs && npm run dev:apps\""
   },
   "devDependencies": {
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "concurrently": "^9.2.0",
+    "esbuild-plugin-alias": "^0.2.1",
     "eslint": "^9.0.0",
     "grpc-tools": "^1.13.0",
     "nodemon": "^3.1.10",
     "rimraf": "^6.0.1",
     "ts-proto": "^2.7.5",
+    "tsconfig-paths": "^4.2.0",
     "tsup": "^8.5.0",
     "typescript": "^5.0.0",
     "wait-on": "^8.0.3"

@@ -1,8 +1,8 @@
-import { AppConfig, ConnectionConfig, ConnectorConfig, KeyValue, GraphExecutor, GraphResult } from "@dataflow-ide/dataflow-core";
+import { AppConfig, ConnectionConfig, ConnectorConfig, KeyValue, GraphResult, Executor, IExecutionController } from "@dataflow-ide/dataflow-core";
 
 // Create a GraphExecutor that calls a remote server via fetch
-export function createUrlGraphExecutor(serverUrl: string): GraphExecutor {
-    return async (graph: AppConfig, params?: KeyValue, clientSocketId?: string): Promise<GraphResult | undefined> => {
+export function createUrlGraphExecutor(serverUrl: string): Executor {
+    return async (controller: IExecutionController, graph: AppConfig, params?: KeyValue, clientSocketId?: string): Promise<GraphResult | undefined> => {
         const res = await fetch(serverUrl, {
             method: "POST",
             headers: { "Content-Type": "application/json" },

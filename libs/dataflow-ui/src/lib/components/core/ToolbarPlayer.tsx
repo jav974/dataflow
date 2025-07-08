@@ -18,7 +18,7 @@ export default function ToolbarPlayer() {
     const {selectedExecutor, mode} = useDataflowContext();
 
     const onPlay = useCallback(() => {
-        controller.setMode(mode ?? "local");
+        controller.setMode(mode ?? "react");
 
         if (!isPlaying && graph && selectedExecutor) {
             if (controller.paused) {
