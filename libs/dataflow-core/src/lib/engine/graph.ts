@@ -7,23 +7,14 @@ import executionContext, { KeyValue } from "./context";
 import { ExecutionBranch, ExecutionGraph, ExecutionInput, ExecutionOutput, GraphResult } from "./types";
 import "./handlers";
 import { IExecutionController } from "@dataflow-core/controllers/base.controller";
-import { WorkerExecutionController } from "@dataflow-core/controllers/worker.controller";
 import { LocalExecutionController } from "@dataflow-core/controllers/local.controller";
 
 export class Graph {
-    readonly controller: IExecutionController;
     private graphs: Map<string, ExecutionGraph> = new Map();
     private stack: Stack<ExecutionGraph> = new Stack();
     private nodePos: number = 0;
-    private clientSocketId: string | undefined;
 
-    constructor(clientSocketId?: string, _controller?: IExecutionController) {
-        if (clientSocketId) {
-            this.clientSocketId = clientSocketId;
-            this.controller = _controller ?? new WorkerExecutionController(clientSocketId);
-        } else {
-            this.controller = _controller ?? new LocalExecutionController();
-        }
+    constructor(private controller: IExecutionController = new LocalExecutionController()) {
     }
 
     async waitOrCancel() {
@@ -100,7 +91,6 @@ export class Graph {
         context.set('_node_id', node.id);
         context.set('_inputMap', new Map<string, string>());
         context.set('_outputMap', new Map<string, string>());
-        context.set('_clientSocketId', this.clientSocketId);
 
         executionGraph = {
             pos: this.nodePos++,
@@ -365,17 +355,7 @@ export class Graph {
             });
         }
 
-        // When using WorkerExecutionController, we need to wait for the worker to be ready, but now using nats
-        // if (this.clientSocketId) {
-        //     await (this.controller as WorkerExecutionController).waitForWorkerSocketId();
-        // }
-
         executionGraph = await this.resolveExecutionGraph(executionGraph);
-
-        // When using WorkerExecutionController, we need to wait for the logs to be ready, but now using nats
-        // if (this.clientSocketId) {
-        //     await (this.controller as WorkerExecutionController).waitForPendingLogs();
-        // }
 
         this.controller.clear();
 
@@ -402,10 +382,6 @@ export function buildExecutionGraph(graph: AppConfig): ExecutionGraph | undefine
     return new Graph().buildExecutionGraph(graph);
 }
 
-export async function runGraph(graph: AppConfig, params?: KeyValue, clientSocketId?: string): Promise<GraphResult | undefined> {
-    return new Graph(clientSocketId).runGraph(graph, params);
-}
-
-export async function runGraphWithController(controller: IExecutionController, graph: AppConfig, params?: KeyValue, clientSocketId?: string): Promise<GraphResult | undefined> {
-    return new Graph(clientSocketId, controller).runGraph(graph, params);
+export async function runGraphWithController(controller: IExecutionController, graph: AppConfig, params?: KeyValue): Promise<GraphResult | undefined> {
+    return new Graph(controller).runGraph(graph, params);
 }

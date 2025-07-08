@@ -19,17 +19,13 @@ export default function Toolbar() {
     const { zoom, canvasPosition, toGraph } = useGraphContext();
     const [isNewModalOpen, setIsNewModalOpen] = useState(false);
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-    const {localExecutor, remoteExecutor, mode, setMode} = useDataflowContext();
+    const {mode, setMode} = useDataflowContext();
     const availableModes = useMemo((): OptionProps[] => {
         const modes: OptionProps[] = [];
-        if (localExecutor) {
-            modes.push({name: "Local", value: "react"});
-        }
-        if (remoteExecutor) {
-            modes.push({name: "Remote", value: "remote"});
-        }
+        modes.push({name: "Local", value: "local"});
+        modes.push({name: "Remote", value: "remote"});
         return modes;
-    }, [localExecutor, remoteExecutor]);
+    }, []);
 
     const onGraphChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
         loadGraph(e.target.value);
@@ -57,7 +53,7 @@ export default function Toolbar() {
     }, [graph, deleteGraph]);
 
     const handleModeChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
-        const newMode = e.target.value as "react" | "remote";
+        const newMode = e.target.value as "local" | "remote";
         if (newMode !== mode) {
             setMode(newMode);
         }

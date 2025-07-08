@@ -2,11 +2,11 @@ import { AppConfig, ConnectionConfig, ConnectorConfig, KeyValue, GraphResult, Ex
 
 // Create a GraphExecutor that calls a remote server via fetch
 export function createUrlGraphExecutor(serverUrl: string): Executor {
-    return async (controller: IExecutionController, graph: AppConfig, params?: KeyValue, clientSocketId?: string): Promise<GraphResult | undefined> => {
+    return async (_: IExecutionController, graph: AppConfig, params?: KeyValue): Promise<GraphResult | undefined> => {
         const res = await fetch(serverUrl, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ graph, params, clientSocketId }),
+            body: JSON.stringify({ graph, params }),
         });
         const response = await res.json();
         if (!res.ok || res.status === 499) throw new Error((response as Error).message);

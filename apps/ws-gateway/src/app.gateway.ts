@@ -29,11 +29,6 @@ export class WSGateway implements OnGatewayDisconnect, OnGatewayConnection {
     @WebSocketServer()
     server: Server<ClientToServerEvents, ServerToClientEvents>;
 
-    clientToExecutor = new Map<string, string>();
-    executorToClient = new Map<string, string>();
-
-    private useNats: boolean = true; // Set to false to use websocket directly
-
     constructor(
         @Inject(NATS_CLIENT) private readonly client: ClientNats,
         private readonly natsService: NatsService
@@ -44,24 +39,6 @@ export class WSGateway implements OnGatewayDisconnect, OnGatewayConnection {
     ) {
         console.log(`Client connected: ${client.id}`);
         client.emit('hello', client.id);
-    }
-
-    @SubscribeMessage('registerExecutor')
-    registerExecutor(
-        socket: Socket<ClientToServerEvents, ServerToClientEvents>,
-        data: { executorId: string; clientSocketId: string },
-    ): AckResponse {
-        console.log(
-            'Register',
-            data.executorId,
-            socket.id,
-            'for client',
-            data.clientSocketId,
-        );
-        this.clientToExecutor.set(data.clientSocketId, socket.id);
-        this.executorToClient.set(socket.id, data.clientSocketId);
-        // Acknowledge the registration
-        return { status: 'ok' };
     }
 
     @SubscribeMessage('start')
@@ -106,27 +83,19 @@ export class WSGateway implements OnGatewayDisconnect, OnGatewayConnection {
         socket: Socket<ClientToServerEvents, ServerToClientEvents>,
     ): Promise<AckResponse> {
         console.log('Received pause from react client');
-        const executorSocketId = this.clientToExecutor.get(socket.id);
-        if (executorSocketId) {
-            this.server.to(executorSocketId).emit('paused');
-        }
         
-        if (this.useNats) {
-            try {
-                const paused = await firstValueFrom<boolean>(
-                    this.client.send('pause.' + socket.id, {})
-                );
+        try {
+            const paused = await firstValueFrom<boolean>(
+                this.client.send('pause.' + socket.id, {})
+            );
 
-                console.log('✅ Received NATS response for pause:', paused);
+            console.log('✅ Received NATS response for pause:', paused);
 
-                return { status: paused ? 'ok' : 'error', message: 'Runner error on pause' };
-            } catch (error) {
-                console.error('❌ Failed to pause runner:', error);
-                return { status: 'error', message: 'Runner did not acknowledge pause' };
-            }
+            return { status: paused ? 'ok' : 'error', message: 'Runner error on pause' };
+        } catch (error) {
+            console.error('❌ Failed to pause runner:', error);
+            return { status: 'error', message: 'Runner did not acknowledge pause' };
         }
-
-        return { status: 'ok' }; // If not using NATS, just acknowledge the pause
     }
 
     @SubscribeMessage('resume')
@@ -134,27 +103,19 @@ export class WSGateway implements OnGatewayDisconnect, OnGatewayConnection {
         socket: Socket<ClientToServerEvents, ServerToClientEvents>,
     ): Promise<AckResponse> {
         console.log('Received resume from react client');
-        const executorSocketId = this.clientToExecutor.get(socket.id);
-        if (executorSocketId) {
-            this.server.to(executorSocketId).emit('resumed');
+
+        try {
+            const resumed = await firstValueFrom<boolean>(
+                this.client.send('resume.' + socket.id, {})
+            );
+
+            console.log('✅ Received NATS response for resume:', resumed);
+
+            return { status: resumed ? 'ok' : 'error', message: 'Runner error on resume' };
+        } catch (error) {
+            console.error('❌ Failed to resume runner:', error);
+            return { status: 'error', message: 'Runner did not acknowledge resume' };
         }
-
-        if (this.useNats) {
-            try {
-                const resumed = await firstValueFrom<boolean>(
-                    this.client.send('resume.' + socket.id, {})
-                );
-
-                console.log('✅ Received NATS response for resume:', resumed);
-
-                return { status: resumed ? 'ok' : 'error', message: 'Runner error on resume' };
-            } catch (error) {
-                console.error('❌ Failed to resume runner:', error);
-                return { status: 'error', message: 'Runner did not acknowledge resume' };
-            }
-        }
-
-        return { status: 'ok' }; // If not using NATS, just acknowledge the resume
     }
 
     @SubscribeMessage('cancel')
@@ -162,74 +123,25 @@ export class WSGateway implements OnGatewayDisconnect, OnGatewayConnection {
         socket: Socket<ClientToServerEvents, ServerToClientEvents>,
     ): Promise<AckResponse> {
         console.log('Received cancel from react client');
-        const executorSocketId = this.clientToExecutor.get(socket.id);
-        if (executorSocketId) {
-            this.server.to(executorSocketId).emit('canceled');
+
+        try {
+            const canceled = await firstValueFrom<boolean>(
+                this.client.send('cancel.' + socket.id, {})
+            );
+
+            console.log('✅ Received NATS response for cancel:', canceled);
+
+            return { status: canceled ? 'ok' : 'error', message: 'Runner error on cancel' };
+        } catch (error) {
+            console.error('❌ Failed to cancel runner:', error);
+            return { status: 'error', message: 'Runner did not acknowledge cancel' };
         }
-
-        if (this.useNats) {
-            try {
-                const canceled = await firstValueFrom<boolean>(
-                    this.client.send('cancel.' + socket.id, {})
-                );
-
-                console.log('✅ Received NATS response for cancel:', canceled);
-
-                return { status: canceled ? 'ok' : 'error', message: 'Runner error on cancel' };
-            } catch (error) {
-                console.error('❌ Failed to cancel runner:', error);
-                return { status: 'error', message: 'Runner did not acknowledge cancel' };
-            }
-        }
-
-        return { status: 'ok' }; // If not using NATS, just acknowledge the cancel
     }
 
-    @SubscribeMessage('writeTo')
-    writeTo(
-        socket: Socket<ClientToServerEvents, ServerToClientEvents>,
-        data: Log,
-    ): AckResponse {
-        console.log(
-            'Received writeTo from executor',
-            socket.id,
-            'with data',
-            data,
-        );
-        const clientSocketId = this.executorToClient.get(socket.id);
-        if (clientSocketId) {
-            this.server.to(clientSocketId).emit('writeTo', data);
-        }
-        // Acknowledge the write
-        return { status: 'ok' };
-    }
-
-    handleDisconnect(
-        client: Socket<ClientToServerEvents, ServerToClientEvents>,
-    ) {
+    handleDisconnect(client: Socket<ClientToServerEvents, ServerToClientEvents>) {
         console.log(`Client disconnected: ${client.id}`);
 
         this.natsService.unsubscribe(`executed.${client.id}`);
         this.natsService.unsubscribe(`writeTo.${client.id}`);
-
-        // Remove from executorToClient map if present
-        const clientSocketId = this.executorToClient.get(client.id);
-        if (clientSocketId) {
-            this.executorToClient.delete(client.id);
-            this.clientToExecutor.delete(clientSocketId);
-            console.log(
-                `Cleaned up executor mapping for client ${clientSocketId}`,
-            );
-        } else {
-            // Remove from clientToExecutor map if present
-            const executorSocketId = this.clientToExecutor.get(client.id);
-            if (executorSocketId) {
-                this.clientToExecutor.delete(client.id);
-                this.executorToClient.delete(executorSocketId);
-                console.log(
-                    `Cleaned up client mapping for executor ${executorSocketId}`,
-                );
-            }
-        }
     }
 }

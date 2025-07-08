@@ -313,12 +313,7 @@ const handleIOWrite: NodeExecutor = async (inputs: NodeExecParams, context: Node
     }
 
     // TODO: Really handle fd server side
-
-    // Emit an event for client display
-    const clientSocketId = context.get('_clientSocketId');
-    const eventName = !clientSocketId ? 'io_write' : 'io_write_' + clientSocketId;
-
-    eventBus.emit<Log>(eventName, {
+    eventBus.emit<Log>('io_write', {
         type,
         createdAt: Date.now(),
         message: content

@@ -1,5 +1,5 @@
 import { io, Socket } from "socket.io-client";
-import { AbstractExecutionController, Callback, Executor, ExecutorReturn, RemoteExecutionData } from "./base.controller";
+import { AbstractExecutionController, Callback, ExecutorReturn, RemoteExecutionData } from "./base.controller";
 import { ClientToServerEvents, ServerToClientEvents } from "@dataflow-core/realtime/socket-types";
 import { eventBus } from "@dataflow-core/events/events";
 import { Log } from "@dataflow-core/engine/types";
@@ -47,7 +47,7 @@ export class RemoteExecutionController extends AbstractExecutionController {
         }
     }
 
-    async start(executor: Executor, graph: AppConfig, params?: KeyValue): ExecutorReturn {
+    async start(graph: AppConfig, params?: KeyValue): ExecutorReturn {
         if (!this.socket) {
             this.clientSocketId = undefined;
             this.initSocket();
@@ -60,7 +60,6 @@ export class RemoteExecutionController extends AbstractExecutionController {
 
         this.data = { completed: false, result: undefined, error: undefined };
         this.socket?.on("executed", (data) => {
-            console.log("RemoteExecutionController: Received executed event:", data);
             if (data.error) {
                 eventBus.emit<Log>('io_write', { type: "error", message: data.error, createdAt: Date.now() } as Log);
             }
@@ -78,9 +77,8 @@ export class RemoteExecutionController extends AbstractExecutionController {
         }
 
         this.clear();
-        return this.data.result;
 
-        // return executor(graph, params, this.clientSocketId).finally(() => this.clear());
+        return this.data.result;
     }
 
     clear(): void {
@@ -106,7 +104,6 @@ export class RemoteExecutionController extends AbstractExecutionController {
 
     cancel(onCanceled?: Callback) {
         this.socket?.emit("cancel", () => {
-            // this.clear();
             if (onCanceled) onCanceled();
         });
     }

@@ -14,7 +14,6 @@ class InterpreterWorker {
     private controller = new LocalExecutionController();
 
     constructor() {
-        console.log("Interpreter built");
         self.onmessage = this.handleMessage.bind(this);
         this.setupLogForwarding();
     }
@@ -51,7 +50,7 @@ class InterpreterWorker {
     async run(graph: AppConfig, params?: Record<string, any>) {
         try {
             this.controller.started = true;
-            const result: GraphResult | undefined = await runGraphWithController(this.controller, graph, params);+
+            const result: GraphResult | undefined = await runGraphWithController(this.controller, graph, params);
             this.emitToHost('executed', result);
         } catch (err) {
             this.emitToHost('error', (err as Error).message);

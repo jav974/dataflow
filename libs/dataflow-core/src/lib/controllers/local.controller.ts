@@ -1,17 +1,14 @@
-import { AppConfig } from "@dataflow-core/config/schema";
-import { AbstractExecutionController, Callback, Executor, ExecutorReturn } from "./base.controller";
-import { KeyValue } from "@dataflow-core/engine/context";
+import { AbstractExecutionController, Callback, ExecutorReturn } from "./base.controller";
 
 /**
- * Used in clientside react app to control the flow execution of graph
+ * Used in Worker thread, or Child process to control the flow execution of graph
  */
 export class LocalExecutionController extends AbstractExecutionController {
-    started = false;
+    started = true;
     paused = false;
 
-    start(executor: Executor, graph: AppConfig, params?: KeyValue): ExecutorReturn {
-        this.started = true;
-        return executor(this, graph, params).finally(() => this.clear());
+    start(): ExecutorReturn {
+        throw new Error("RunnerExecutionController does not support start method directly.");
     }
 
     clear(): void {
@@ -30,11 +27,7 @@ export class LocalExecutionController extends AbstractExecutionController {
     }
 
     cancel(onCanceled?: Callback) {
-        if (this.paused) {
-            this.paused = false;
-        }
-        this.started = false;
-        
+        this.clear();
         if (onCanceled) onCanceled();
     }
 }

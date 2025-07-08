@@ -13,7 +13,7 @@ export class NatsService implements OnModuleDestroy {
     async publish<T>(subject: string, data: T): Promise<boolean> {
         try {
             this.natsConnection.publish(subject, JSON.stringify(data));
-            console.log(`Published to ${subject}:`, data);
+            console.log(`Published to ${subject}`);
             return true;
         } catch (error) {
             console.error(`Failed to publish to ${subject}:`, error);
@@ -43,7 +43,7 @@ export class NatsService implements OnModuleDestroy {
                     }
                     try {
                         const data = JSON.parse(this.sc.decode(msg.data)) as T;
-                        console.log(`Received message from ${subject}:`, data);
+                        console.log(`Received message from ${subject}`);
                         callback(data);
 
                         // Send manual response (if inbox is set)

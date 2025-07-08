@@ -1,4 +1,4 @@
-import { AbstractExecutionController, Callback, Executor, ExecutorReturn, RemoteExecutionData } from "./base.controller";
+import { AbstractExecutionController, Callback, ExecutorReturn, RemoteExecutionData } from "./base.controller";
 import { eventBus } from "@dataflow-core/events/events";
 import { AppConfig } from "@dataflow-core/config/schema";
 import { KeyValue } from "@dataflow-core/engine/context";
@@ -39,7 +39,7 @@ export class ClientExecutionController extends AbstractExecutionController {
         }
     }
 
-    async start(_: Executor, graph: AppConfig, params?: KeyValue): ExecutorReturn {
+    async start(graph: AppConfig, params?: KeyValue): ExecutorReturn {
         this.started = false;
         this.data = {completed: false, result: undefined, error: undefined};
         this.worker = spawnWorker();

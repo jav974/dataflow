@@ -4,13 +4,13 @@ import { GraphResult } from "@dataflow-core/engine/types";
 
 export type Callback = () => void;
 export type ExecutorReturn = Promise<GraphResult | undefined>;
-export type Executor = (controller: IExecutionController, graph: AppConfig, params?: KeyValue, clientSocketId?: string) => ExecutorReturn;
+export type Executor = (controller: IExecutionController, graph: AppConfig, params?: KeyValue) => ExecutorReturn;
 export type RemoteExecutionData = {completed: boolean, result: GraphResult | undefined, error?: string};
 
 export interface IExecutionController {
     started: boolean;
     paused: boolean;
-    start(executor: Executor, graph: AppConfig, params?: KeyValue, clientSocketId?: string): ExecutorReturn;
+    start(graph: AppConfig, params?: KeyValue): ExecutorReturn;
     pause(onPaused?: Callback): void;
     resume(onResumed?: Callback): void;
     cancel(onCanceled?: Callback): void;
@@ -22,7 +22,7 @@ export abstract class AbstractExecutionController implements IExecutionControlle
     started = false;
     paused = false;
 
-    abstract start(executor: Executor, graph: AppConfig, params?: KeyValue): ExecutorReturn;
+    abstract start(graph: AppConfig, params?: KeyValue): ExecutorReturn;
     abstract pause(onPaused?: Callback): void;
     abstract resume(onResumed?: Callback): void;
     abstract cancel(onCanceled?: Callback): void;

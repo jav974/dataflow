@@ -15,12 +15,12 @@ export default function ToolbarPlayer() {
     const {setGraphResult} = useNodeContext();
     const {logs} = useDashboardContext();
     const {computedResult, startParams, toGraph} = useGraphContext();
-    const {selectedExecutor, mode} = useDataflowContext();
+    const {mode} = useDataflowContext();
 
     const onPlay = useCallback(() => {
-        controller.setMode(mode ?? "react");
+        controller.setMode(mode ?? "local");
 
-        if (!isPlaying && graph && selectedExecutor) {
+        if (!isPlaying && graph) {
             if (controller.paused) {
                 controller.resume(() => setIsPlaying(true));
             }
@@ -30,7 +30,6 @@ export default function ToolbarPlayer() {
                 logs.update([]);
 
                 controller.start(
-                    selectedExecutor,
                     toGraph(),
                     startParams.current,
                 ).then((result) => {
@@ -48,7 +47,7 @@ export default function ToolbarPlayer() {
         } else if (isPlaying) {
             controller.pause(() => setIsPlaying(false));
         }
-    }, [graph, isPlaying, selectedExecutor, setGraphResult, toGraph, mode, computedResult, logs, startParams]);
+    }, [graph, isPlaying, setGraphResult, toGraph, mode, computedResult, logs, startParams]);
 
     const handleCancel = useCallback(() => {
         controller.cancel(() => {

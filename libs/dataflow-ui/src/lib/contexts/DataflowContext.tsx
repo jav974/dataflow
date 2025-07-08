@@ -10,13 +10,13 @@ type DataflowAuth = {
 type DataflowExec = {
     remoteExecutor?: Executor;
     localExecutor?: Executor;
-    mode?: "remote" | "local" | "react";
+    mode?: "remote" | "local";
     serverUrl?: string; // Optional: if provided, use as remoteExecutor
 };
 
 type DataflowUtils = {
     fetchGraph: (graphId: string) => Promise<AppConfig | null>;
-    setMode: (mode: "remote" | "local" | "react") => void;
+    setMode: (mode: "remote" | "local") => void;
 }
 
 type DataflowContextType = DataflowAuth & DataflowExec & DataflowUtils & {
@@ -29,15 +29,9 @@ interface DataflowProviderProps extends DataflowExec {
     children: React.ReactNode;
 }
 
-const getLocalStorageGraphKey = (name: string) => {
-    // Replace any non-alphanumeric characters with hyphens and convert to lowercase
-    const safeName = name.toLowerCase().replace(/[^a-z0-9]/g, '-');
-    return `dataflow-graph-${safeName}`;
-};
-
-export function DataflowProvider({ children, remoteExecutor, localExecutor = runGraphWithController, mode: initialMode = "react", serverUrl }: DataflowProviderProps) {
+export function DataflowProvider({ children, remoteExecutor, localExecutor = runGraphWithController, mode: initialMode = "local", serverUrl }: DataflowProviderProps) {
     const [apiKey, setApiKey] = useState<string | undefined>(undefined);
-    const [mode, setMode] = useState<"remote" | "local" | "react">(initialMode);
+    const [mode, setMode] = useState<"remote" | "local">(initialMode);
 
     // If serverUrl is provided, use it to create a remoteExecutor
     const effectiveRemoteExecutor = useMemo(() => {
@@ -47,17 +41,7 @@ export function DataflowProvider({ children, remoteExecutor, localExecutor = run
     }, [remoteExecutor, serverUrl]);
 
     const fetchGraph = useCallback(async (graphId: string): Promise<AppConfig | null> => {
-        try {
-            if (mode === "local") {
-                const graphKey = getLocalStorageGraphKey(graphId);
-                return localStorage.getItem(graphKey) ? JSON.parse(localStorage.getItem(graphKey)!) : null;
-            } else if (mode === "remote") {
-                console.warn("Remote graph fetching is not implemented yet.");
-                // TODO: Implement remote graph fetching logic
-            }
-        } catch (error) {
-            console.error("Error fetching graph:", error);
-        }
+        // TODO
         return null;
     }, [mode]);
 
@@ -65,7 +49,7 @@ export function DataflowProvider({ children, remoteExecutor, localExecutor = run
         if (mode === "remote" && effectiveRemoteExecutor) {
             return effectiveRemoteExecutor;
         }
-        if ((mode === "local" || mode === "react") && localExecutor) {
+        if (mode === "local" && localExecutor) {
             return localExecutor;
         }
         return undefined;

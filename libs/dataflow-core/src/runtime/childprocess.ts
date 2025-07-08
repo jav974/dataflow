@@ -14,7 +14,6 @@ class InterpreterChildProcess {
     private controller = new LocalExecutionController();
 
     constructor() {
-        // console.log('[InterpreterChild] Initialized');
         process.on('message', this.handleMessage.bind(this));
         this.setupLogForwarding();
     }
