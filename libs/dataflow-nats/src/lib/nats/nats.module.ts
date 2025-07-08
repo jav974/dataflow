@@ -4,12 +4,14 @@ import { NatsService } from './nats.service';
 import { ClientsModule, Transport } from '@nestjs/microservices';
 import { NATS_CLIENT } from './nats.constants';
 
-const natsClient = ClientsModule.register([{
+const natsClient = ClientsModule.registerAsync([{
     name: NATS_CLIENT,
-    transport: Transport.NATS,
-    options: {
-        servers: ['nats://localhost:4222'],
-    }
+    useFactory: () => ({
+        transport: Transport.NATS,
+        options: {
+            servers: [process.env.NATS_SERVER_URL || 'nats://localhost:4222'],
+        },
+    }),
 }]);
 
 @Module({

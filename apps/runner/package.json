@@ -23,6 +23,7 @@
     "@dataflow-ide/dataflow-core": "^1.0.0",
     "@dataflow-ide/dataflow-nats": "^1.0.0",
     "@nestjs/common": "^11.0.1",
+    "@nestjs/config": "^4.0.2",
     "@nestjs/core": "^11.0.1",
     "@nestjs/microservices": "^11.1.3",
     "@nestjs/platform-express": "^11.0.1",

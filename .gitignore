@@ -45,6 +45,7 @@ next-env.d.ts
 
 # default docker local env (urls to services)
 !docker/.env.docker.local
+!.env.shared
 
 # @vercel/nft dist folder
 /dist
