@@ -1,3 +1,4 @@
+name: dataflow
 services:
   traefik:
     image: traefik:v2.10
@@ -17,14 +18,23 @@ services:
     networks:
       - dataflow
 
-  nextjs:
+  nats:
+    image: nats:latest
+    ports:
+      - "4222:4222"   # Main client connections
+      - "8222:8222"   # Monitoring endpoint
+    restart: unless-stopped
+    networks:
+      - dataflow
+
+  frontend:
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.next.entrypoints=web"
-      - "traefik.http.services.next.loadbalancer.server.port=3000"
+      - "traefik.http.routers.frontend.entrypoints=web"
+      - "traefik.http.services.frontend.loadbalancer.server.port=3000"
       - "traefik.docker.network=dataflow"
     build:
-      context: ../apps/frontend
+      context: ..
       dockerfile: docker/Dockerfile.prod
       target: runner
     networks:
@@ -32,21 +42,27 @@ services:
     depends_on:
       - traefik
 
-  ws-server:
+  ws-gateway:
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.ws-server.entrypoints=web"
-      - "traefik.http.routers.ws-server.service=ws-server"
-      - "traefik.http.services.ws-server.loadbalancer.server.port=3001"
+      - "traefik.http.routers.ws-gateway.entrypoints=web"
+      - "traefik.http.routers.ws-gateway.service=ws-gateway"
+      - "traefik.http.services.ws-gateway.loadbalancer.server.port=3001"
       - "traefik.docker.network=dataflow"
     build:
-      context: ../apps/frontend
+      context: ..
       dockerfile: docker/Dockerfile.prod
       target: wsserver
     networks:
       - dataflow
     depends_on:
       - traefik
+  
+  runner:
+    build:
+      context: ..
+    networks:
+      - dataflow
 
 networks:
   dataflow:

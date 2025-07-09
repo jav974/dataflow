@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev:turbo": "next dev --turbopack",
-    "dev": "next dev",
+    "dev": "dotenv -e .env -- sh -c 'next dev -p $FRONTEND_PORT'",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",

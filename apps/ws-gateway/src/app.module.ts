@@ -7,8 +7,9 @@ import { NatsModule } from '@dataflow-ide/dataflow-nats';
     providers: [WSGateway],
     imports: [
         ConfigModule.forRoot({
-            isGlobal: true,           // if you want it everywhere
-            envFilePath: '.env',      // default, but can be customized
+            isGlobal: true,
+            envFilePath: ['.env'],
+
         }),
         NatsModule
     ],

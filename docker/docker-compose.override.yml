@@ -4,58 +4,100 @@ services:
       - "traefik.http.routers.dashboard.rule=Host(`traefik.localhost`)"
     restart: unless-stopped
 
-  nextjs:
+  frontend:
     labels:
-      - "traefik.http.routers.next.rule=Host(`dataflow-ide.local`)"
+      - "traefik.http.routers.frontend.rule=Host(`dataflow-ide.local`)"
     env_file:
       - .env.docker.local
-      - ../apps/frontend/.env.local
+      - path: ../apps/frontend/.env.local
+        required: false
     build:
       dockerfile: docker/Dockerfile.dev
-      target: nextjs
+      target: frontend
       args:
         USER_ID: ${USER_ID}
         GROUP_ID: ${GROUP_ID}
     restart: unless-stopped
     volumes:
-      - ../apps/frontend/:/app:cached
-      - ../libs/:/libs:cached
-      - ./.env.docker.local:/app/.env.docker.local
-      - ../apps/frontend/.env.local:/app/.env.local
-      - /app/node_modules  # anonymous volume INSIDE container
+      - ../package.json:/app/package.json:ro
+      - ../package-lock.json:/app/package-lock.json:ro
+      - ../tsconfig.json:/app/tsconfig.json:ro
+      - ../apps/frontend:/app/apps/frontend
+      - ../libs:/app/libs
+      - ./.env.docker.local:/app/apps/frontend/.env.docker.local
+      - ../apps/frontend/.env.local:/app/apps/frontend/.env.local
+      - ../.env.shared:/app/apps/frontend/.env
+      - ../node_modules:/app/node_modules
+      - ../tools/init.sh:/app/init.sh
       # - next_cache:/app/.next
     environment:
       - NODE_ENV=development
       - NODE_OPTIONS=--max-old-space-size=4096
-    command: ["npm", "run", "dev:next"]
+    command: ["npm", "run", "serve:frontend"]
     user: "${USER_ID}:${GROUP_ID}"
-    # ports:
-    #   - "3000:3000"
+    healthcheck:
+      test: ["CMD-SHELL", "test -f /app/libs/dataflow-nats/dist/index.cjs && test -f /app/libs/dataflow-core/dist/runtime/childprocess.js"]
+      interval: 10s
+      retries: 5
+      start_period: 10s
+      timeout: 5s
 
-  ws-server:
+  ws-gateway:
     labels:
-      - "traefik.http.routers.ws-server.rule=Host(`ws.dataflow-ide.local`) && PathPrefix(`/ws`)"
-      - "traefik.http.services.ws-server.loadbalancer.sticky.cookie.name=ws_sticky"
+      - "traefik.http.routers.ws-gateway.rule=Host(`ws.dataflow-ide.local`) && PathPrefix(`/ws`)"
+      - "traefik.http.services.ws-gateway.loadbalancer.sticky.cookie.name=ws_sticky"
     env_file:
       - .env.docker.local
-      - ../apps/frontend/.env.local
     build:
       dockerfile: docker/Dockerfile.dev
-      target: wsserver
+      target: ws-gateway
       args:
         USER_ID: ${USER_ID}
         GROUP_ID: ${GROUP_ID}
     restart: unless-stopped
     volumes:
-      - ../apps/frontend/:/app:cached
-      - ../libs/:/libs:cached
-      - ./.env.docker.local:/app/.env.docker.local
-      - ../apps/frontend/.env.local:/app/.env.local
-      - /app/node_modules  # anonymous volume INSIDE container
+      - ../package.json:/app/package.json:ro
+      - ../package-lock.json:/app/package-lock.json:ro
+      - ../tsconfig.json:/app/tsconfig.json:ro
+      - ../apps/ws-gateway:/app/apps/ws-gateway
+      - ../libs:/app/libs
+      - ./.env.docker.local:/app/apps/ws-gateway/.env
+      - ../node_modules:/app/node_modules
+      - ../tools/init.sh:/app/init.sh
     environment:
       - NODE_ENV=development
-    command: ["npm", "run", "dev:wss"]
+    command: ["npm", "run", "serve:ws-gateway"]
     user: "${USER_ID}:${GROUP_ID}"
+    depends_on:
+      frontend:
+        condition: service_healthy
+
+  runner:
+    env_file:
+      - .env.docker.local
+    build:
+      dockerfile: docker/Dockerfile.dev
+      target: runner
+      args:
+        USER_ID: ${USER_ID}
+        GROUP_ID: ${GROUP_ID}
+    restart: unless-stopped
+    volumes:
+      - ../package.json:/app/package.json:ro
+      - ../package-lock.json:/app/package-lock.json:ro
+      - ../tsconfig.json:/app/tsconfig.json:ro
+      - ../apps/runner:/app/apps/runner
+      - ../libs:/app/libs
+      - ./.env.docker.local:/app/apps/runner/.env
+      - ../node_modules:/app/node_modules
+      - ../tools/init.sh:/app/init.sh
+    environment:
+      - NODE_ENV=development
+    command: ["npm", "run", "serve:runner"]
+    user: "${USER_ID}:${GROUP_ID}"
+    depends_on:
+      frontend:
+        condition: service_healthy
 
 # volumes:
 #   next_cache:

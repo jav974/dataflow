@@ -1,0 +1,49 @@
+# 🐢 Use slim Node 20 base image
+FROM node:20-alpine AS base_nest
+
+RUN apk add --no-cache tini
+RUN npm install -g @nestjs/cli
+WORKDIR /app
+ARG USER_ID=1000
+ARG GROUP_ID=1000
+
+# Detect and create only if needed
+RUN if ! getent passwd ${USER_ID} >/dev/null; then \
+      addgroup -g ${GROUP_ID} nodejs && \
+      adduser -D -u ${USER_ID} -G nodejs nestjs; \
+    else \
+      echo "User with UID ${USER_ID} already exists. Skipping creation."; \
+    fi
+
+RUN chown -R ${USER_ID}:${GROUP_ID} /app
+USER ${USER_ID}
+
+# 🐢 Use slim Node 18 base image
+FROM node:18-alpine AS base_next
+
+RUN apk add --no-cache tini
+WORKDIR /app
+ARG USER_ID=1000
+ARG GROUP_ID=1000
+
+# Detect and create only if needed
+RUN if ! getent passwd ${USER_ID} >/dev/null; then \
+      addgroup -g ${GROUP_ID} nodejs && \
+      adduser -D -u ${USER_ID} -G nodejs nextjs; \
+    else \
+      echo "User with UID ${USER_ID} already exists. Skipping creation."; \
+    fi
+
+RUN chown -R ${USER_ID}:${GROUP_ID} /app
+USER ${USER_ID}
+
+FROM base_next AS frontend
+EXPOSE 3000
+ENTRYPOINT ["/sbin/tini", "--", "sh", "/app/init.sh"]
+
+FROM base_nest AS ws-gateway
+EXPOSE 3001
+ENTRYPOINT ["/sbin/tini", "--", "sh", "/app/init.sh"]
+
+FROM base_nest AS runner
+ENTRYPOINT ["/sbin/tini", "--", "sh", "/app/init.sh"]

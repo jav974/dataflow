@@ -1,3 +1,21 @@
 {
-    "makefile.configureOnOpen": false
+  "typescript.tsdk": "node_modules/typescript/lib",
+  "search.exclude": {
+    "**/dist": true,
+    "**/.next": true,
+    "**/node_modules": false
+  },
+  "files.exclude": {
+    "**/dist": true,
+    "**/.next": true
+  },
+  "editor.quickSuggestions": {
+    "comments": false,
+    "strings": true,
+    "other": true
+  },
+//   "editor.codeActionsOnSave": {
+//     "source.fixAll.eslint": "always"
+//   },
+  "makefile.configureOnOpen": false
 }

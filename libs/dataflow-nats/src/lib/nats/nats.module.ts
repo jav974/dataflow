@@ -9,14 +9,14 @@ const natsClient = ClientsModule.registerAsync([{
     useFactory: () => ({
         transport: Transport.NATS,
         options: {
-            servers: [process.env.NATS_SERVER_URL || 'nats://localhost:4222'],
+            servers: [process.env.NATS_SERVER_URL as string],
         },
     }),
 }]);
 
 @Module({
-  providers: [NatsConnectionProvider, NatsService],
-  exports: [NatsService, natsClient],
-  imports: [natsClient],
+    providers: [NatsConnectionProvider, NatsService],
+    exports: [NatsService, natsClient],
+    imports: [natsClient],
 })
 export class NatsModule {}
