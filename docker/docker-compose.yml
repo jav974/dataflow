@@ -1,13 +1,12 @@
+name: dataflow
 services:
   traefik:
     image: traefik:v2.10
     command:
-      - "--api.dashboard=true"
-      - "--entrypoints.web.address=:80"
-      - "--providers.docker=true"
-      - "--providers.docker.network=dataflow"
+      - "--configFile=/etc/traefik/traefik.yml"
     ports:
       - "80:80"
+      - "443:443"
     volumes:
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
     labels:
@@ -17,44 +16,54 @@ services:
     networks:
       - dataflow
 
-  nextjs:
+  nats:
+    labels:
+      - "traefik.enable=false"
+    image: nats:latest
+    ports:
+      - "4222:4222"   # Main client connections
+      - "8222:8222"   # Monitoring endpoint
+    restart: unless-stopped
+    networks:
+      - dataflow
+
+  frontend:
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.next.entrypoints=web"
-      - "traefik.http.services.next.loadbalancer.server.port=3000"
+      - "traefik.http.routers.frontend.entrypoints=web"
+      - "traefik.http.services.frontend.loadbalancer.server.port=3000"
       - "traefik.docker.network=dataflow"
     build:
       context: ..
-      dockerfile: docker/Dockerfile.prod
-      target: runner
-    env_file:
-      - ../.env.production
-    environment:
-      - NODE_ENV=production
     networks:
       - dataflow
     depends_on:
       - traefik
 
-  ws-server:
+  ws-gateway:
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.ws-server.entrypoints=web"
-      - "traefik.http.routers.ws-server.service=ws-server"
-      - "traefik.http.services.ws-server.loadbalancer.server.port=3001"
+      - "traefik.http.routers.ws-gateway.entrypoints=web"
+      - "traefik.http.routers.ws-gateway.service=ws-gateway"
+      - "traefik.http.services.ws-gateway.loadbalancer.server.port=3001"
       - "traefik.docker.network=dataflow"
     build:
       context: ..
-      dockerfile: docker/Dockerfile.prod
-      target: wsserver
-    env_file:
-      - ../.env.production
-    environment:
-      - NODE_ENV=production
     networks:
       - dataflow
     depends_on:
       - traefik
+      - nats
+  
+  runner:
+    labels:
+      - "traefik.enable=false"
+    build:
+      context: ..
+    networks:
+      - dataflow
+    depends_on:
+      - nats
 
 networks:
   dataflow:

@@ -1,0 +1,23 @@
+log:
+  level: DEBUG
+
+entryPoints:
+  web:
+    address: ":80"
+  websecure:
+    address: ":443"
+    http:
+      tls:
+        certResolver: manual
+
+providers:
+  docker:
+    endpoint: "unix:///var/run/docker.sock"
+    exposedByDefault: false
+    network: "dataflow"
+  file:
+    directory: "/etc/traefik"
+    watch: true
+
+api:
+  dashboard: true

@@ -1,102 +1,175 @@
-# syntax=docker.io/docker/dockerfile:1
+# syntax=docker/dockerfile:1.4
+
+##########################
+# 🌱 Base Image (Node 18)
+##########################
 
 FROM node:18-alpine AS base
-
-# Install dependencies only when needed
-FROM base AS deps
-# Check https://github.com/nodejs/docker-node/tree/b4117f9333da4138b03a546ec926ef50a31506c3#nodealpine to understand why libc6-compat might be needed.
+WORKDIR /app
 RUN apk add --no-cache libc6-compat
+
+##########################
+# 📦 Dependencies & Libs Build
+##########################
+
+FROM base AS source_deps
 WORKDIR /app
 
-# Install dependencies based on the preferred package manager
-COPY package.json yarn.lock* package-lock.json* pnpm-lock.yaml* .npmrc* ./
-RUN \
-  if [ -f yarn.lock ]; then yarn --frozen-lockfile; \
-  elif [ -f package-lock.json ]; then npm ci; \
-  elif [ -f pnpm-lock.yaml ]; then corepack enable pnpm && pnpm i --frozen-lockfile; \
-  else echo "Lockfile not found." && exit 1; \
-  fi
+# Copy sources
+COPY ./apps ./apps
+COPY ./libs ./libs
 
+# Copy lockfiles only for install layer caching
+COPY package.json package-lock.json tsconfig.json ./
 
-# Rebuild the source code only when needed
-FROM base AS builder
+FROM source_deps AS deps
 WORKDIR /app
+RUN --mount=type=cache,target=/root/.npm \
+  npm ci
+
+# Build shared libraries once and reuse!
+RUN npm run build:libs
+
+FROM source_deps AS prod_deps
+
+WORKDIR /app
+RUN --mount=type=cache,target=/root/.npm \
+  npm ci --omit=dev
+
+FROM base AS artifacts
+WORKDIR /app
+
+COPY --from=deps /app/libs/dataflow-core/dist ./libs/dataflow-core/dist
+COPY --from=deps /app/libs/dataflow-core/package.json ./libs/dataflow-core/package.json
+COPY --from=deps /app/libs/dataflow-nats/dist ./libs/dataflow-nats/dist
+COPY --from=deps /app/libs/dataflow-nats/package.json ./libs/dataflow-nats/package.json
+COPY --from=deps /app/libs/dataflow-ui ./libs/dataflow-ui
+
+##########################
+# ⚙️ Frontend Build (Next.js)
+##########################
+
+FROM base AS builder_frontend
+WORKDIR /app
+
+# Copy deps and libs
+COPY --from=deps /app/package.json ./package.json
+COPY --from=deps /app/package-lock.json ./package-lock.json
+COPY --from=deps /app/tsconfig.json ./tsconfig.json
 COPY --from=deps /app/node_modules ./node_modules
-COPY . .
+COPY --from=deps /app/apps/frontend ./apps/frontend
+COPY --from=artifacts /app/libs ./libs
 
-# Next.js collects completely anonymous telemetry data about general usage.
-# Learn more here: https://nextjs.org/telemetry
-# Uncomment the following line in case you want to disable telemetry during the build.
-# ENV NEXT_TELEMETRY_DISABLED=1
+# Build frontend (Next.js)
+ENV NEXT_TELEMETRY_DISABLED=1
+RUN --mount=type=cache,target=/root/.npm \
+  npm run build:frontend
 
-RUN \
-  if [ -f yarn.lock ]; then yarn run build; \
-  elif [ -f package-lock.json ]; then npm run build; \
-  elif [ -f pnpm-lock.yaml ]; then corepack enable pnpm && pnpm run build; \
-  else echo "Lockfile not found." && exit 1; \
-  fi
+# Clean sensitive config
+RUN rm -f apps/frontend/.next/standalone/.env.production
 
-RUN rm -f .next/standalone/.env.production
+##########################
+# 🛳️ Frontend Runtime
+##########################
 
-# Production image, copy all the files and run next
-FROM base AS runner
-WORKDIR /app
+FROM node:18-alpine AS frontend
+WORKDIR /app/apps/frontend
+RUN addgroup --system --gid 1001 nodejs && \
+    adduser --system --uid 1001 nextjs
 
 ENV NODE_ENV=production
-# Uncomment the following line in case you want to disable telemetry during runtime.
-# ENV NEXT_TELEMETRY_DISABLED=1
+ENV PORT=3000
+ENV HOSTNAME="0.0.0.0"
+ENV NEXT_TELEMETRY_DISABLED=1
 
-RUN addgroup --system --gid 1001 nodejs
-RUN adduser --system --uid 1001 nextjs
+# Copy runtime assets from builder
+COPY --from=builder_frontend /app/apps/frontend/public ./public
+COPY --from=builder_frontend /app/apps/frontend/.next/static ./.next/static
+COPY --from=builder_frontend /app/apps/frontend/.next/standalone ./
+# Create the cache directory and set permissions
+RUN mkdir -p /app/apps/frontend/.next/cache \
+    && chown -R nextjs:nodejs /app/apps/frontend/.next
 
-COPY --from=builder /app/public ./public
-
-# Automatically leverage output traces to reduce image size
-# https://nextjs.org/docs/advanced-features/output-file-tracing
-COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
-COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+# Shared deps from root
+WORKDIR /app
+COPY --from=prod_deps /app/node_modules ./node_modules
 
 USER nextjs
-
 EXPOSE 3000
-
-ENV PORT=3000
-
-# server.js is created by next build from the standalone output
-# https://nextjs.org/docs/pages/api-reference/config/next-config-js/output
-ENV HOSTNAME="0.0.0.0"
+WORKDIR /app/apps/frontend
 CMD ["node", "server.js"]
 
-####### WS SERVER #########
+##########################
+# ⚙️ NestJS Base for Services
+##########################
 
-# Rebuild the source code only when needed
-FROM base AS wsbuilder
+FROM node:20-alpine AS base_nest
 WORKDIR /app
+RUN addgroup --system --gid 1001 nodejs && \
+    adduser --system --uid 1001 nestjs
+RUN apk add --no-cache libc6-compat
+
+##########################
+# ⚙️ Intermediate Build (Nest.js)
+##########################
+FROM base_nest AS builder_nest
+WORKDIR /app
+
+COPY --from=deps /app/package.json ./package.json
+COPY --from=deps /app/package-lock.json ./package-lock.json
+COPY --from=deps /app/tsconfig.json ./tsconfig.json
 COPY --from=deps /app/node_modules ./node_modules
-COPY . .
+COPY --from=artifacts /app/libs ./libs
 
-RUN \
-  if [ -f yarn.lock ]; then yarn run build:wss; \
-  elif [ -f package-lock.json ]; then npm run build:wss; \
-  elif [ -f pnpm-lock.yaml ]; then corepack enable pnpm && pnpm run build:wss; \
-  else echo "Lockfile not found." && exit 1; \
-  fi
+##########################
+# 🛠️ Build NestJS Services
+##########################
 
-FROM base AS wsserver
+FROM builder_nest AS builder_ws-gateway
+WORKDIR /app
+
+COPY --from=deps /app/apps/ws-gateway ./apps/ws-gateway
+
+RUN npm run build:ws-gateway
+
+FROM builder_nest AS builder_runner
+WORKDIR /app
+
+COPY --from=deps /app/apps/runner ./apps/runner
+
+RUN npm run build:runner
+
+##########################
+# 🚀 Runtime for NestJS Services
+##########################
+
+FROM base_nest AS ws-gateway
+
+WORKDIR /app
+ENV NODE_ENV=production
+ENV HOSTNAME="0.0.0.0"
+ENV PORT=3001
+
+COPY --from=artifacts /app/libs ./libs
+COPY --from=prod_deps /app/node_modules ./node_modules
+COPY --from=prod_deps /app/apps/ws-gateway/node_modules ./apps/ws-gateway/node_modules
+COPY --from=builder_ws-gateway /app/apps/ws-gateway/dist ./apps/ws-gateway/dist
+
+USER nestjs
+EXPOSE 3001
+WORKDIR /app/apps/ws-gateway
+CMD ["node", "dist/main.js"]
+
+FROM base_nest AS runner
 WORKDIR /app
 
 ENV NODE_ENV=production
 
-RUN addgroup --system --gid 1001 nodejs
-RUN adduser --system --uid 1001 wsserver
+COPY --from=artifacts /app/libs ./libs
+COPY --from=prod_deps /app/node_modules ./node_modules
+COPY --from=prod_deps /app/apps/runner/node_modules ./apps/runner/node_modules
+COPY --from=builder_runner /app/apps/runner/dist ./apps/runner/dist
 
-COPY --from=wsbuilder /app/dist ./
-
-USER wsserver
-
-# Expose websocket server port
-EXPOSE 3001
-ENV HOSTNAME="0.0.0.0"
-
-# CMD ["ls", "-la"]
-CMD ["node", "build/wss/realtime/ws-server.mjs"]
+USER nestjs
+WORKDIR /app/apps/runner
+CMD ["node", "dist/main.js"]

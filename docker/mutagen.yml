@@ -1,7 +1,7 @@
 sync:
-  nextjs:
+  frontend:
     alpha: ../
-    beta: docker://dataflow-nextjs-1/app
+    beta: docker://dataflow-frontend-1/app
     ignore:
       vcs: true
       paths:
@@ -9,13 +9,25 @@ sync:
         - .next
         - .git
         - .env*
-  ws-server:
+
+  ws-gateway:
     alpha: ../
-    beta: docker://dataflow-ws-server-1/app
+    beta: docker://dataflow-ws-gateway-1/app
     ignore:
       vcs: true
       paths:
         - node_modules
-        - .next
+        - dist
+        - .git
+        - .env*
+  
+  runner:
+    alpha: ../
+    beta: docker://dataflow-runner-1/app
+    ignore:
+      vcs: true
+      paths:
+        - node_modules
+        - dist
         - .git
         - .env*

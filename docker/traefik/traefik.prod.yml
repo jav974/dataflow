@@ -1,0 +1,28 @@
+log:
+  level: INFO
+
+entryPoints:
+  web:
+    address: ":80"
+  websecure:
+    address: ":443"
+
+providers:
+  docker:
+    endpoint: "unix:///var/run/docker.sock"
+    exposedByDefault: false
+    network: "dataflow"
+  file:
+    directory: "/etc/traefik"
+    watch: true
+
+api:
+  dashboard: false
+
+certificatesResolvers:
+  letsencrypt:
+    acme:
+      email: jeremyvienne@gmail.com
+      storage: /etc/traefik/acme.json
+      httpChallenge:
+        entryPoint: web

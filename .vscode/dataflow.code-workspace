@@ -1,0 +1,35 @@
+{
+  "folders": [
+    {
+      "path": "../"
+    },
+    {
+      "path": "../apps/frontend"
+    },
+    {
+      "path": "../apps/ws-gateway"
+    },
+    {
+      "path": "../apps/runner"
+    },
+    {
+      "path": "../libs"
+    }
+  ],
+  "settings": {
+    "typescript.tsdk": "../node_modules/typescript/lib",
+    "eslint.nodePath": "../node_modules",
+    "eslint.workingDirectories": [
+      { "mode": "auto" }
+    ],
+    "search.exclude": {
+      "**/dist": true,
+      "**/.next": true
+    },
+    "files.exclude": {
+      "**/dist": true,
+      "**/.next": true
+    },
+    "makefile.configureOnOpen": false
+  }
+}

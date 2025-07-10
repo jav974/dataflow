@@ -1,0 +1,23 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "baseUrl": "./src",
+    "paths": {
+      "@dataflow-core/*": ["lib/*"]
+    },
+    "target": "ES2020",
+    "lib": ["esnext", "WebWorker"],
+    "allowJs": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "noEmit": false,
+    "esModuleInterop": true,
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "declaration": true,
+  },
+  "include": ["src"],
+  "exclude": ["src/runtime/*.ts", "src/lib/controllers/worker.controller.ts"]
+}
