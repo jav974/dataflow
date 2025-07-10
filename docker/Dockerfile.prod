@@ -34,7 +34,7 @@ FROM source_deps AS prod_deps
 
 WORKDIR /app
 RUN --mount=type=cache,target=/root/.npm \
-  npm ci --production
+  npm ci --omit=dev
 
 FROM base AS artifacts
 WORKDIR /app
@@ -86,6 +86,9 @@ ENV NEXT_TELEMETRY_DISABLED=1
 COPY --from=builder_frontend /app/apps/frontend/public ./public
 COPY --from=builder_frontend /app/apps/frontend/.next/static ./.next/static
 COPY --from=builder_frontend /app/apps/frontend/.next/standalone ./
+# Create the cache directory and set permissions
+RUN mkdir -p /app/apps/frontend/.next/cache \
+    && chown -R nextjs:nodejs /app/apps/frontend/.next
 
 # Shared deps from root
 WORKDIR /app
