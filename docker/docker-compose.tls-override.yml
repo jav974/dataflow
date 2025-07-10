@@ -1,0 +1,17 @@
+services:
+  traefik:
+    volumes:
+      - ./traefik/dynamic.dev.yml:/etc/traefik/dynamic.yml:ro
+      - ../certs:/etc/certs:ro
+
+  frontend:
+    labels:
+      - "traefik.http.routers.frontend.entrypoints=websecure"
+      - "traefik.http.routers.frontend.tls=true"
+    env_file:
+      - .env.docker.tls.local
+
+  ws-gateway:
+    labels:
+      - "traefik.http.routers.ws-gateway.entrypoints=websecure"
+      - "traefik.http.routers.ws-gateway.tls=true"

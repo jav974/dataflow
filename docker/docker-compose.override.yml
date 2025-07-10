@@ -4,15 +4,12 @@ services:
       - "traefik.http.routers.dashboard.rule=Host(`traefik.localhost`)"
     restart: unless-stopped
     volumes:
-      - ../certs:/etc/certs:ro
       - ./traefik/traefik.dev.yml:/etc/traefik/traefik.yml:ro
-      - ./traefik/dynamic.dev.yml:/etc/traefik/dynamic.yml:ro
 
   frontend:
     labels:
       - "traefik.http.routers.frontend.rule=Host(`dataflow-ide.local`)"
-      - "traefik.http.routers.frontend.entrypoints=websecure"
-      - "traefik.http.routers.frontend.tls=true"
+      - "traefik.http.routers.frontend.entrypoints=web"
     env_file:
       - .env.docker.local
       - path: ../apps/frontend/.env.local
@@ -52,9 +49,7 @@ services:
     labels:
       - "traefik.http.routers.ws-gateway.rule=Host(`ws.dataflow-ide.local`) && PathPrefix(`/ws`)"
       - "traefik.http.services.ws-gateway.loadbalancer.sticky.cookie.name=ws_sticky"
-      - "traefik.http.routers.ws-gateway.entrypoints=websecure"
-      - "traefik.http.routers.ws-gateway.tls=true"
-
+      - "traefik.http.routers.ws-gateway.entrypoints=web"
     env_file:
       - .env.docker.local
     build:
