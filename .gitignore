@@ -49,3 +49,6 @@ next-env.d.ts
 
 # @vercel/nft dist folder
 /dist
+
+# Certificates
+/certs

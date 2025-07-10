@@ -3,12 +3,10 @@ services:
   traefik:
     image: traefik:v2.10
     command:
-      - "--api.dashboard=true"
-      - "--entrypoints.web.address=:80"
-      - "--providers.docker=true"
-      - "--providers.docker.network=dataflow"
+      - "--configFile=/etc/traefik/traefik.yml"
     ports:
       - "80:80"
+      - "443:443"
     volumes:
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
     labels:
@@ -19,6 +17,8 @@ services:
       - dataflow
 
   nats:
+    labels:
+      - "traefik.enable=false"
     image: nats:latest
     ports:
       - "4222:4222"   # Main client connections
@@ -35,8 +35,6 @@ services:
       - "traefik.docker.network=dataflow"
     build:
       context: ..
-      dockerfile: docker/Dockerfile.prod
-      target: runner
     networks:
       - dataflow
     depends_on:
@@ -51,18 +49,21 @@ services:
       - "traefik.docker.network=dataflow"
     build:
       context: ..
-      dockerfile: docker/Dockerfile.prod
-      target: wsserver
     networks:
       - dataflow
     depends_on:
       - traefik
+      - nats
   
   runner:
+    labels:
+      - "traefik.enable=false"
     build:
       context: ..
     networks:
       - dataflow
+    depends_on:
+      - nats
 
 networks:
   dataflow:

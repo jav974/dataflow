@@ -1,0 +1,6 @@
+# ⚠️ DO NOT COMMIT ACTUAL CERT FILES. This file references mounted certs only.
+# Certificates should live in ./certs and be ignored via .gitignore
+tls:
+  certificates:
+    - certFile: /etc/certs/dataflow-ide.local+1.pem
+      keyFile: /etc/certs/dataflow-ide.local+1-key.pem

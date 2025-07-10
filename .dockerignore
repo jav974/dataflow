@@ -1,6 +1,7 @@
-node_modules
-.next
-.git
+**/node_modules
+**/.next
+**/dist
+**/.git
 docker
-.env*
-!.env.production
+**/.env*
+!**/.env.production

@@ -12,6 +12,11 @@ dev-down:
 	$(COMPOSE) down
 
 ## 🔵 Production
+prod-no-cache:
+	$(COMPOSE) -f docker/docker-compose.yml -f docker/docker-compose.prod.yml build --no-cache
+	$(COMPOSE) -f docker/docker-compose.yml -f docker/docker-compose.prod.yml up -d
+
+## 🔵 Production
 prod:
 	$(COMPOSE) -f docker/docker-compose.yml -f docker/docker-compose.prod.yml up -d --build
 

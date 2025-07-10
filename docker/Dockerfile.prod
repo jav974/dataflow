@@ -1,0 +1,172 @@
+# syntax=docker/dockerfile:1.4
+
+##########################
+# 🌱 Base Image (Node 18)
+##########################
+
+FROM node:18-alpine AS base
+WORKDIR /app
+RUN apk add --no-cache libc6-compat
+
+##########################
+# 📦 Dependencies & Libs Build
+##########################
+
+FROM base AS source_deps
+WORKDIR /app
+
+# Copy sources
+COPY ./apps ./apps
+COPY ./libs ./libs
+
+# Copy lockfiles only for install layer caching
+COPY package.json package-lock.json tsconfig.json ./
+
+FROM source_deps AS deps
+WORKDIR /app
+RUN --mount=type=cache,target=/root/.npm \
+  npm ci
+
+# Build shared libraries once and reuse!
+RUN npm run build:libs
+
+FROM source_deps AS prod_deps
+
+WORKDIR /app
+RUN --mount=type=cache,target=/root/.npm \
+  npm ci --production
+
+FROM base AS artifacts
+WORKDIR /app
+
+COPY --from=deps /app/libs/dataflow-core/dist ./libs/dataflow-core/dist
+COPY --from=deps /app/libs/dataflow-core/package.json ./libs/dataflow-core/package.json
+COPY --from=deps /app/libs/dataflow-nats/dist ./libs/dataflow-nats/dist
+COPY --from=deps /app/libs/dataflow-nats/package.json ./libs/dataflow-nats/package.json
+COPY --from=deps /app/libs/dataflow-ui ./libs/dataflow-ui
+
+##########################
+# ⚙️ Frontend Build (Next.js)
+##########################
+
+FROM base AS builder_frontend
+WORKDIR /app
+
+# Copy deps and libs
+COPY --from=deps /app/package.json ./package.json
+COPY --from=deps /app/package-lock.json ./package-lock.json
+COPY --from=deps /app/tsconfig.json ./tsconfig.json
+COPY --from=deps /app/node_modules ./node_modules
+COPY --from=deps /app/apps/frontend ./apps/frontend
+COPY --from=artifacts /app/libs ./libs
+
+# Build frontend (Next.js)
+ENV NEXT_TELEMETRY_DISABLED=1
+RUN --mount=type=cache,target=/root/.npm \
+  npm run build:frontend
+
+# Clean sensitive config
+RUN rm -f apps/frontend/.next/standalone/.env.production
+
+##########################
+# 🛳️ Frontend Runtime
+##########################
+
+FROM node:18-alpine AS frontend
+WORKDIR /app/apps/frontend
+RUN addgroup --system --gid 1001 nodejs && \
+    adduser --system --uid 1001 nextjs
+
+ENV NODE_ENV=production
+ENV PORT=3000
+ENV HOSTNAME="0.0.0.0"
+ENV NEXT_TELEMETRY_DISABLED=1
+
+# Copy runtime assets from builder
+COPY --from=builder_frontend /app/apps/frontend/public ./public
+COPY --from=builder_frontend /app/apps/frontend/.next/static ./.next/static
+COPY --from=builder_frontend /app/apps/frontend/.next/standalone ./
+
+# Shared deps from root
+WORKDIR /app
+COPY --from=prod_deps /app/node_modules ./node_modules
+
+USER nextjs
+EXPOSE 3000
+WORKDIR /app/apps/frontend
+CMD ["node", "server.js"]
+
+##########################
+# ⚙️ NestJS Base for Services
+##########################
+
+FROM node:20-alpine AS base_nest
+WORKDIR /app
+RUN addgroup --system --gid 1001 nodejs && \
+    adduser --system --uid 1001 nestjs
+RUN apk add --no-cache libc6-compat
+
+##########################
+# ⚙️ Intermediate Build (Nest.js)
+##########################
+FROM base_nest AS builder_nest
+WORKDIR /app
+
+COPY --from=deps /app/package.json ./package.json
+COPY --from=deps /app/package-lock.json ./package-lock.json
+COPY --from=deps /app/tsconfig.json ./tsconfig.json
+COPY --from=deps /app/node_modules ./node_modules
+COPY --from=artifacts /app/libs ./libs
+
+##########################
+# 🛠️ Build NestJS Services
+##########################
+
+FROM builder_nest AS builder_ws-gateway
+WORKDIR /app
+
+COPY --from=deps /app/apps/ws-gateway ./apps/ws-gateway
+
+RUN npm run build:ws-gateway
+
+FROM builder_nest AS builder_runner
+WORKDIR /app
+
+COPY --from=deps /app/apps/runner ./apps/runner
+
+RUN npm run build:runner
+
+##########################
+# 🚀 Runtime for NestJS Services
+##########################
+
+FROM base_nest AS ws-gateway
+
+WORKDIR /app
+ENV NODE_ENV=production
+ENV HOSTNAME="0.0.0.0"
+ENV PORT=3001
+
+COPY --from=artifacts /app/libs ./libs
+COPY --from=prod_deps /app/node_modules ./node_modules
+COPY --from=prod_deps /app/apps/ws-gateway/node_modules ./apps/ws-gateway/node_modules
+COPY --from=builder_ws-gateway /app/apps/ws-gateway/dist ./apps/ws-gateway/dist
+
+USER nestjs
+EXPOSE 3001
+WORKDIR /app/apps/ws-gateway
+CMD ["node", "dist/main.js"]
+
+FROM base_nest AS runner
+WORKDIR /app
+
+ENV NODE_ENV=production
+
+COPY --from=artifacts /app/libs ./libs
+COPY --from=prod_deps /app/node_modules ./node_modules
+COPY --from=prod_deps /app/apps/runner/node_modules ./apps/runner/node_modules
+COPY --from=builder_runner /app/apps/runner/dist ./apps/runner/dist
+
+USER nestjs
+WORKDIR /app/apps/runner
+CMD ["node", "dist/main.js"]
