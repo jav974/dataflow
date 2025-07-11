@@ -26,7 +26,7 @@ export default function UneditablePin({name, type, isCollection, isInput, remova
 
     return (
         <div className={`flex ${!isInput ? 'justify-end' : ''}`} onPointerEnter={handleMouseEnter} onPointerLeave={handleMouseLeave}>
-            {name}
+            <span className="inline-block whitespace-nowrap">{name}</span>
             {customType && !isCollection &&
                 <Tooltip tooltip="Expand">
                     <span className={`${isHovered ? 'visible' : 'hidden'} text-purple-500 cursor-pointer`} onClick={onSplit}>...</span>

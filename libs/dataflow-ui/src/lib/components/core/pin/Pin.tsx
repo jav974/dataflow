@@ -109,7 +109,7 @@ function Pin({ nodeId, id, nodeType, name, type, required, isInput, onRef, remov
                         <UneditablePin isInput={isInput} type={type} isCollection={isCollection} name={name} removable={removable} onRemove={handleRemoveInputPin} onSplit={handleSplit}/>
                     }
 
-                    {isInput && ((!editable && nodeType === NodeType.BREAK_TYPE) || isCollection) && name}
+                    {isInput && ((!editable && nodeType === NodeType.BREAK_TYPE) || isCollection) && <span className="inline-block whitespace-nowrap">{name}</span>}
                     
                     {isInput && editable && !isConnected && nodeType !== NodeType.RETURN && !isCollection &&
                         <ValuedPin id={id} name={name} type={type} defaultValue={defaultValue} required={required ?? false} removable={removable} onSubmit={handleInputSubmit} onRemove={handleRemoveInputPin} />

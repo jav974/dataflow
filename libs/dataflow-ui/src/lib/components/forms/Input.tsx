@@ -42,6 +42,7 @@ export default function Input({id, orientation, name, className, classNameOverri
             className={finalClassName}
             onPointerDownCapture={handlePointerDownCapture}
             type={type}
+            autoComplete="off"
         ></input>
     );
 }
