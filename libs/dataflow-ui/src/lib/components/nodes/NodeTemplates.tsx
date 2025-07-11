@@ -328,7 +328,7 @@ registry.set(NodeType.WHILE, {
         name: "While",
         type: NodeType.WHILE,
         inputs: [
-            {id: "condition", name: "Condition", type: ParameterTypes.BOOLEAN, required: true, editable: true, isCollection: false, defaultValue: false}
+            {id: "condition", name: "Condition", type: ParameterTypes.BOOLEAN, required: false, editable: false, isCollection: false, defaultValue: false}
         ],
         outputs: [
         ],

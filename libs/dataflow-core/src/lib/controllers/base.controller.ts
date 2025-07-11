@@ -16,6 +16,7 @@ export interface IExecutionController {
     cancel(onCanceled?: Callback): void;
     clear(): void;
     waitIfPaused(): Promise<void>;
+    wait(timeout: number): Promise<void>;
 }
 
 export abstract class AbstractExecutionController implements IExecutionController {
@@ -34,7 +35,7 @@ export abstract class AbstractExecutionController implements IExecutionControlle
         }
     }
 
-    async wait(timeout: number = 50) {
+    async wait(timeout: number = 50): Promise<void> {
         return new Promise(resolve => setTimeout(resolve, timeout));
     }
 }

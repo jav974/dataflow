@@ -217,6 +217,10 @@ const handleForeach: NodeExecutor = async (inputs: NodeExecParams, context: Node
         .set('index', inputs.get('index'));
 };
 
+const handleWhile: NodeExecutor = async (): Promise<NodeExecParams> => {
+    return new Map();
+};
+
 const handleStringTrim: NodeExecutor = async (inputs: NodeExecParams): Promise<NodeExecParams> => {
     const result: NodeExecParams = new Map();
     const value = inputs.get('value')?.toString() ?? '';
@@ -365,6 +369,7 @@ registry.set(NodeType.COMPARE, handleCompare);
 registry.set(NodeType.IF, handleIf);
 registry.set(NodeType.FOR, handleFor);
 registry.set(NodeType.FOREACH, handleForeach);
+registry.set(NodeType.WHILE, handleWhile);
 
 registry.set(NodeType.SET, handleSetVar);
 registry.set(NodeType.GET, handleGetVar);

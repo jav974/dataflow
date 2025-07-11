@@ -248,6 +248,30 @@ export class Graph {
         return graph;
     }
 
+    async handleWhile(
+        whileGraph: ExecutionGraph, 
+        graph: ExecutionGraph, 
+        inputs: Map<string, ParameterValueType>
+    ): Promise<ExecutionGraph> {
+        this.stack.push(whileGraph);
+
+        while (inputs.get('condition')) {
+            graph = await this.resolveExecutionGraph(graph, true, whileGraph.pos);
+            
+            while (this.stack.pop() !== whileGraph);
+            this.stack.push(whileGraph);
+
+            inputs = await this.resolveInputs(whileGraph, true, whileGraph.pos);
+            // Wait the slightest amount of time, this lets the controller be able to receive pause/cancel events properly
+            // instead of blocking
+            await this.controller.wait(0);
+        }
+
+        this.stack.pop();
+
+        return graph;
+    }
+
     async executeHandler(graph: ExecutionGraph, inputs: Map<string, any>, executor: NodeExecutor): Promise<NodeExecParams> {
         const result = await executor(inputs, graph.context);
 
@@ -297,6 +321,11 @@ export class Graph {
                     case NodeType.FOREACH:
                         if (graph.branches[0].graph) {
                             graph.branches[0].graph = await this.handleForeach(graph, graph.branches[0].graph, rawInputs);
+                        }
+                        break ;
+                    case NodeType.WHILE:
+                        if (graph.branches[0].graph) {
+                            graph.branches[0].graph = await this.handleWhile(graph, graph.branches[0].graph, rawInputs);
                         }
                         break ;
                 }

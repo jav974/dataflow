@@ -63,6 +63,10 @@ class ExecutionController implements IExecutionController {
     async waitIfPaused(): Promise<void> {
         return this.getController().waitIfPaused();
     }
+
+    async wait(timeout: number): Promise<void> {
+        return this.getController().wait(timeout);
+    }
 }
 
 const controller = new ExecutionController();
