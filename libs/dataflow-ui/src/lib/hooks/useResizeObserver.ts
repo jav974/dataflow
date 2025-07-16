@@ -6,7 +6,7 @@ export default function useResizeObserver(ref: React.RefObject<HTMLElement | nul
 
         const resizeObserver = new ResizeObserver((entries) => {
             for (const entry of entries) {
-                onResize(entry);
+                requestAnimationFrame(() => onResize(entry));
             }
         });
 

@@ -314,7 +314,7 @@ export function GraphProvider({children}: GraphProviderProps) {
             id.update(graph.id);
         }, [canvasPosition, zoom, connections, types, variables, nodes, name]);
 
-        isLoading.update(false);
+        requestAnimationFrame(() => isLoading.update(false));
         actionHistory.unlock();
     }, [isLoading, canvasPosition, zoom, connections, types, variables, nodes, name, id]);
 

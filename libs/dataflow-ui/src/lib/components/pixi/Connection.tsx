@@ -63,12 +63,12 @@ export default function Connection({from, to}: ConnectionProps) {
         const _fromNode = nodes.current.get(from.id);
         const _toNode = nodes.current.get(to.id);
 
-        if (_fromNode && _fromNode.current.mutableNodeConfig.id !== fromNode.current?.mutableNodeConfig.id) {
+        if (_fromNode && _fromNode.current.mutableNodeConfig !== fromNode.current?.mutableNodeConfig) {
             _fromNode.subscribe(updateTrackedFrom);
             fromNode.update(_fromNode.current);
         }
 
-        if (_toNode && _toNode.current.mutableNodeConfig.id !== toNode.current?.mutableNodeConfig.id) {
+        if (_toNode && _toNode.current.mutableNodeConfig !== toNode.current?.mutableNodeConfig) {
             _toNode.subscribe(updateTrackedTo);
             toNode.update(_toNode.current);
         }
