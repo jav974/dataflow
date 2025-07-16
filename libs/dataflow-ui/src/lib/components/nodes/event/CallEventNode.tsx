@@ -82,6 +82,7 @@ export default function CallEventNode({node}: NodeProps) {
             size={{width: 200, height: 100}}
             hasExecute={true}
             hasContinue={true}
+            headClassName="bg-slate-950/80"
         >
              <FormProvider {...methods}>
                 <form ref={formRef} className="flex grow flex-nowrap items-end gap-1" onSubmit={methods.handleSubmit(onSubmit)}>
