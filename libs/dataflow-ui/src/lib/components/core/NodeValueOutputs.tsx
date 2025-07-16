@@ -52,7 +52,7 @@ export default function NodeValueOutputs({nodeId, nodeType, outputs, onRef, mult
                     removable={multiple}
                     isCollection={output.isCollection}
                     typeEditable={multiple}
-                    collectionEditable={nodeType === NodeType.START}
+                    collectionEditable={nodeType === NodeType.START || nodeType === NodeType.NEW_EVENT}
                 />
             ))}
 

@@ -42,7 +42,8 @@ export default function NodeInputs({nodeId, nodeType, inputs, onRef, multiple = 
                 name: "name",
                 type: ParameterTypes.ANY,
                 required: false,
-                editable: true
+                editable: true,
+                collectionEditable: true
             });
         }
     }, [addNodeInput, nodeId, multipleType, multiple, nodeType]);
@@ -108,8 +109,8 @@ export default function NodeInputs({nodeId, nodeType, inputs, onRef, multiple = 
                         defaultValue={input.defaultValue}
                         editable={input.editable}
                         isCollection={input.isCollection}
-                        typeEditable={input.typeEditable || nodeType === NodeType.RETURN || nodeType === NodeType.NEW_EVENT}
-                        collectionEditable={input.collectionEditable || nodeType === NodeType.RETURN || nodeType === NodeType.NEW_EVENT}
+                        typeEditable={input.typeEditable || nodeType === NodeType.RETURN}
+                        collectionEditable={input.collectionEditable || nodeType === NodeType.RETURN}
                     />
                 </div>
             ))}
