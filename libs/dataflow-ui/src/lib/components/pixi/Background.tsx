@@ -25,6 +25,7 @@ export default function Background() {
     }), []);
     const backgroundFillSettings = useMemo(() => ({
         color: 0xFCEFEF,
+        // color: 0x716C6C,
         alpha: 1,
     }), []);
     const selectionFillSettings = useMemo(() => ({

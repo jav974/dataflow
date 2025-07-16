@@ -21,6 +21,8 @@ import { LogicalNode } from "./logical/LogicalNode";
 import { BitwiseNode } from "./bitwise/BitwiseNode";
 import BreakTypeNode from "./type/BreakTypeNode";
 import UpdateVarNode from "./variables/UpdateVarNode";
+import NewEventNode from "./event/NewEventNode";
+import CallEventNode from "./event/CallEventNode";
 
 registry.set(NodeType.START, {
     builder: (node: NodeConfig) => <StartNode node={node} />,
@@ -867,5 +869,23 @@ registry.set(NodeType.BREAK_TYPE, {
         outputs: [
             {id: "result", name: "value", type: ParameterTypes.ANY}
         ]
+    }
+});
+
+registry.set(NodeType.NEW_EVENT, {
+    builder: node => <NewEventNode node={node} />,
+    config: {
+        type: NodeType.NEW_EVENT,
+        executable: false,
+        name: "New Event"
+    }
+});
+
+registry.set(NodeType.CALL_EVENT, {
+    builder: node => <CallEventNode node={node} />,
+    config: {
+        type: NodeType.CALL_EVENT,
+        executable: true,
+        name: "Call Event"
     }
 });

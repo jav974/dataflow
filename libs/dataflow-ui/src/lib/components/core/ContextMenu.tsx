@@ -95,6 +95,13 @@ export default function ContextMenu() {
                     ]
                 },
                 {
+                    name: "Events",
+                    children: [
+                        createNodeMenuEntry("New", NodeType.NEW_EVENT),
+                        createNodeMenuEntry("Call", NodeType.CALL_EVENT),
+                    ]
+                },
+                {
                     name: "Conditions",
                     children: [
                         createNodeMenuEntry("If", NodeType.IF),

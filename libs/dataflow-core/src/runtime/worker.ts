@@ -3,6 +3,7 @@ import { AppConfig } from "../lib/config/schema";
 import { runGraphWithController } from "../lib/engine/graph";
 import { GraphResult, Log } from "../lib/engine/types";
 import { eventBus } from "../lib/events/events";
+import { safeStringify } from "@dataflow-core/engine/utils";
 
 type WorkerMessage =
   | { type: 'start'; graph: AppConfig; params?: Record<string, any> }
@@ -57,8 +58,39 @@ class InterpreterWorker {
         }
     }
 
+    private formatMessage(...args: unknown[]): string {
+        return args.map(arg =>
+            typeof arg === 'object' ? safeStringify(arg) : String(arg)
+        ).join(' ');
+    }
+
     setupLogForwarding() {
         eventBus.on('io_write', this.forwardIOWrites);
+
+        const defaultConsoleLog = console.log;
+        const defaultConsoleWarn = console.warn;
+        const defaultConsoleDebug = console.debug;
+        const defaultConsoleError = console.error;
+        
+        console.log = (...args: unknown[]) => {
+            this.forwardIOWrites({createdAt: Date.now(), type: "log", message: this.formatMessage(...args)} as Log);
+            defaultConsoleLog(args);
+        };
+
+        console.warn = (...args: unknown[]) => {
+            this.forwardIOWrites({createdAt: Date.now(), type: "warn", message: this.formatMessage(...args)} as Log);
+            defaultConsoleWarn(args);
+        };
+
+        console.debug = (...args: unknown[]) => {
+            this.forwardIOWrites({createdAt: Date.now(), type: "debug", message: this.formatMessage(...args)} as Log);
+            defaultConsoleDebug(args);
+        };
+
+        console.error = (...args: unknown[]) => {
+            this.forwardIOWrites({createdAt: Date.now(), type: "error", message: this.formatMessage(...args)} as Log);
+            defaultConsoleError(args);
+        };
     }
 }
 

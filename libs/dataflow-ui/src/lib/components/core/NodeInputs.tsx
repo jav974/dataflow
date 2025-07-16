@@ -28,7 +28,7 @@ export default function NodeInputs({nodeId, nodeType, inputs, onRef, multiple = 
     const handleAddPin = useCallback(() => {
         if (!multiple) return ;
 
-        if (nodeType !== NodeType.RETURN) {
+        if (nodeType !== NodeType.RETURN && nodeType !== NodeType.NEW_EVENT) {
             addNodeInput(nodeId, {
                 id: uuidv4(),
                 name: "",
@@ -108,8 +108,8 @@ export default function NodeInputs({nodeId, nodeType, inputs, onRef, multiple = 
                         defaultValue={input.defaultValue}
                         editable={input.editable}
                         isCollection={input.isCollection}
-                        typeEditable={input.typeEditable || nodeType === NodeType.RETURN}
-                        collectionEditable={input.collectionEditable || nodeType === NodeType.RETURN}
+                        typeEditable={input.typeEditable || nodeType === NodeType.RETURN || nodeType === NodeType.NEW_EVENT}
+                        collectionEditable={input.collectionEditable || nodeType === NodeType.RETURN || nodeType === NodeType.NEW_EVENT}
                     />
                 </div>
             ))}

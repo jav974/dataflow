@@ -13,6 +13,7 @@ export class Graph {
     private graphs: Map<string, ExecutionGraph> = new Map();
     private stack: Stack<ExecutionGraph> = new Stack();
     private nodePos: number = 0;
+    private eventGraphs: Map<string, ExecutionGraph> = new Map();
 
     constructor(private controller: IExecutionController = new LocalExecutionController()) {
     }
@@ -78,6 +79,16 @@ export class Graph {
         };
     }
 
+    findNodeById(id: string, graph: AppConfig): NodeConfig | undefined {
+        for (const node of graph.nodes) {
+            if (node.id === id) {
+                return node;
+            }
+        }
+
+        return undefined;
+    }
+
     nodeConfigToExecutionGraph(node: NodeConfig, graph: AppConfig): ExecutionGraph {
         let executionGraph: ExecutionGraph | undefined = this.graphs.get(node.id);
 
@@ -87,6 +98,15 @@ export class Graph {
 
         const nextNode = this.findNextNode(node, graph);
         const context = jsonToMap<any>(node.context);
+
+        if (node.type === NodeType.CALL_EVENT && context.get('name')) {
+            const eventNode = this.findNodeById(context.get('name'), graph);
+            
+            if (eventNode && !this.eventGraphs.has(eventNode.id)) {
+                // TODO: Prevent infinite recursion because of call same event inside event
+                this.eventGraphs.set(eventNode.id, this.nodeConfigToExecutionGraph(eventNode, graph));
+            }
+        }
 
         context.set('_node_id', node.id);
         context.set('_inputMap', new Map<string, string>());
@@ -145,6 +165,7 @@ export class Graph {
             if (input.resolve) {
                 let isBannedFromRevisit = this.stack.items.some((v) => v.nodeId === input.resolve?.graph.nodeId);
                 isBannedFromRevisit = isBannedFromRevisit ? isBannedFromRevisit : (input.resolve.graph.pos <= revisitPos);
+                isBannedFromRevisit = isBannedFromRevisit ? isBannedFromRevisit : input.resolve.graph.nodeType === NodeType.NEW_EVENT;
 
                 if (!isBannedFromRevisit && (!input.resolve.graph.visited || revisit)) {
                     input.resolve.graph = await this.resolveExecutionGraph(input.resolve.graph, revisit, revisitPos);
@@ -288,8 +309,34 @@ export class Graph {
         return result;
     }
 
+    async handleCallEvent(graph: ExecutionGraph, revisit: boolean = false, revisitPos: number = 0): Promise<ExecutionGraph> {
+        const eventId = graph.context.get('name');
+
+        if (this.eventGraphs.has(eventId)) {
+            const eventGraph = this.eventGraphs.get(eventId)!;
+            const callInputs = mapToKeyValue(await this.resolveInputs(graph, revisit, revisitPos));
+            this.mapOutputParamsFromInputs(eventGraph, callInputs);
+            
+            await this.resolveExecutionGraph(eventGraph, true);
+
+            while (this.stack.pop() !== eventGraph) ;
+
+            return graph;
+        } else {
+            console.warn('Calling unknown event');
+        }
+
+        return graph;
+    }
+
     async handleExecution(graph: ExecutionGraph, revisit: boolean = false, revisitPos: number = 0): Promise<ExecutionGraph> {
         await this.waitOrCancel();
+
+        if (graph.nodeType === NodeType.CALL_EVENT) {
+            return await this.handleCallEvent(graph, revisit, revisitPos);
+        } else if (graph.nodeType === NodeType.NEW_EVENT) {
+            return graph;
+        }
 
         const executor = registry.get(graph.nodeType);
 
@@ -366,6 +413,7 @@ export class Graph {
 
         this.graphs.clear();
         this.stack.clear();
+        this.eventGraphs.clear();
         this.nodePos = 0;
 
         executionContext.types = {};
@@ -374,17 +422,33 @@ export class Graph {
         return this.nodeConfigToExecutionGraph(startingNode, graph);
     }
 
+    private mapOutputParamsFromInputs(executionGraph: ExecutionGraph, params: KeyValue) {
+        executionGraph.outputs?.forEach((output: ExecutionOutput) => {
+            executionGraph?.context.set(output.outputId, params[output.outputId] ?? params[output.outputName]);
+            output.value = params[output.outputId] ?? params[output.outputName];
+        });
+    }
+
     async runGraph(graph: AppConfig, params?: KeyValue): Promise<GraphResult | undefined> {
         let executionGraph = this.buildExecutionGraph(graph);
+        
         if (!executionGraph) return undefined;
 
         if (params) {
-            executionGraph.outputs?.forEach((output: ExecutionOutput) => {
-                executionGraph?.context.set(output.outputId, params[output.outputId] ?? params[output.outputName]);
-            });
+            this.mapOutputParamsFromInputs(executionGraph, params);
         }
 
-        executionGraph = await this.resolveExecutionGraph(executionGraph);
+        const startTime = Date.now();
+        
+        try {
+            executionGraph = await this.resolveExecutionGraph(executionGraph);
+        } catch (error) {
+            console.error(error);
+        }
+
+        const totalTime = Date.now() - startTime;
+
+        console.debug(`Done in ${totalTime}ms`);
 
         this.controller.clear();
 

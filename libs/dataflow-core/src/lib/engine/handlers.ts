@@ -323,7 +323,7 @@ const handleIOWrite: NodeExecutor = async (inputs: NodeExecParams, context: Node
         message: content
     } as Log);
 
-    result.set('bytes_written', content.length);
+    result.set('bytes_written', content?.length ?? 0);
     return result;
 };
 
@@ -351,6 +351,14 @@ const handleBreakType: NodeExecutor = async (inputs: NodeExecParams, context: No
     }
 
     return result;
+}
+
+const handleCallEvent: NodeExecutor = async (): Promise<NodeExecParams> => {
+    return new Map();
+}
+
+const handleNewEvent: NodeExecutor = async (): Promise<NodeExecParams> => {
+    return new Map();
 }
 
 registry.set(NodeType.DEBUG, dummyExecutor);
@@ -389,3 +397,5 @@ registry.set(NodeType.IO_WRITE, handleIOWrite);
 registry.set(NodeType.DELAY, handleDelay);
 
 registry.set(NodeType.BREAK_TYPE, handleBreakType);
+registry.set(NodeType.NEW_EVENT, handleNewEvent);
+registry.set(NodeType.CALL_EVENT, handleCallEvent);

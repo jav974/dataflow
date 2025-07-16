@@ -196,6 +196,18 @@ export function appendResult(key: string, value: any, context: NodeExecContext, 
     return result;
 }
 
+export function safeStringify(obj: unknown, indent = 2): string {
+    const cache = new WeakSet();
+
+    return JSON.stringify(obj, (key, value) => {
+        if (typeof value === 'object' && value !== null) {
+            if (cache.has(value)) return '[Circular]';
+            cache.add(value);
+        }
+        return value;
+    }, indent);
+}
+
 export class Stack<T> {
     items: T[] = [];
 

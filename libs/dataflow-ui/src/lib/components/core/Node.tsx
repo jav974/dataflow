@@ -31,13 +31,14 @@ export interface NodeProps {
     branchMultiple?: boolean;
     minBranches?: number;
     headClassName?: string;
+    headName?: string;
 }
 
 export default function Node({
     node, children, size, hasExecute = true, hasContinue = true,
     inputMultiple = false, minInputParams = 0, inputMultipleType,
     outputMultiple = false, branchMultiple = false, minBranches = 0,
-    headClassName
+    headClassName, headName
  }: NodeProps) {
     const inputPinsRef = useRef<Map<string, HTMLDivElement | null>>(new Map());
     const outputPinsRef = useRef<Map<string, HTMLDivElement | null>>(new Map());
@@ -221,7 +222,7 @@ export default function Node({
             >
                 <div className={`flex w-full border-b-1 rounded-t-lg border-b-gray-700 p-1 mb-2 ${finalHeadClassName}`}>
                     {hasExecute && <PinExecute id={node.id} onRef={onPinExecuteRef} /> || <div></div>}
-                    <div className="w-full text-center text-white font-semibold">{node.name || 'Unnamed Node'}</div>
+                    <div className="w-full text-center text-white font-semibold">{headName || node.name || 'Unnamed Node'}</div>
                     {hasContinue && <PinContinue id={node.id} onRef={onPinContinueRef} /> || <div></div>}
                 </div>
 
