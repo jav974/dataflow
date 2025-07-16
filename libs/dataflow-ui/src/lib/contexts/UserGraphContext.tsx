@@ -42,9 +42,11 @@ export function UserGraphProvider({ children }: { children: React.ReactNode }) {
 
     const loadGraph = useCallback(async (id: string): Promise<AppConfig | undefined> => {
         const config = await graphDB.appConfigs.get(id);
+
+        localStorage.setItem("dataflow-last-graph", id);
+
         if (config) {
             setGraph(config);
-            localStorage.setItem("dataflow-last-graph", id);
         }
         return config;
     }, []);
@@ -57,22 +59,29 @@ export function UserGraphProvider({ children }: { children: React.ReactNode }) {
         await graphDB.appConfigs.delete(id);
         if (graph?.id === id) {
             const fallbackId = localStorage.getItem("dataflow-last-graph");
-            if (fallbackId && fallbackId !== id) {
+            if (fallbackId && fallbackId !== id && graphs.has(fallbackId)) {
                 loadGraph(fallbackId);
+            } else if (graphs.size > 0) {
+                loadGraph(Array.from(graphs.keys())[0]);
             } else {
                 setGraph(null);
             }
         }
-    }, [graph, loadGraph]);
+    }, [graph, graphs, loadGraph]);
 
     useEffect(() => {
         const tryLoad = async () => {
-            const lastId =
-                localStorage.getItem("dataflow-last-graph") ||
-                (graphs.size > 0 ? Array.from(graphs.keys())[0] : null)
-            ;
-            if (lastId) {
-                await loadGraph(lastId);
+            const lastOpenedGraphId = localStorage.getItem("dataflow-last-graph");
+
+            if (lastOpenedGraphId && graphs.has(lastOpenedGraphId)) {
+                await loadGraph(lastOpenedGraphId);
+            } else {
+                const firstGraphId =
+                    (graphs.size > 0 ? Array.from(graphs.keys())[0] : null)
+                ;
+                if (firstGraphId) {
+                    await loadGraph(firstGraphId);
+                }
             }
         };
         tryLoad();

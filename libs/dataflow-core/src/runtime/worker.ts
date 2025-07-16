@@ -74,22 +74,22 @@ class InterpreterWorker {
         
         console.log = (...args: unknown[]) => {
             this.forwardIOWrites({createdAt: Date.now(), type: "log", message: this.formatMessage(...args)} as Log);
-            defaultConsoleLog(args);
+            defaultConsoleLog(...args);
         };
 
         console.warn = (...args: unknown[]) => {
             this.forwardIOWrites({createdAt: Date.now(), type: "warn", message: this.formatMessage(...args)} as Log);
-            defaultConsoleWarn(args);
+            defaultConsoleWarn(...args);
         };
 
         console.debug = (...args: unknown[]) => {
             this.forwardIOWrites({createdAt: Date.now(), type: "debug", message: this.formatMessage(...args)} as Log);
-            defaultConsoleDebug(args);
+            defaultConsoleDebug(...args);
         };
 
         console.error = (...args: unknown[]) => {
             this.forwardIOWrites({createdAt: Date.now(), type: "error", message: this.formatMessage(...args)} as Log);
-            defaultConsoleError(args);
+            defaultConsoleError(...args);
         };
     }
 }

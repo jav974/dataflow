@@ -42,10 +42,12 @@ export default function NewGraphModal({ isOpen, onClose }: NewGraphModalProps) {
             zoom: 100
         };
 
+        localStorage.setItem("dataflow-last-graph", newGraph.id);
         saveGraph(newGraph).then(() => {
-            setGraphName("");
-            loadGraph(newGraph.id);
-            onClose();
+            loadGraph(newGraph.id).finally(() => {
+                setGraphName("");
+                onClose();
+            });
         });
     }, [graphName, canvasRect, saveGraph, onClose, loadGraph]);
 
