@@ -47,33 +47,32 @@ export default function CallEventNode({node}: NodeProps) {
                     typeEditable: false,
                     editable: PrimitiveTypes.includes(output.type as ParameterTypes),
                     collectionEditable: false,
+                    defaultValue: node.inputs?.find(input => input.id === output.id)?.defaultValue
                 }
             }) ?? [];
             setNodeInputs(node.id, inputs);
         }
-    }, [node.id, setNodeContext, setNodeInputs, options]);
+    }, [node.id, node.inputs, setNodeContext, setNodeInputs, options]);
 
     const onSubmit = useCallback((data: any) => {
-        if (data.name !== context.get('name')) {
+        if (data.name !== eventId.current) {
             updateNodeContext(data.name);
         }
-    }, [updateNodeContext, node.id, context, options]);
+    }, [updateNodeContext, node.id, options]);
 
     useEffect(() => {
-        if (!context.get('name') && options.current.length > 0) {
+        if (!eventId.current && options.current.length > 0) {
             updateNodeContext(options.current[0].value);
         }
-    }, [context, options, updateNodeContext]);
+    }, [options, updateNodeContext]);
 
-    const eventNode = useObservableNode(context.get('name') ?? "");
+    const eventNode = useObservableNode(eventId.current ?? "");
 
     useRefSignalEffect(() => {
-        const _eventId = context.get('name');
-
-        if (_eventId && _eventId !== eventId.current) {
-            updateNodeContext(_eventId);
+        if (eventId.current) {
+            updateNodeContext(eventId.current);
         }
-    }, [context, eventNode, eventNode.current]);
+    }, [eventNode, eventNode.current]);
 
     useRefSignalRender([options]);
 
