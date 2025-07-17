@@ -196,6 +196,8 @@ export class Graph {
 
                 while (this.stack.pop() !== forGraph);
                 this.stack.push(forGraph);
+
+                await this.controller.wait(0);
             }
         } else {
             for (let i = first; inclusive ? i >= last : i > last; i--) {
@@ -204,6 +206,8 @@ export class Graph {
 
                 while (this.stack.pop() !== forGraph);
                 this.stack.push(forGraph);
+
+                await this.controller.wait(0);
             }
         }
 
@@ -246,6 +250,8 @@ export class Graph {
 
                 while (this.stack.pop() !== foreachGraph);
                 this.stack.push(foreachGraph);
+
+                await this.controller.wait(0);
             }
         }
         // Handle plain objects (iterate over keys)
@@ -262,6 +268,8 @@ export class Graph {
 
                 while (this.stack.pop() !== foreachGraph);
                 this.stack.push(foreachGraph);
+
+                await this.controller.wait(0);
             }
         }
 
