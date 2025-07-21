@@ -1,5 +1,5 @@
 import { useNodeContext } from "@dataflow-ui/contexts/NodeContext";
-import { useCallback, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { NodeType } from "@dataflow-ide/dataflow-core";
 import { v4 as uuidv4 } from 'uuid';
 import { useGraphContext } from "@dataflow-ui/contexts/GraphContext";
@@ -13,21 +13,78 @@ interface MenuTree {
     children?: MenuTree[];
 }
 
-function HorizontalMenu({menu}: {menu: MenuTree}) {
+// function HorizontalMenu({menu}: {menu: MenuTree}) {
+//     if (!menu.name) {
+//         return menu.children?.map((m: MenuTree, index: number) => <HorizontalMenu key={index} menu={m}/>);
+//     }
+
+//     if (!menu.children?.length) {
+//         return <div className="hover:bg-white/20 p-1 cursor-pointer" onClick={menu.spawn}>{menu.name}</div>
+//     }
+
+//     return (
+//         <div className="relative group hover:bg-white/20 min-w-max">
+//             <button className="p-1">{menu.name}</button>
+//             <div className="absolute left-full top-[-4px] hidden group-hover:flex flex-col bg-black/50 p-1 min-w-max">
+//                 {menu.children.map((m: MenuTree, index: number) => <HorizontalMenu key={index} menu={m}/>)}
+//             </div>
+//         </div>
+//     );
+// }
+
+function AccordionMenu({ menu, visible }: { menu: MenuTree, visible: boolean }) {
+    const [isOpen, setIsOpen] = useState(false);
+
     if (!menu.name) {
-        return menu.children?.map((m: MenuTree, index: number) => <HorizontalMenu key={index} menu={m}/>);
+        return (
+            <>
+                {menu.children?.map((m, index) => (
+                    <AccordionMenu key={index} menu={m} visible={visible} />
+                ))}
+            </>
+        );
     }
 
-    if (!menu.children?.length) {
-        return <div className="hover:bg-white/20 p-1 cursor-pointer" onClick={menu.spawn}>{menu.name}</div>
-    }
+    const hasChildren = menu.children && menu.children.length > 0;
+
+    const handleFold = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setIsOpen(!isOpen);
+    }, [isOpen]);
+
+    const handleClick = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+        if (menu.spawn) {
+            menu.spawn();
+        } else {
+            handleFold(e);
+        }
+    }, [handleFold, menu]);
+
+    useEffect(() => {
+        if (!visible) setIsOpen(false);
+    }, [visible]);
 
     return (
-        <div className="relative group hover:bg-white/20 min-w-max">
-            <button className="p-1">{menu.name}</button>
-            <div className="absolute left-full top-[-4px] hidden group-hover:flex flex-col bg-black/50 p-1 min-w-max">
-                {menu.children.map((m: MenuTree, index: number) => <HorizontalMenu key={index} menu={m}/>)}
+        <div className="border-b border-gray-700 relative">
+            <div
+                className={`cursor-pointer flex items-center hover:bg-gray-700`}
+                onClick={handleClick}
+            >
+                {hasChildren && (
+                <span className="transform transition-transform text-xs" style={{ rotate: isOpen ? "90deg" : "0deg" }}>
+                    ▶
+                </span>
+                )}
+                <span className={`${hasChildren ? 'ml-1 ' : 'ml-4'}`}>{menu.name}</span>
             </div>
+            {hasChildren && isOpen && (
+                <div className="border-l border-gray-600">
+                    {menu.children!.map((child, index) => (
+                        <AccordionMenu key={index} menu={child} visible={visible} />
+                    ))}
+                </div>
+            )}
         </div>
     );
 }
@@ -38,6 +95,7 @@ export default function ContextMenu() {
     const [position, setPosition] = useState<{top: number|undefined, left: number|undefined}>({ top: rightClickPosition.current?.y, left: rightClickPosition.current?.x});
     const { canvasRect } = useDashboardContext();
     const { addNode, scale, canvasPosition, nodes } = useGraphContext();
+    const [search, setSearch] = useState<string>("");
 
     useRefSignalRender([nodes]);
 
@@ -191,6 +249,8 @@ export default function ContextMenu() {
         }
     }, [createNodeMenuEntry, nodes, lastUpdated]);
 
+    const [filteredMenu, setFilteredMenu] = useState<MenuTree|null>(menu);
+
     useRefSignalEffect(() => {
         if (rightClickPosition.current && menuRef.current) {
             const { offsetHeight, offsetWidth } = menuRef.current;
@@ -214,14 +274,61 @@ export default function ContextMenu() {
         }
     }, [rightClickPosition]);
 
+    const handleSearchInput = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+        setSearch(e.target.value);
+    }, []);
+
+    const filterMenu = useCallback((fullMenu: MenuTree, terms: string): MenuTree | null => {
+        const searchTerms = terms.toLowerCase().split(/\s+/).filter(Boolean);
+
+        const matches = (name?: string): boolean =>
+            name ? searchTerms.some(term => name.toLowerCase().includes(term)) : false;
+
+        const filteredChildren = fullMenu.children
+            ?.map(child => filterMenu(child, terms))
+            .filter((child): child is MenuTree => child !== null);
+        
+        const matchName = matches(fullMenu.name);
+
+        if (matchName || (filteredChildren && filteredChildren.length > 0)) {
+            if (matchName && fullMenu.children && fullMenu.children.length > 0 && (filteredChildren!.length === 0)) {
+                return fullMenu;
+            }
+
+            return {
+                ...fullMenu,
+                children: filteredChildren,
+            };
+        }
+
+        return null;
+    }, []);
+
+    useEffect(() => {
+        if (!search || search.trim().length === 0) {
+            setFilteredMenu(menu);
+            return ;
+        }
+
+        setFilteredMenu(filterMenu(menu, search.trim()));
+    }, [search]);
+
+    const isVisible = position.top !== undefined;
+
+    useEffect(() => {
+        if (!isVisible) setSearch("");
+    }, [isVisible]);
+
     return (
         <div
             ref={menuRef}
             id="context-menu"
-            className={`${position.top !== undefined ? 'visible' : 'hidden'} absolute bg-black/50 p-1 shadow-lg z-100000 text-white`}
+            className={`${isVisible ? 'visible' : 'hidden'} absolute bg-black/90 p-1 shadow-lg z-100000 text-white`}
             style={position}
         >
-            <HorizontalMenu menu={menu} />
+            <input type="text" placeholder="Search nodes" value={search} onChange={handleSearchInput} onClick={(e) => {e.preventDefault(); e.stopPropagation();}}></input>
+            {search.trim().length > 0 && filteredMenu && <AccordionMenu menu={filteredMenu} visible={isVisible} />}
+            {search.trim().length === 0 && <AccordionMenu menu={menu} visible={isVisible} />}
         </div>
     );
 }
