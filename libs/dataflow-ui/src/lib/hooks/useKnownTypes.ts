@@ -20,6 +20,7 @@ export default function useKnownTypes(): UseKnownTypesReturn {
             {name: "boolean", value: "boolean"},
             {name: "number", value: "number"},
             {name: "string", value: "string"},
+            {name: "object", value: "object"},
         ];
 
         types.current.forEach((type: GraphType) => {

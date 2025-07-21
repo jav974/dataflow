@@ -161,6 +161,9 @@ const handleNewVar: NodeExecutor = async (inputs: NodeExecParams, context: NodeE
                 case ParameterTypes.STRING:
                     defaultValue = '';
                     break ;
+                case ParameterTypes.OBJECT:
+                    defaultValue = {};
+                    break ;
                 default:
                     defaultValue = createVariable(type, inputs, 'default');
                     break ;
@@ -300,19 +303,19 @@ const handleStringToLower: NodeExecutor = async (inputs: NodeExecParams): Promis
     return result;
 };
 
-const handleIOWrite: NodeExecutor = async (inputs: NodeExecParams, context: NodeExecContext): Promise<NodeExecParams> => {
+const handleIOWrite: NodeExecutor = async (inputs: NodeExecParams): Promise<NodeExecParams> => {
     const result: NodeExecParams = new Map();
     const fd = inputs.get('fd') as number;
     const content = inputs.get('content') as string;
     let type = "log";
     
-    if (fd === 1) {
+    if (fd == 1) {
         type = "log";
-    } else if (fd === 2) {
+    } else if (fd == 2) {
         type = "error";
-    } else if (fd === 3) {
+    } else if (fd == 3) {
         type = "warn";
-    } else if (fd === 4) {
+    } else if (fd == 4) {
         type = "debug";
     }
 
@@ -361,6 +364,76 @@ const handleNewEvent: NodeExecutor = async (): Promise<NodeExecParams> => {
     return new Map();
 }
 
+const handleFetch: NodeExecutor = async (inputs: NodeExecParams, context: NodeExecContext): Promise<NodeExecParams> => {
+    const url = inputs.get('url') as string;
+    const method = inputs.get('method') as string ?? "GET";
+    const headers = inputs.get('headers') as Record<string, string>;
+    const body = inputs.get('body') as any;
+    const result: NodeExecParams = new Map();
+
+    const ret = await fetch(url, {
+        method,
+        headers,
+        body
+    });
+    const retBody = await ret.text();
+
+    let retJson = null;
+    try {
+        retJson = JSON.parse(retBody);
+    } catch {
+    }
+
+    result.set('status', ret.status);
+    result.set('body', retBody);
+    result.set('json', retJson);
+
+    return result;
+}
+
+const handleObjectGet: NodeExecutor = async (inputs: NodeExecParams, context: NodeExecContext): Promise<NodeExecParams> => {
+    const object = inputs.get('object') as Record<string, any> ?? {};
+    const key = inputs.get('key') as string ?? "";
+    const result = new Map<string, any>();
+
+    result.set('result', key.length > 0 ? object[key] : undefined);
+
+    return result;
+}
+
+const handleObjectSet: NodeExecutor = async (inputs: NodeExecParams): Promise<NodeExecParams> => {
+    const object = inputs.get('object') as Record<string, any> ?? {};
+    const key = inputs.get('key') as string ?? "";
+    const value = inputs.get('value') as any;
+    const result = new Map<string, any>();
+
+    object[key] = value;
+
+    result.set('result', object);
+
+    return result;
+}
+
+const handleObjectRemove: NodeExecutor = async (inputs: NodeExecParams): Promise<NodeExecParams> => {
+    const object = inputs.get('object') as Record<string, any> ?? {};
+    const key = inputs.get('key') as string ?? "";
+    const result = new Map<string, any>();
+
+    if (key.length > 0) {
+        delete object[key];
+    }
+
+    result.set('result', object);
+
+    return result;
+}
+
+const handleConstant: NodeExecutor = async (inputs: NodeExecParams, context: NodeExecContext): Promise<NodeExecParams> => {
+    const result = new Map<string, any>();
+    result.set('result', inputs.get('value'));
+    return result;
+}
+
 registry.set(NodeType.DEBUG, dummyExecutor);
 registry.set(NodeType.START, handleStart);
 registry.set(NodeType.RETURN, handleReturn);
@@ -399,3 +472,11 @@ registry.set(NodeType.DELAY, handleDelay);
 registry.set(NodeType.BREAK_TYPE, handleBreakType);
 registry.set(NodeType.NEW_EVENT, handleNewEvent);
 registry.set(NodeType.CALL_EVENT, handleCallEvent);
+
+registry.set(NodeType.FETCH, handleFetch);
+
+registry.set(NodeType.OBJECT_GET, handleObjectGet);
+registry.set(NodeType.OBJECT_SET, handleObjectSet);
+registry.set(NodeType.OBJECT_REMOVE, handleObjectRemove);
+
+registry.set(NodeType.CONSTANT, handleConstant);

@@ -111,6 +111,7 @@ export default function NodeInputs({nodeId, nodeType, inputs, onRef, multiple = 
                         isCollection={input.isCollection}
                         typeEditable={input.typeEditable || nodeType === NodeType.RETURN}
                         collectionEditable={input.collectionEditable || nodeType === NodeType.RETURN}
+                        options={input.options}
                     />
                 </div>
             ))}

@@ -386,7 +386,7 @@ export class Graph {
                 }
             }
         } else {
-            console.log("No executor found for node type", graph.nodeType);
+            console.warn("No executor found for node type", graph.nodeType);
         }
 
         return graph;

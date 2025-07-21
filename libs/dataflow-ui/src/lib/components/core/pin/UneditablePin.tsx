@@ -17,7 +17,7 @@ export default function UneditablePin({name, type, isCollection, isInput, remova
     const {isHovered, handleMouseEnter, handleMouseLeave} = useHoverable();
 
     const customType = useMemo(() => {
-        if (type !== ParameterTypes.ANY && !PrimitiveTypes.includes(type as ParameterTypes)) {
+        if (type !== ParameterTypes.ANY && type !== ParameterTypes.OBJECT && !PrimitiveTypes.includes(type as ParameterTypes)) {
             return type;
         }
 

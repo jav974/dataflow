@@ -24,10 +24,11 @@ interface PinProps {
     isCollection?: boolean;
     typeEditable?: boolean;
     collectionEditable?: boolean;
+    options?: Record<string, string | number | boolean>;
     onRef: (id: string, el: HTMLDivElement | null) => void;
 }
 
-function Pin({ nodeId, id, nodeType, name, type, required, isInput, onRef, removable = false, defaultValue, editable, isCollection = false, typeEditable = false, collectionEditable = false }: PinProps) {
+function Pin({ nodeId, id, nodeType, name, type, required, isInput, onRef, removable = false, defaultValue, editable, isCollection = false, typeEditable = false, collectionEditable = false, options }: PinProps) {
     const {removeNodeInput, removeNodeOutput, setInputDefaultValue, setOutputName, setInputName, splitInputParam, splitOutputParam, computedResult} = useGraphContext();
     const {isConnected, onClick, handlePointerDown, handlePointerUp} = useLinkable(nodeId, id, isInput);
     
@@ -60,6 +61,10 @@ function Pin({ nodeId, id, nodeType, name, type, required, isInput, onRef, remov
         event?.preventDefault();
         setInputName(nodeId, id, data[id]);
     }, [nodeId, id, setInputName]);
+
+    const handleSelectInputChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
+        setInputDefaultValue(nodeId, id, e.target.value);
+    }, [nodeId, id, setInputDefaultValue]);
 
     const handleSplit = useCallback(() => {
         if (isInput) splitInputParam(nodeId, id);
@@ -105,13 +110,17 @@ function Pin({ nodeId, id, nodeType, name, type, required, isInput, onRef, remov
                         <NamedPin id={id} value={name} removable={true} onSubmit={handleOutputSubmit} onRemove={handleRemoveOutputPin}/>
                     }
 
-                    {isInput && !editable && nodeType !== NodeType.BREAK_TYPE && nodeType !== NodeType.CALL_EVENT && !isCollection &&
+                    {isInput && options && !isConnected && <select className="mb-0.25 bg-gray-700 outline outline-blue-500/50 focus:outline-blue-500" value={defaultValue} onChange={handleSelectInputChange}>
+                        {Object.keys(options).map((value, index) => <option key={index} value={value}>{options[value]}</option>)}
+                    </select>}
+
+                    {isInput && !options && !editable && nodeType !== NodeType.BREAK_TYPE && nodeType !== NodeType.CALL_EVENT && !isCollection &&
                         <UneditablePin isInput={isInput} type={type} isCollection={isCollection} name={name} removable={removable} onRemove={handleRemoveInputPin} onSplit={handleSplit}/>
                     }
 
-                    {isInput && ((!editable && (nodeType === NodeType.BREAK_TYPE || nodeType === NodeType.CALL_EVENT)) || isCollection) && <span className="inline-block whitespace-nowrap">{name}</span>}
+                    {isInput && !options && ((!editable && (nodeType === NodeType.BREAK_TYPE || nodeType === NodeType.CALL_EVENT)) || isCollection) && <span className="inline-block whitespace-nowrap">{name}</span>}
                     
-                    {isInput && editable && !isConnected && nodeType !== NodeType.RETURN && !isCollection &&
+                    {isInput && !options && editable && !isConnected && nodeType !== NodeType.RETURN && !isCollection &&
                         <ValuedPin id={id} name={name} type={type} defaultValue={defaultValue} required={required ?? false} removable={removable} onSubmit={handleInputSubmit} onRemove={handleRemoveInputPin} />
                     }
 

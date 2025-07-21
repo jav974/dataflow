@@ -6,6 +6,8 @@ const COLOR_RED_500 = '#ef4444';
 const COLOR_GREEN_500 = '#22c55e';
 const COLOR_PURPLE_500 = '#a855f7';
 const COLOR_PINK_500 = '#ec4899';
+const COLOR_ORANGE_500 = '#ff6900';
+const SCROLLBAR_STYLE = 'scrollbar-thumb-rounded-full scrollbar-track-rounded-full scrollbar scrollbar-thumb-gray-500 scrollbar-track-gray-500/10';
 
 const BACKGROUND_LINE_STYLE: StrokeStyle = {
     color: 0, 
@@ -42,7 +44,11 @@ const PinStyle: Record<string, PinState> = {
     custom: {
         connectedClass: 'bg-purple-500',
         disconnectedClass: 'border-purple-500'
+    },
+    object: {
+        connectedClass: 'bg-orange-500',
+        disconnectedClass: 'border-orange-500'
     }
 };
 
-export { COLOR_BLUE, COLOR_BLUE_500, COLOR_GREEN_500, COLOR_PINK_500, COLOR_PURPLE_500, COLOR_RED_500, BACKGROUND_LINE_STYLE, PinStyle };
+export { COLOR_BLUE, COLOR_BLUE_500, COLOR_GREEN_500, COLOR_PINK_500, COLOR_PURPLE_500, COLOR_RED_500, COLOR_ORANGE_500, BACKGROUND_LINE_STYLE, SCROLLBAR_STYLE, PinStyle };

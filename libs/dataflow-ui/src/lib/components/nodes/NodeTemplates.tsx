@@ -23,6 +23,7 @@ import BreakTypeNode from "./type/BreakTypeNode";
 import UpdateVarNode from "./variables/UpdateVarNode";
 import NewEventNode from "./event/NewEventNode";
 import CallEventNode from "./event/CallEventNode";
+import ConstantVarNode from "./variables/ConstantVarNode";
 
 registry.set(NodeType.START, {
     builder: (node: NodeConfig) => <StartNode node={node} />,
@@ -51,10 +52,14 @@ registry.set(NodeType.FETCH, {
         name: "Fetch",
         executable: true,
         inputs: [
-            {id: "url", name: "URL", type: ParameterTypes.STRING, required: false, editable: true, defaultValue: ''},
+            {id: "url", name: "URL", type: ParameterTypes.STRING, required: true, editable: true, defaultValue: ''},
+            {id: "method", name: "method", type: ParameterTypes.STRING, options: {"GET":"GET","POST":"POST","PUT":"PUT","PATCH":"PATCH","DELETE":"DELETE","OPTIONS":"OPTIONS"}, required: false, editable: true, defaultValue: 'GET'},
+            {id: "headers", name: "headers", type: ParameterTypes.OBJECT, required: false, editable: false, defaultValue: {}},
         ],
         outputs: [
-            {id: "result", name: "result", type: ParameterTypes.NUMBER}
+            {id: "status", name: "status", type: ParameterTypes.NUMBER},
+            {id: "body", name: "body", type: ParameterTypes.STRING},
+            {id: "json", name: "json", type: ParameterTypes.OBJECT},
         ]
     }
 });
@@ -675,7 +680,7 @@ registry.set(NodeType.IO_WRITE, {
         executable: true,
         name: "IO Write",
         inputs: [
-            {id: "fd", name: "FD", type: ParameterTypes.NUMBER, required: true, editable: true, defaultValue: 1},
+            {id: "fd", name: "FD", type: ParameterTypes.NUMBER, options: {1:"Log",2:"Error",3:"Warn",4:"Debug"}, required: true, editable: true, defaultValue: 1},
             {id: "content", name: "Content", type: ParameterTypes.STRING, required: true, editable: true}
         ],
         outputs: [
@@ -887,5 +892,69 @@ registry.set(NodeType.CALL_EVENT, {
         type: NodeType.CALL_EVENT,
         executable: true,
         name: "Call Event"
+    }
+});
+
+registry.set(NodeType.OBJECT_SET, {
+    builder: node => <Node node={node} hasContinue={true} hasExecute={true} size={{width: 200, height: 100}} />,
+    config: {
+        type: NodeType.OBJECT_SET,
+        executable: true,
+        name: "Set Object Key",
+        inputs: [
+            {id: "object", name: "Object", type: ParameterTypes.OBJECT, required: true, editable: false},
+            {id: "key", name: "Key", type: ParameterTypes.STRING, required: true, editable: true, defaultValue: ""},
+            {id: "value", name: "Value", type: ParameterTypes.ANY, required: true, editable: false},
+        ],
+        outputs: [
+            {id: "result", name: "result", type: ParameterTypes.OBJECT}
+        ]
+    }
+});
+
+registry.set(NodeType.OBJECT_GET, {
+    builder: node => <Node node={node} hasContinue={false} hasExecute={false} size={{width: 200, height: 100}} />,
+    config: {
+        type: NodeType.OBJECT_GET,
+        executable: false,
+        name: "Get Object Key",
+        inputs: [
+            {id: "object", name: "Object", type: ParameterTypes.OBJECT, required: true, editable: false},
+            {id: "key", name: "Key", type: ParameterTypes.STRING, required: true, editable: true, defaultValue: ""},
+        ],
+        outputs: [
+            {id: "result", name: "result", type: ParameterTypes.ANY}
+        ]
+    }
+});
+
+registry.set(NodeType.OBJECT_REMOVE, {
+    builder: node => <Node node={node} hasContinue={true} hasExecute={true} size={{width: 250, height: 100}} />,
+    config: {
+        type: NodeType.OBJECT_REMOVE,
+        executable: true,
+        name: "Remove Object Key",
+        inputs: [
+            {id: "object", name: "Object", type: ParameterTypes.OBJECT, required: true, editable: false},
+            {id: "key", name: "Key", type: ParameterTypes.STRING, required: true, editable: true, defaultValue: ""},
+        ],
+        outputs: [
+            {id: "result", name: "result", type: ParameterTypes.OBJECT}
+        ]
+    }
+});
+
+registry.set(NodeType.CONSTANT, {
+    builder: node => <ConstantVarNode node={node} />,
+    config: {
+        type: NodeType.CONSTANT,
+        executable: false,
+        name: "Constant",
+        inputs: [
+            {id: "value", name: "", type: ParameterTypes.STRING, required: false, editable: true, typeEditable: true, collectionEditable: false}
+        ],
+        outputs: [
+            {id: "result", name: "", type: ParameterTypes.STRING}
+        ]
     }
 });

@@ -6,6 +6,7 @@ import { useGraphContext } from "@dataflow-ui/contexts/GraphContext";
 import registry from "../nodes/registry";
 import { useRefSignalEffect, useRefSignalRender } from "react-refsignal";
 import { useDashboardContext } from "@dataflow-ui/contexts/DashboardContext";
+import { SCROLLBAR_STYLE } from "@dataflow-ui/themes/style";
 
 interface MenuTree {
     name?: string;
@@ -149,7 +150,16 @@ export default function ContextMenu() {
                         createNodeMenuEntry("Get", NodeType.GET),
                         createNodeMenuEntry("Set", NodeType.SET),
                         createNodeMenuEntry("New", NodeType.NEW),
+                        createNodeMenuEntry("Constant", NodeType.CONSTANT),
                         createNodeMenuEntry("Debug", NodeType.DEBUG),
+                    ]
+                },
+                {
+                    name: "Objects",
+                    children: [
+                        createNodeMenuEntry("Get object key", NodeType.OBJECT_GET),
+                        createNodeMenuEntry("Set object key", NodeType.OBJECT_SET),
+                        createNodeMenuEntry("Remove object key", NodeType.OBJECT_REMOVE),
                     ]
                 },
                 {
@@ -323,10 +333,10 @@ export default function ContextMenu() {
         <div
             ref={menuRef}
             id="context-menu"
-            className={`${isVisible ? 'visible' : 'hidden'} absolute bg-black/90 p-1 shadow-lg z-100000 text-white`}
+            className={`${isVisible ? 'visible' : 'hidden'} absolute bg-black/90 p-1 shadow-lg z-1000000 text-white max-h-[400px] overflow-y-auto ${SCROLLBAR_STYLE}`}
             style={position}
         >
-            <input type="text" placeholder="Search nodes" value={search} onChange={handleSearchInput} onClick={(e) => {e.preventDefault(); e.stopPropagation();}}></input>
+            <input type="text" autoComplete="off" className="mb-2 outline-blue-500/50 focus:outline-blue-500 pl-1 pr-1 outline field-sizing-content min-w-[200px]" placeholder="Search nodes" value={search} onChange={handleSearchInput} onClick={(e) => {e.preventDefault(); e.stopPropagation();}}></input>
             {search.trim().length > 0 && filteredMenu && <AccordionMenu menu={filteredMenu} visible={isVisible} />}
             {search.trim().length === 0 && <AccordionMenu menu={menu} visible={isVisible} />}
         </div>

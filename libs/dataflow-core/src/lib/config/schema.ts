@@ -70,13 +70,20 @@ enum NodeType {
 
     NEW_EVENT = "new_event",
     CALL_EVENT = "call_event",
+
+    OBJECT_SET = "object_set",
+    OBJECT_GET = "object_get",
+    OBJECT_REMOVE = "object_remove",
+
+    CONSTANT = "constant",
 }
 
 enum ParameterTypes {
     STRING = "string",
     NUMBER = "number",
     BOOLEAN = "boolean",
-    ANY = "any"
+    ANY = "any",
+    OBJECT = "object",
 }
 
 type ParameterType = ParameterTypes | string;
@@ -154,6 +161,7 @@ interface InputConfig {
     isCollection?: boolean;
     typeEditable?: boolean;
     collectionEditable?: boolean;
+    options?: Record<string, string | number | boolean>;
 }
 
 interface OutputConfig {

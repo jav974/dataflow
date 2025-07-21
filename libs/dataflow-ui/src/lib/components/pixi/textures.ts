@@ -1,6 +1,7 @@
 import { Texture } from "pixi.js";
 import { createColorTexture, createGradientTexture } from "./functions";
-import { COLOR_BLUE, COLOR_BLUE_500, COLOR_GREEN_500, COLOR_PINK_500, COLOR_PURPLE_500, COLOR_RED_500 } from "../../themes/style";
+import { COLOR_BLUE, COLOR_BLUE_500, COLOR_GREEN_500, COLOR_ORANGE_500, COLOR_PINK_500, COLOR_PURPLE_500, COLOR_RED_500 } from "../../themes/style";
+import { object } from "yup";
 
 const LINE_THICKNESS_FLOW = 8;
 const LINE_THICKNESS_PARAM = 6;
@@ -12,6 +13,7 @@ const LineTextures: Record<string, Texture | null> = {
     string: createColorTexture(COLOR_PINK_500, 1, LINE_THICKNESS_PARAM),
     any: createColorTexture(COLOR_BLUE_500, 1, LINE_THICKNESS_PARAM),
     custom: createColorTexture(COLOR_PURPLE_500, 1, LINE_THICKNESS_PARAM),
+    object: createColorTexture(COLOR_ORANGE_500, 1, LINE_THICKNESS_PARAM),
 
     boolean_number: createGradientTexture(COLOR_RED_500, COLOR_GREEN_500, 100, LINE_THICKNESS_PARAM),
     boolean_string: createGradientTexture(COLOR_RED_500, COLOR_PINK_500, 100, LINE_THICKNESS_PARAM),
@@ -26,6 +28,8 @@ const LineTextures: Record<string, Texture | null> = {
     string_any: createGradientTexture(COLOR_PINK_500, COLOR_BLUE_500, 100, LINE_THICKNESS_PARAM),
 
     custom_any: createGradientTexture(COLOR_PURPLE_500, COLOR_BLUE_500, 100, LINE_THICKNESS_PARAM),
+
+    object_any: createGradientTexture(COLOR_ORANGE_500, COLOR_BLUE_500, 100, LINE_THICKNESS_PARAM),
 
     error: createColorTexture('#ff0000', 1, LINE_THICKNESS_PARAM),
 };

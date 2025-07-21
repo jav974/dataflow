@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import Resizable from "./Resizable";
 import { useDashboardContext } from "@dataflow-ui/contexts/DashboardContext";
 import { useRefSignalRender } from "react-refsignal";
+import { SCROLLBAR_STYLE } from "@dataflow-ui/themes/style";
 
 function ConsoleLogs() {
     const {logs} = useDashboardContext();
@@ -16,7 +17,7 @@ function ConsoleLogs() {
     useRefSignalRender([logs]);
 
     return (
-        <ol ref={olRef} className="overflow-auto h-full scrollbar-thumb-rounded-full scrollbar-track-rounded-full scrollbar scrollbar-thumb-gray-500 scrollbar-track-gray-500/10">
+        <ol ref={olRef} className={`overflow-auto h-full ${SCROLLBAR_STYLE}`}>
             {logs.current.map((v, index) => {
                 let liClassName = '';
                 switch (v.type) {
@@ -45,7 +46,7 @@ export default function Console() {
     const [visible, setVisible] = useState(false);
 
     return (
-        <div className="fixed bottom-0 left-0 w-full flex flex-col items-center z-10000000">
+        <div className="fixed bottom-0 left-0 w-full flex flex-col items-center z-100000">
             {/* Toggle Button */}
             <button 
                 className="px-4 py-1 bg-black/50 text-white rounded-md shadow-md hover:bg-black/90 transition mb-2"
