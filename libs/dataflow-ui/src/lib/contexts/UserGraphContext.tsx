@@ -44,26 +44,36 @@ interface UserGraphProviderProps {
 export function UserGraphProvider({ remoteListGraphs, remoteLoadGraph, remoteSaveGraph, remoteDeleteGraph, children }: UserGraphProviderProps) {
     const [graph, setGraph] = useState<AppConfig | null>(null);
     const [isLoading, setIsLoading] = useState<boolean>(false);
+    const [graphs, setGraphs] = useState<Map<string, string>>(new Map());
 
-    const graphs = useLiveQuery(async () => {
-        let remoteGraphs: AppConfig[] = [];
+    const localGraphs = useLiveQuery(async () => {
+        const all = await graphDB.appConfigs.toArray();
+        return new Map(all.map(cfg => [cfg.id, cfg.name]));
+    }, [], new Map());
 
+    const fetchRemoteGraphs = useCallback(async () => {
         if (remoteListGraphs) {
             try {
-                remoteGraphs = await remoteListGraphs();
+                return await remoteListGraphs();
             } catch {
+                return [];
             }
         }
+        return [];
+    }, [remoteListGraphs]);
 
-        const all = await graphDB.appConfigs.toArray();
-        const mapped = new Map(all.map(cfg => [cfg.id, cfg.name]));
+    useEffect(() => {
+        const tryFetchRemoteGraphs = async () => {
+            const mapped = new Map(localGraphs);
+            const remoteGraphs = await fetchRemoteGraphs();
+            remoteGraphs.forEach(remoteGraph => {
+                mapped.set(remoteGraph.id, remoteGraph.name);
+            });
+            setGraphs(mapped);
+        };
 
-        remoteGraphs.forEach(remoteGraph => {
-            mapped.set(remoteGraph.id, remoteGraph.name);
-        });
-
-        return mapped;
-    }, [], new Map());
+        tryFetchRemoteGraphs();
+    }, [localGraphs, fetchRemoteGraphs]);
 
     const loadGraph = useCallback(async (id: string): Promise<AppConfig | undefined> => {
         let config: AppConfig | undefined;
@@ -104,7 +114,9 @@ export function UserGraphProvider({ remoteListGraphs, remoteLoadGraph, remoteSav
             }
         }
 
-        return await graphDB.appConfigs.put(config);
+        const ret = await graphDB.appConfigs.put(config);
+
+        return ret;
     }, [remoteSaveGraph]);
 
     const deleteGraph = useCallback(async (id: string): Promise<void> => {
@@ -123,6 +135,7 @@ export function UserGraphProvider({ remoteListGraphs, remoteLoadGraph, remoteSav
         }
 
         await graphDB.appConfigs.delete(id);
+
         if (graph?.id === id) {
             const fallbackId = localStorage.getItem("dataflow-last-graph");
             if (fallbackId && fallbackId !== id && graphs.has(fallbackId)) {
