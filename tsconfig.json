@@ -6,7 +6,12 @@
       "@dataflow-core/*": ["libs/dataflow-core/src/lib/*"],
       "@dataflow-protos/*": ["libs/dataflow-protos/generated/*"],
       "@dataflow-ide/dataflow-core": ["libs/dataflow-core/dist/core/index"],
+      "@dataflow-ide/dataflow-backend": ["libs/dataflow-backend/dist/index"],
       "@dataflow-ide/dataflow-nats": ["libs/dataflow-nats/dist/index"],
     },
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "strict": true,
+    "esModuleInterop": true
   }
 }

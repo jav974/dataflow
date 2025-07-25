@@ -20,6 +20,7 @@
     "tailwindcss": "^4",
     "next-auth": "^4.24.11",
     "dexie": "^4.0.11",
-    "dexie-react-hooks": "^1.1.7"
+    "dexie-react-hooks": "^1.1.7",
+    "react-hot-toast": "^2.5.2"
   }
 }

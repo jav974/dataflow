@@ -12,6 +12,22 @@ services:
 
   nats:
     restart: always
+  
+  mongodb:
+    env_file:
+      - ../apps/frontend/.env.production
+    restart: always
+  
+  mongo-express:
+    labels:
+      - "traefik.http.routers.mongo-express.rule=Host(`me.dataflow-ide.dev`)"
+      - "traefik.http.routers.mongo-express.middlewares=secure-headers@file"
+      - "traefik.http.routers.mongo-express.entrypoints=websecure"
+      - "traefik.http.routers.mongo-express.tls=true"
+      - "traefik.http.routers.mongo-express.tls.certresolver=letsencrypt"
+    env_file:
+      - ../apps/frontend/.env.production
+    restart: always
 
   frontend:
     labels:

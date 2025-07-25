@@ -6,6 +6,19 @@ services:
     volumes:
       - ./traefik/traefik.dev.yml:/etc/traefik/traefik.yml:ro
 
+  mongodb:
+    env_file:
+      - .env.docker.local
+    restart: unless-stopped
+  
+  mongo-express:
+    labels:
+      - "traefik.http.routers.mongo-express.rule=Host(`me.dataflow-ide.local`)"
+      - "traefik.http.routers.mongo-express.entrypoints=web"
+    env_file:
+      - .env.docker.local
+    restart: unless-stopped
+
   frontend:
     labels:
       - "traefik.http.routers.frontend.rule=Host(`dataflow-ide.local`)"

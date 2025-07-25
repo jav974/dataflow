@@ -102,7 +102,6 @@ interface TypeDefinition {
 }
 
 interface GraphType extends TypeDefinition {
-    id: string;
 }
 
 interface VariableConfig {

@@ -22,6 +22,7 @@
       "@/*": ["./*"],
       "@dataflow-ui/*": ["../../libs/dataflow-ui/src/lib/*"],
       "@dataflow-ide/dataflow-core": ["../../libs/dataflow-core/dist/core/index"],
+      "@dataflow-ide/dataflow-backend": ["../../libs/dataflow-backend/dist/index"],
     }
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "vitest.config.mts", "types"],
