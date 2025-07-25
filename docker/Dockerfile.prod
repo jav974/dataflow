@@ -43,6 +43,8 @@ COPY --from=deps /app/libs/dataflow-core/dist ./libs/dataflow-core/dist
 COPY --from=deps /app/libs/dataflow-core/package.json ./libs/dataflow-core/package.json
 COPY --from=deps /app/libs/dataflow-nats/dist ./libs/dataflow-nats/dist
 COPY --from=deps /app/libs/dataflow-nats/package.json ./libs/dataflow-nats/package.json
+COPY --from=deps /app/libs/dataflow-backend/dist ./libs/dataflow-backend/dist
+COPY --from=deps /app/libs/dataflow-backend/package.json ./libs/dataflow-backend/package.json
 COPY --from=deps /app/libs/dataflow-ui ./libs/dataflow-ui
 
 ##########################
