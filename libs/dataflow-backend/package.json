@@ -1,0 +1,25 @@
+{
+  "name": "@dataflow-ide/dataflow-backend",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "build": "tsup",
+    "dev": "WATCH=true tsup --watch",
+    "lint": "eslint \"{src,libs,test}/**/*.ts\" --fix"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "require": "./dist/index.cjs",
+      "import": "./dist/index.mjs"
+    }
+  },
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "peerDependencies": {
+    "@typegoose/typegoose": "^12.17.0",
+    "class-transformer": "^0.5.1",
+    "mongoose": "^8.16.4"
+  }
+}

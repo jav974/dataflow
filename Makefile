@@ -31,6 +31,10 @@ prod-down:
 logs:
 	$(COMPOSE) -f docker/docker-compose.yml -f docker/docker-compose.prod.yml logs -f
 
+## 📦 Logs
+logs-infra:
+	$(COMPOSE) -f docker/docker-compose.infra.yml logs -f
+
 ## 🧹 Cleanup
 clean:
 	$(COMPOSE) -f docker/docker-compose.yml -f docker/docker-compose.override.yml down --volumes --remove-orphans

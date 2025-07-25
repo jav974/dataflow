@@ -1,0 +1,31 @@
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes glow {
+  from {
+    filter: drop-shadow(0 0 4px #3b82f6);
+  }
+  to {
+    filter: drop-shadow(0 0 10px #60a5fa);
+  }
+}
+
+.loader-ring {
+  animation: spin 1s linear infinite;
+  border-radius: 9999px;
+  border-width: 4px;
+  border-color: #2563eb; /* Tailwind blue-600 */
+  border-top-color: transparent;
+  width: 4rem;
+  height: 4rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.animate-glow {
+  animation: glow 1.5s ease-in-out infinite alternate;
+}

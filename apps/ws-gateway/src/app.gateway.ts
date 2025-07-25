@@ -27,7 +27,7 @@ import { NATS_CLIENT, NatsService } from '@dataflow-ide/dataflow-nats';
 })
 export class WSGateway implements OnGatewayDisconnect, OnGatewayConnection {
     @WebSocketServer()
-    server: Server<ClientToServerEvents, ServerToClientEvents>;
+    server!: Server<ClientToServerEvents, ServerToClientEvents>;
 
     constructor(
         @Inject(NATS_CLIENT) private readonly client: ClientNats,

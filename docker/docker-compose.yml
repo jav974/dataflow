@@ -26,6 +26,31 @@ services:
     restart: unless-stopped
     networks:
       - dataflow
+  
+  mongodb:
+    labels:
+      - "traefik.enable=false"
+    image: mongo:latest
+    container_name: mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+      - mongo-config:/data/configdb
+    networks:
+      - dataflow
+
+  mongo-express:
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.mongo-express.entrypoints=web"
+      - "traefik.http.services.mongo-express.loadbalancer.server.port=8081"
+      - "traefik.docker.network=dataflow"
+    image: mongo-express
+    depends_on:
+      - mongodb
+    networks:
+      - dataflow
 
   frontend:
     labels:
@@ -68,3 +93,7 @@ services:
 networks:
   dataflow:
     name: dataflow
+
+volumes:
+  mongo-data:
+  mongo-config:

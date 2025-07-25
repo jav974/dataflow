@@ -11,12 +11,15 @@ import { useGraphContext } from "@dataflow-ui/contexts/GraphContext";
 import { useDashboardContext } from "@dataflow-ui/contexts/DashboardContext";
 import { useRefSignalRender } from "react-refsignal";
 import Console from "./Console";
+import { Toaster } from 'react-hot-toast';
+import Loader from "../ui/Loader/Loader";
+
 
 export default function AppContainer() {
     const {canvasRef, canvasRect} = useDashboardContext();
     const { closeContextMenu } = useNodeContext();
     const { id, loadGraph, zoomIn, zoomOut } = useGraphContext();
-    const { graph } = useUserGraphContext();
+    const { graph, isLoading } = useUserGraphContext();
 
     // Disable right click default context menu (will be replaced)
     const handleContextMenu = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
@@ -98,6 +101,8 @@ export default function AppContainer() {
                         <ApplicationGraph />
                     </Application>
                     <Console />
+                    <Toaster position="top-right" />
+                    {isLoading && <Loader />}
                 </div>
             </div>
             <ApplicationTemplates />
