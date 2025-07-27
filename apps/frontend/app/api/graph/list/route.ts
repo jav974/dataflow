@@ -14,7 +14,5 @@ export async function GET() {
     const configs = await AppConfigModel.find({ userId: session.user.id });
     const plainConfigs = configs.map(config => dehydrateAppConfig(config.toObject()));
 
-    console.log(plainConfigs);
-
     return NextResponse.json(plainConfigs);
 }
