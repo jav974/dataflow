@@ -32,6 +32,7 @@ const nextConfig: NextConfig = {
   },
   transpilePackages: ['@dataflow-ide/dataflow-ui'],
   allowedDevOrigins: ['dataflow-ide.local', '*.dataflow-ide.local'],
+  outputFileTracingRoot: __dirname,
 };
 
 export default nextConfig;

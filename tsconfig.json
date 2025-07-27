@@ -4,6 +4,7 @@
     "paths": {
       "@dataflow-ui/*": ["libs/dataflow-ui/src/lib/*"],
       "@dataflow-core/*": ["libs/dataflow-core/src/lib/*"],
+      "@dataflow-backend/*": ["libs/dataflow-backend/src/lib/*"],
       "@dataflow-protos/*": ["libs/dataflow-protos/generated/*"],
       "@dataflow-ide/dataflow-core": ["libs/dataflow-core/dist/core/index"],
       "@dataflow-ide/dataflow-backend": ["libs/dataflow-backend/dist/index"],

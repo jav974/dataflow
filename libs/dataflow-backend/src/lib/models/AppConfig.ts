@@ -1,9 +1,11 @@
 import { getModelForClass, modelOptions, prop, Severity } from '@typegoose/typegoose';
-import { Type, plainToInstance, instanceToPlain } from 'class-transformer';
-import { AppConfig, ConnectionConfig, GraphType, InputConfig, NodeConfig, NodeType, OutputBranchConfig, OutputConfig, TypeDefinition, TypeProperty, VariableConfig } from '../../../../dataflow-core/src/lib/config/schema';
-import type { ConnectorConfig, Coordinates, ParameterType } from '../../../../dataflow-core/src/lib/config/schema';
+import { Type, plainToInstance } from 'class-transformer';
+import { AppConfig, ConnectionConfig, GraphType, InputConfig, NodeConfig, NodeType, OutputBranchConfig, OutputConfig, TypeDefinition, TypeProperty, VariableConfig } from '@dataflow-ide/dataflow-core';
+import type { ConnectorConfig, Coordinates, ParameterType } from '@dataflow-ide/dataflow-core';
 import mongoose from 'mongoose';
-import { dehydrate } from '@dataflow-backend/utils/db-utils';
+import { dehydrate } from '../utils/db-utils';
+
+type NodeTypeValue = (typeof NodeType)[keyof typeof NodeType];
 
 class TypePropertyClass implements TypeProperty {
     @prop({ required: true })
@@ -104,7 +106,7 @@ class NodeConfigClass implements NodeConfig {
     public description?: string;
 
     @prop({ required: true, enum: NodeType, type: String })
-    public type!: NodeType;
+    public type!: NodeTypeValue;
 
     @Type(() => InputConfigClass)
     @prop({ required: true, type: () => [InputConfigClass] })

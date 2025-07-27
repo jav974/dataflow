@@ -3,7 +3,8 @@
   "compilerOptions": {
     "baseUrl": "./src",
     "paths": {
-      "@dataflow-backend/*": ["lib/*"]
+      "@dataflow-backend/*": ["lib/*"],
+      "@dataflow-ide/dataflow-core": ["../../dataflow-core/dist/core/index"],
     },
     "target": "ES2020",
     "lib": ["esnext"],
