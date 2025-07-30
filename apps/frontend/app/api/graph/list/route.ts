@@ -7,11 +7,14 @@ export async function GET() {
     await dbConnect();
     const session = await getServerSession(authOptions);
 
-    if (!session) {
-        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    let configs: any[] = [];
 
-    const configs = await AppConfigModel.find({ userId: session.user.id });
+    if (!session) {
+        configs = await AppConfigModel.find({ userId: "demo" });
+    } else {
+        configs = await AppConfigModel.find({ userId: session.user.id });
+    }
+    
     const plainConfigs = configs.map(config => dehydrateAppConfig(config.toObject()));
 
     return NextResponse.json(plainConfigs);

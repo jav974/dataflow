@@ -6,18 +6,18 @@ import { authOptions } from '@/lib/authOptions';
 export async function GET(req: Request) {
     await dbConnect();
     const session = await getServerSession(authOptions);
-    
-    if (!session) {
-        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
 
     const { searchParams } = new URL(req.url);
     const id = searchParams.get('id');
 
     if (!id) return NextResponse.json({ error: 'Missing id' }, { status: 400 });
 
-    const config = await AppConfigModel.findOne({ id, userId: session.user.id });
+    const config = await AppConfigModel.findOne({ id });
     if (!config) return NextResponse.json({ error: 'Config not found' }, { status: 404 });
+
+    if (config.userId !== "demo" && session && session.user.id !== config.userId) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
 
     const instance = Object.assign(new AppConfigClass(), config.toObject());
 

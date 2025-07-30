@@ -2,6 +2,7 @@
 
 import { AppConfig } from '@dataflow-ide/dataflow-core';
 import Dataflow from '@dataflow-ide/dataflow-ui';
+import { useSession } from 'next-auth/react';
 
 async function saveToMongo(config: AppConfig): Promise<Response> {
     return await fetch('/api/graph/save', {
@@ -28,7 +29,14 @@ async function listFromMongo(): Promise<AppConfig[]> {
 }
 
 export default function Page() {
+    const {data} = useSession();
+    const isLoggedIn = data && data.user && data.user.id;
+
     return (
-        <Dataflow listGraphs={listFromMongo} loadGraph={loadFromMongo} saveGraph={saveToMongo} deleteGraph={deleteFromMongo} />
+        <Dataflow
+            listGraphs={listFromMongo}
+            loadGraph={loadFromMongo}
+            saveGraph={isLoggedIn ? saveToMongo : undefined}
+            deleteGraph={isLoggedIn ? deleteFromMongo : undefined} />
     );
 }

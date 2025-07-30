@@ -27,7 +27,7 @@ interface UserGraphContextType {
     graph: AppConfig | null;
     isLoading: boolean;
     loadGraph: (id: string) => Promise<AppConfig | undefined>;
-    saveGraph: (graph: AppConfig) => Promise<string>;
+    saveGraph: (graph: AppConfig) => Promise<string | undefined>;
     deleteGraph: (id: string) => Promise<void>;
 }
 
@@ -99,7 +99,9 @@ export function UserGraphProvider({ remoteListGraphs, remoteLoadGraph, remoteSav
         return config;
     }, [remoteLoadGraph]);
 
-    const saveGraph = useCallback(async (config: AppConfig): Promise<string> => {
+    const saveGraph = useCallback(async (config: AppConfig): Promise<string | undefined> => {
+        let remoteSuccess = false;
+
         if (remoteSaveGraph) {
             try {
                 const response = await remoteSaveGraph(config);
@@ -107,16 +109,22 @@ export function UserGraphProvider({ remoteListGraphs, remoteLoadGraph, remoteSav
                 if (!response.ok) {
                     throw new Error(response.statusText);
                 } else {
-                    toast.success("Graph saved", {className: "mt-[50px]"});
+                    remoteSuccess = true;
                 }
             } catch (error) {
-                toast.error("Failed to save graph: " + (error as Error).message, {className: "mt-[50px]"});
+                toast.error("Failed to save graph remotely: " + (error as Error).message, {className: "mt-[50px]"});
             }
         }
 
-        const ret = await graphDB.appConfigs.put(config);
+        try {
+            const ret = await graphDB.appConfigs.put(config);
+            toast.success(remoteSuccess ? "Graph saved remotely and locally" : "Graph saved locally", {className: "mt-[50px]"});
+            return ret;
+        } catch (error) {
+            toast.error("Failed to save graph locally: " + (error as Error).message, {className: "mt-[50px]"});
+        }
 
-        return ret;
+        return undefined;
     }, [remoteSaveGraph]);
 
     const deleteGraph = useCallback(async (id: string): Promise<void> => {
