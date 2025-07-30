@@ -7,6 +7,7 @@ export async function GET() {
     await dbConnect();
     const session = await getServerSession(authOptions);
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let configs: any[] = [];
 
     if (!session) {
