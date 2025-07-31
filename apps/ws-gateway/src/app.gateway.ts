@@ -47,7 +47,8 @@ export class WSGateway implements OnGatewayDisconnect, OnGatewayConnection {
         data: { graph: AppConfig, params?: KeyValue },
     ): Promise<AckResponse> {
         try {
-            const payload = {...data, socketId: socket.id};
+            // const payload = {...data, socketId: socket.id};
+            const payload = {...data, graph: data.graph.id, socketId: socket.id};
 
             this.natsService.subscribe(`executed.${socket.id}`, (result: { result: any, error?: string }) => {
                 if (result.error) {

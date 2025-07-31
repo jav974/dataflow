@@ -4,6 +4,7 @@ import { NatsService } from '@dataflow-ide/dataflow-nats';
 import { AppConfig, KeyValue, Log } from '@dataflow-ide/dataflow-core';
 import { fork, ChildProcess } from 'child_process';
 import * as path from 'node:path';
+import { AppConfigModel, dbConnect } from '@dataflow-ide/dataflow-backend';
 
 @Controller()
 export class AppController {
@@ -12,8 +13,26 @@ export class AppController {
     constructor(private readonly natsService: NatsService) {}
 
     @MessagePattern({ cmd: 'start' })
-    start(data: { socketId: string; graph: AppConfig; params?: KeyValue }): boolean {
-        const { socketId, graph, params } = data;
+    async start(data: { socketId: string; graph: AppConfig | string; params?: KeyValue }): Promise<boolean> {
+        const { socketId, graph: graphOrGraphId, params } = data;
+        let graph: AppConfig;
+
+        if (typeof graphOrGraphId === 'string') {
+            try {
+                await dbConnect(process.env.MONGO_URI);
+                const config = await AppConfigModel.findOne({id: graphOrGraphId});
+                if (!config) {
+                    console.error(`❌ Graph with id ${graphOrGraphId} not found`);
+                    return false;
+                }
+                graph = config.toObject() as AppConfig;
+            } catch (error) {
+                console.error('❌ Failed to connect to database:', error);
+                return false;
+            }
+        } else {
+            graph = graphOrGraphId;
+        }
 
         console.log(`🚀 Received start command for socketId=${socketId}`);
 

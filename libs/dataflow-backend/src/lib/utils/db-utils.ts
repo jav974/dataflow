@@ -3,11 +3,11 @@ import mongoose from 'mongoose';
 
 const MONGO_URI = process.env.MONGO_URI!;
 
-export async function dbConnect() {
+export async function dbConnect(uri: string = MONGO_URI): Promise<void> {
     if (mongoose.connection.readyState >= 1) return;
 
     try {
-        await mongoose.connect(MONGO_URI, {
+        await mongoose.connect(uri, {
             dbName: 'dataflow',
             authSource: 'admin',
         });

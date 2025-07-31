@@ -8,7 +8,6 @@
     "allowSyntheticDefaultImports": true,
     "target": "ES2023",
     "sourceMap": true,
-    // "outDir": "../../dist/apps/runner",
     "outDir": "./dist",
     "baseUrl": "./",
     "incremental": true,
@@ -24,6 +23,7 @@
       "@dataflow-protos/*": ["../../libs/dataflow-protos/generated/*"],
       "@dataflow-ide/dataflow-core": ["../../libs/dataflow-core/dist/core/index"],
       "@dataflow-ide/dataflow-nats": ["../../libs/dataflow-nats/dist/index"],
+      "@dataflow-ide/dataflow-backend": ["../../libs/dataflow-backend/dist/index"],
     }
   },
   "include": ["src"]
