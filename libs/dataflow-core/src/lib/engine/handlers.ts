@@ -201,12 +201,12 @@ const handleStart: NodeExecutor = async (_: NodeExecParams, context: NodeExecCon
 const handleReturn: NodeExecutor = async (inputs: NodeExecParams, context: NodeExecContext): Promise<NodeExecParams> => {
     executionContext.result = {};
 
-    // TODO: Duplicating values is wild, but a return node with named outputs
-    // replaced by their uuid is wild too as it will mean nothing to the end user.
     for (const [key, value] of inputs) {
         const varName = context.get('_inputMap').get(key) ?? key;
-        executionContext.result[key] = value;
-        executionContext.result[varName] = value;
+        executionContext.result[key] = {
+            name: varName,
+            value: value,
+        };
     }
 
     return new Map();

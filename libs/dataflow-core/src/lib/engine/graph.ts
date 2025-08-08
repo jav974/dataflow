@@ -458,6 +458,7 @@ export class Graph {
 
         const totalTime = Date.now() - startTime;
 
+        console.debug(`\n`);
         console.debug(`Done in ${totalTime}ms`);
 
         this.controller.clear();

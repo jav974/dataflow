@@ -5,47 +5,75 @@ import { useRefSignalRender } from "react-refsignal";
 import { SCROLLBAR_STYLE } from "@dataflow-ui/themes/style";
 
 function ConsoleLogs() {
-    const {logs} = useDashboardContext();
+    const { logs } = useDashboardContext();
     const containerRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         if (containerRef.current) {
             containerRef.current.scrollTop = containerRef.current.scrollHeight;
         }
-    }, [logs.current.length]); // Trigger when logs change
+    }, [logs.current.length]);
 
     useRefSignalRender([logs]);
 
+    const getClassName = (type: string) => {
+        switch (type) {
+            case 'debug':
+                return 'text-gray-700';
+            case 'warn':
+                return 'text-orange-500';
+            case 'error':
+                return 'text-red-500';
+            default:
+                return '';
+        }
+    };
+
+    // Group logs into rows
+    const groupedRows: Array<typeof logs.current> = [];
+    let currentRow: typeof logs.current = [];
+
+    logs.current.forEach((log) => {
+        currentRow.push(log);
+
+        if (log.message.endsWith('\n')) {
+            groupedRows.push(currentRow);
+            currentRow = [];
+        }
+    });
+
+    if (currentRow.length > 0) {
+        groupedRows.push(currentRow);
+    }
+
     return (
-        <div ref={containerRef} className={`overflow-auto h-full ${SCROLLBAR_STYLE}`}>
-            {logs.current.map((v, index) => {
-                let className = '';
-                switch (v.type) {
-                    case 'log':
-                        className = '';
-                        break ;
-                    case 'debug':
-                        className = 'text-gray-700';
-                        break ;
-                    case 'warn':
-                        className = 'text-orange-500';
-                        break ;
-                    case 'error':
-                        className = 'text-red-500';
-                        break ;
-                }
-                const hasNewLine = v.message.endsWith("\n");
-                let message = v.message.replaceAll(" ", "&nbsp;");
+        <div
+            ref={containerRef}
+            className={`overflow-auto h-full ${SCROLLBAR_STYLE} flex flex-col`}
+        >
+            {groupedRows.map((row, rowIndex) => (
+                <div key={rowIndex} className="flex flex-row flex-nowrap">
+                    {row.map((log, logIndex) => {
+                        let content = log.message;
 
-                if (hasNewLine) {
-                    message = message.slice(0, -1);
-                    message += "<br/>";
-                }
+                        // If message is exactly "\n", render a visible blank line
+                        if (content === '\n') {
+                            content = '\u00A0'; // non-breaking space
+                        } else {
+                            content = content.replace(/\n$/, '');
+                        }
 
-                return (
-                    <span className={className} key={index} dangerouslySetInnerHTML={{__html: message}} />
-                );
-            })}
+                        return (
+                            <pre
+                                key={`${rowIndex}-${logIndex}`}
+                                className={`${getClassName(log.type)} whitespace-pre`}
+                            >
+                                {content}
+                            </pre>
+                        );
+                    })}
+                </div>
+            ))}
         </div>
     );
 }

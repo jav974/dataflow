@@ -33,7 +33,7 @@ export default function ToolbarPlayer() {
                     toGraph(),
                     startParams.current,
                 ).then((result) => {
-                    eventBus.emit<Log>('io_write', {type: "debug", createdAt: Date.now(), message: "Return: " + JSON.stringify(result?.result ?? "undefined", null, 2)} as Log)
+                    eventBus.emit<Log>('io_write', {type: "debug", createdAt: Date.now(), message: "Return: " + JSON.stringify(result?.result ?? "undefined", null, 1)} as Log)
                     setGraphResult(result);
                     computedResult.update(keyValueToMap(result?.io_values ?? {}));
                 }).catch((reason: Error) => {
