@@ -32,6 +32,7 @@ export interface ExecutionBranch {
 export interface ExecutionGraph {
     nodeType: NodeType;
     nodeId: string;
+    executable: boolean;
     inputs: ExecutionInput[];
     outputs: ExecutionOutput[];
     branches: ExecutionBranch[];

@@ -115,6 +115,7 @@ export class Graph {
         executionGraph = {
             pos: this.nodePos++,
             nodeId: node.id,
+            executable: node.executable,
             nodeType: node.type,
             inputs: node.inputs?.map((input: InputConfig): ExecutionInput => {
                 context.get('_inputMap').set(input.id, input.name);
@@ -166,6 +167,7 @@ export class Graph {
                 let isBannedFromRevisit = this.stack.items.some((v) => v.nodeId === input.resolve?.graph.nodeId);
                 isBannedFromRevisit = isBannedFromRevisit ? isBannedFromRevisit : (input.resolve.graph.pos <= revisitPos);
                 isBannedFromRevisit = isBannedFromRevisit ? isBannedFromRevisit : input.resolve.graph.nodeType === NodeType.NEW_EVENT;
+                isBannedFromRevisit = isBannedFromRevisit ? isBannedFromRevisit : !input.resolve.graph.visited && input.resolve.graph.executable;
 
                 if (!isBannedFromRevisit && (!input.resolve.graph.visited || revisit)) {
                     input.resolve.graph = await this.resolveExecutionGraph(input.resolve.graph, revisit, revisitPos);
