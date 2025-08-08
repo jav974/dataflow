@@ -17,13 +17,14 @@ import NewVarNode from "./variables/NewVarNode";
 import ArrayNode from "./array/ArrayNode";
 import IONode from "./io/IONode";
 import Node from "../core/Node";
-import { LogicalNode } from "./logical/LogicalNode";
-import { BitwiseNode } from "./bitwise/BitwiseNode";
+import LogicalNode from "./logical/LogicalNode";
+import BitwiseNode from "./bitwise/BitwiseNode";
 import BreakTypeNode from "./type/BreakTypeNode";
 import UpdateVarNode from "./variables/UpdateVarNode";
 import NewEventNode from "./event/NewEventNode";
 import CallEventNode from "./event/CallEventNode";
 import ConstantVarNode from "./variables/ConstantVarNode";
+import ComparisonNode from "./comparison/ComparisonNode";
 
 registry.set(NodeType.START, {
     builder: (node: NodeConfig) => <StartNode node={node} />,
@@ -681,7 +682,8 @@ registry.set(NodeType.IO_WRITE, {
         name: "IO Write",
         inputs: [
             {id: "fd", name: "FD", type: ParameterTypes.NUMBER, options: {1:"Log",2:"Error",3:"Warn",4:"Debug"}, required: true, editable: true, defaultValue: 1},
-            {id: "content", name: "Content", type: ParameterTypes.STRING, required: true, editable: true}
+            {id: "content", name: "Content", type: ParameterTypes.STRING, required: false, editable: true},
+            {id: "eol", name: "EOL", type: ParameterTypes.BOOLEAN, required: false, editable: true, defaultValue: true}
         ],
         outputs: [
             {id: "bytes_written", name: "Bytes written", type: ParameterTypes.NUMBER}
@@ -958,3 +960,115 @@ registry.set(NodeType.CONSTANT, {
         ]
     }
 });
+
+registry.set(NodeType.COMPARE_EQUAL, {
+    builder: (node: NodeConfig) => <ComparisonNode node={node} />,
+    config: {
+        type: NodeType.COMPARE_EQUAL,
+        name: "Equal",
+        executable: false,
+        inputs: [
+            {id: "left", name: "A", required: true, type: ParameterTypes.ANY, editable: true, typeEditable: true},
+            {id: "right", name: "B", required: true, type: ParameterTypes.ANY, editable: true, typeEditable: true}
+        ],
+        outputs: [
+            {id: "result", name: "result", type: ParameterTypes.BOOLEAN}
+        ]
+    }
+});
+
+registry.set(NodeType.COMPARE_NOT_EQUAL, {
+    builder: (node: NodeConfig) => <ComparisonNode node={node} />,
+    config: {
+        type: NodeType.COMPARE_NOT_EQUAL,
+        name: "Not Equal",
+        executable: false,
+        inputs: [
+            {id: "left", name: "A", required: true, type: ParameterTypes.ANY, editable: true, typeEditable: true},
+            {id: "right", name: "B", required: true, type: ParameterTypes.ANY, editable: true, typeEditable: true}
+        ],
+        outputs: [
+            {id: "result", name: "result", type: ParameterTypes.BOOLEAN}
+        ]
+    }
+});
+
+registry.set(NodeType.COMPARE_GREATER_THAN, {
+    builder: (node: NodeConfig) => <ComparisonNode node={node} />,
+    config: {
+        type: NodeType.COMPARE_GREATER_THAN,
+        name: "Greater",
+        executable: false,
+        inputs: [
+            {id: "left", name: "A", required: true, type: ParameterTypes.NUMBER, editable: true},
+            {id: "right", name: "B", required: true, type: ParameterTypes.NUMBER, editable: true}
+        ],
+        outputs: [
+            {id: "result", name: "result", type: ParameterTypes.BOOLEAN}
+        ]
+    }
+});
+
+registry.set(NodeType.COMPARE_GREATER_THAN_OR_EQUAL, {
+    builder: (node: NodeConfig) => <ComparisonNode node={node} />,
+    config: {
+        type: NodeType.COMPARE_GREATER_THAN_OR_EQUAL,
+        name: "Greater or Equal",
+        executable: false,
+        inputs: [
+            {id: "left", name: "A", required: true, type: ParameterTypes.NUMBER, editable: true},
+            {id: "right", name: "B", required: true, type: ParameterTypes.NUMBER, editable: true}
+        ],
+        outputs: [
+            {id: "result", name: "result", type: ParameterTypes.BOOLEAN}
+        ]
+    }
+});
+
+registry.set(NodeType.COMPARE_LESS_THAN, {
+    builder: (node: NodeConfig) => <ComparisonNode node={node} />,
+    config: {
+        type: NodeType.COMPARE_LESS_THAN,
+        name: "Less",
+        executable: false,
+        inputs: [
+            {id: "left", name: "A", required: true, type: ParameterTypes.NUMBER, editable: true},
+            {id: "right", name: "B", required: true, type: ParameterTypes.NUMBER, editable: true}
+        ],
+        outputs: [
+            {id: "result", name: "result", type: ParameterTypes.BOOLEAN}
+        ]
+    }
+});
+
+registry.set(NodeType.COMPARE_LESS_THAN_OR_EQUAL, {
+    builder: (node: NodeConfig) => <ComparisonNode node={node} />,
+    config: {
+        type: NodeType.COMPARE_LESS_THAN_OR_EQUAL,
+        name: "Less or Equal",
+        executable: false,
+        inputs: [
+            {id: "left", name: "A", required: true, type: ParameterTypes.NUMBER, editable: true},
+            {id: "right", name: "B", required: true, type: ParameterTypes.NUMBER, editable: true}
+        ],
+        outputs: [
+            {id: "result", name: "result", type: ParameterTypes.BOOLEAN}
+        ]
+    }
+});
+
+// registry.set(NodeType.COMPARE_IN, {
+//     builder: (node: NodeConfig) => <CompareNode node={node} />,
+//     config: {
+//         type: NodeType.COMPARE_IN,
+//         name: "In",
+//         executable: false,
+//         inputs: [
+//             {id: "A", name: "A", required: true, type: ParameterTypes.ANY, editable: true},
+//             {id: "B", name: "B", required: true, type: ParameterTypes.ANY, editable: true, isCollection: true}
+//         ],
+//         outputs: [
+//             {id: "result", name: "result", type: ParameterTypes.BOOLEAN}
+//         ]
+//     }
+// });

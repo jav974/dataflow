@@ -1,6 +1,6 @@
 import Node, { NodeProps } from "../../core/Node";
 
-export function BitwiseNode({node, ...props}: NodeProps) {
+export default function BitwiseNode({node, ...props}: NodeProps) {
     return (
         <Node
             node={node}

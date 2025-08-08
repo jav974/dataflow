@@ -177,6 +177,17 @@ export default function ContextMenu() {
                     ]
                 },
                 {
+                    name: "Comparison",
+                    children: [
+                        createNodeMenuEntry("Equal ( == )", NodeType.COMPARE_EQUAL),
+                        createNodeMenuEntry("Not equal ( != )", NodeType.COMPARE_NOT_EQUAL),
+                        createNodeMenuEntry("Greater than ( > )", NodeType.COMPARE_GREATER_THAN),
+                        createNodeMenuEntry("Less than ( < )", NodeType.COMPARE_LESS_THAN),
+                        createNodeMenuEntry("Greater than or equal ( >= )", NodeType.COMPARE_GREATER_THAN_OR_EQUAL),
+                        createNodeMenuEntry("Less than or equal ( <= )", NodeType.COMPARE_LESS_THAN_OR_EQUAL),
+                    ]
+                },
+                {
                     name: "Logical",
                     children: [
                         createNodeMenuEntry("And ( && )", NodeType.LOGICAL_AND),

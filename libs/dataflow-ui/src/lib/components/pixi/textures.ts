@@ -1,7 +1,6 @@
 import { Texture } from "pixi.js";
 import { createColorTexture, createGradientTexture } from "./functions";
 import { COLOR_BLUE, COLOR_BLUE_500, COLOR_GREEN_500, COLOR_ORANGE_500, COLOR_PINK_500, COLOR_PURPLE_500, COLOR_RED_500 } from "../../themes/style";
-import { object } from "yup";
 
 const LINE_THICKNESS_FLOW = 8;
 const LINE_THICKNESS_PARAM = 6;

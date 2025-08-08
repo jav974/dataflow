@@ -6,39 +6,47 @@ import { SCROLLBAR_STYLE } from "@dataflow-ui/themes/style";
 
 function ConsoleLogs() {
     const {logs} = useDashboardContext();
-    const olRef = useRef<HTMLOListElement>(null);
+    const containerRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
-        if (olRef.current) {
-            olRef.current.scrollTop = olRef.current.scrollHeight;
+        if (containerRef.current) {
+            containerRef.current.scrollTop = containerRef.current.scrollHeight;
         }
     }, [logs.current.length]); // Trigger when logs change
 
     useRefSignalRender([logs]);
 
     return (
-        <ol ref={olRef} className={`overflow-auto h-full ${SCROLLBAR_STYLE}`}>
+        <div ref={containerRef} className={`overflow-auto h-full ${SCROLLBAR_STYLE}`}>
             {logs.current.map((v, index) => {
-                let liClassName = '';
+                let className = '';
                 switch (v.type) {
                     case 'log':
-                        liClassName = '';
+                        className = '';
                         break ;
                     case 'debug':
-                        liClassName = 'text-gray-700';
+                        className = 'text-gray-700';
                         break ;
                     case 'warn':
-                        liClassName = 'text-orange-500';
+                        className = 'text-orange-500';
                         break ;
                     case 'error':
-                        liClassName = 'text-red-500';
+                        className = 'text-red-500';
                         break ;
                 }
+                const hasNewLine = v.message.endsWith("\n");
+                let message = v.message.replaceAll(" ", "&nbsp;");
+
+                if (hasNewLine) {
+                    message = message.slice(0, -1);
+                    message += "<br/>";
+                }
+
                 return (
-                    <li className={liClassName} key={index}>{v.message}</li>
+                    <span className={className} key={index} dangerouslySetInnerHTML={{__html: message}} />
                 );
             })}
-        </ol>
+        </div>
     );
 }
 

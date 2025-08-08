@@ -27,7 +27,7 @@ export class ClientExecutionController extends AbstractExecutionController {
                 this.paused = false;
                 break ;
             case 'cancel':
-                eventBus.emit('io_write', {type: 'error', message: 'Execution canceled', createdAt: Date.now()} as Log);
+                eventBus.emit('io_write', {type: 'error', message: 'Execution canceled\n', createdAt: Date.now()} as Log);
                 this.data = {completed: true, result: undefined, error: undefined};
                 break ;
             case 'writeTo':

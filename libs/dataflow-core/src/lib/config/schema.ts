@@ -66,6 +66,13 @@ enum NodeType {
     LOGICAL_OR = "logical_or", // ||
     LOGICAL_NOT = "logical_not", // !
 
+    COMPARE_EQUAL = "compare_equal", // ==
+    COMPARE_NOT_EQUAL = "compare_not_equal", // !=
+    COMPARE_GREATER_THAN = "compare_greater_than", // >
+    COMPARE_LESS_THAN = "compare_less_than", // <
+    COMPARE_GREATER_THAN_OR_EQUAL = "compare_greater_than_or_equal", // >=
+    COMPARE_LESS_THAN_OR_EQUAL = "compare_less_than_or_equal", // <=
+
     BREAK_TYPE = "break_type", // To expand/acess properties of a type,
 
     NEW_EVENT = "new_event",

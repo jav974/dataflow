@@ -61,7 +61,7 @@ class InterpreterWorker {
     private formatMessage(...args: unknown[]): string {
         return args.map(arg =>
             typeof arg === 'object' ? safeStringify(arg) : String(arg)
-        ).join(' ');
+        ).join(' ') + '\n';
     }
 
     setupLogForwarding() {

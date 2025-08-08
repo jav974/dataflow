@@ -4,13 +4,13 @@ import { AppController } from './app.controller';
 import { ConfigModule } from '@nestjs/config';
 
 @Module({
-    controllers: [AppController],
-    imports: [
-        ConfigModule.forRoot({
-            isGlobal: true,
-            envFilePath: '.env',
-        }),
-        NatsModule
-    ]
+  controllers: [AppController],
+  imports: [
+    ConfigModule.forRoot({
+      isGlobal: true,
+      envFilePath: '.env',
+    }),
+    NatsModule,
+  ],
 })
 export class AppModule {}

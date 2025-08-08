@@ -1,6 +1,6 @@
 import Node, { NodeProps } from "../../core/Node";
 
-export function LogicalNode({node, ...props}: NodeProps) {
+export default function LogicalNode({node, ...props}: NodeProps) {
     return (
         <Node
             node={node}

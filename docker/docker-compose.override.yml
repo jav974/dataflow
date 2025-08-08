@@ -60,7 +60,7 @@ services:
 
   ws-gateway:
     labels:
-      - "traefik.http.routers.ws-gateway.rule=Host(`ws.dataflow-ide.local`) && PathPrefix(`/ws`)"
+      - "traefik.http.routers.ws-gateway.rule=Host(`ws.dataflow-ide.local`)"
       - "traefik.http.services.ws-gateway.loadbalancer.sticky.cookie.name=ws_sticky"
       - "traefik.http.routers.ws-gateway.entrypoints=web"
     env_file:
