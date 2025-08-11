@@ -2,5 +2,5 @@
 # Certificates should live in ./certs and be ignored via .gitignore
 tls:
   certificates:
-    - certFile: /etc/certs/dataflow-ide.local+1.pem
-      keyFile: /etc/certs/dataflow-ide.local+1-key.pem
+    - certFile: /etc/certs/dataflow-ide.local+2.pem
+      keyFile: /etc/certs/dataflow-ide.local+2-key.pem

@@ -9,6 +9,7 @@ import "./handlers/comparison";
 import { eventBus } from "../events/events";
 import { Log } from "./types";
 import { appendResult, createVariable, getValueByPath, setValueByPath } from "./utils";
+import unescape from 'unescape-js';
 
 type SimpleMathContext = Map<string, (...numbers: number[]) => number>;
 
@@ -313,10 +314,11 @@ const handleStringToLower: NodeExecutor = async (inputs: NodeExecParams): Promis
 const handleIOWrite: NodeExecutor = async (inputs: NodeExecParams): Promise<NodeExecParams> => {
     const result: NodeExecParams = new Map();
     const fd = inputs.get('fd') as number;
-    const eol = inputs.get('eol') as boolean;
-    const content = inputs.get('content') ?? '' as string;
+    let content = String(inputs.get('content'));
     let type = "log";
     
+    content = unescape(content);
+
     if (fd == 1) {
         type = "log";
     } else if (fd == 2) {
@@ -331,10 +333,10 @@ const handleIOWrite: NodeExecutor = async (inputs: NodeExecParams): Promise<Node
     eventBus.emit<Log>('io_write', {
         type,
         createdAt: Date.now(),
-        message: content + (eol ? "\n" : '')
+        message: content
     } as Log);
 
-    result.set('bytes_written', (content?.length ?? 0) + (eol ? 1 : 0));
+    result.set('bytes_written', content?.length ?? 0);
     return result;
 };
 

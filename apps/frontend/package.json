@@ -30,6 +30,7 @@
     "react-refsignal": "^1.1.0",
     "socket.io": "^4.8.1",
     "socket.io-client": "^4.8.1",
+    "unescape-js": "^1.1.4",
     "uuid": "^11.1.0",
     "yup": "^1.6.1"
   },
@@ -41,6 +42,7 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@types/unescape-js": "^1.0.3",
     "@vitejs/plugin-react": "^4.6.0",
     "eslint": "^9",
     "eslint-config-next": "15.3.0",

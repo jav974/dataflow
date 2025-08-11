@@ -682,8 +682,7 @@ registry.set(NodeType.IO_WRITE, {
         name: "IO Write",
         inputs: [
             {id: "fd", name: "FD", type: ParameterTypes.NUMBER, options: {1:"Log",2:"Error",3:"Warn",4:"Debug"}, required: true, editable: true, defaultValue: 1},
-            {id: "content", name: "Content", type: ParameterTypes.STRING, required: false, editable: true},
-            {id: "eol", name: "EOL", type: ParameterTypes.BOOLEAN, required: false, editable: true, defaultValue: true}
+            {id: "content", name: "Content", type: ParameterTypes.STRING, required: false, editable: true}
         ],
         outputs: [
             {id: "bytes_written", name: "Bytes written", type: ParameterTypes.NUMBER}
